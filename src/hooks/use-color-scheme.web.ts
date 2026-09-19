@@ -2,20 +2,21 @@ import { useEffect, useState } from 'react';
 import { useColorScheme as useRNColorScheme } from 'react-native';
 
 /**
- * To support static rendering, this value needs to be re-calculated on the client side for web
+ * Web needs its own version.
+ *
+ * Expo Router static-renders these pages, and the server has no idea what the
+ * visitor's system theme is. Returning the real value before hydration would
+ * mismatch the server-rendered HTML, so the first paint is always light and
+ * the true scheme takes over once React has hydrated.
  */
-export function useColorScheme() {
-  const [hasHydrated, setHasHydrated] = useState(false);
+export function useColorScheme(): 'light' | 'dark' {
+  const [hydrated, setHydrated] = useState(false);
+  const scheme = useRNColorScheme();
 
   useEffect(() => {
-    setHasHydrated(true);
+    setHydrated(true);
   }, []);
 
-  const colorScheme = useRNColorScheme();
-
-  if (hasHydrated) {
-    return colorScheme;
-  }
-
-  return 'light';
+  if (!hydrated) return 'light';
+  return scheme === 'dark' ? 'dark' : 'light';
 }
