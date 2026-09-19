@@ -1,0 +1,5 @@
+# Keep line endings stable across Windows, macOS and CI.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.icon binary
