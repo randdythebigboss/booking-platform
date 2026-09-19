@@ -1,56 +1,73 @@
-# Welcome to your Expo app 👋
+# Booking Platform
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A booking platform for anyone who works by appointment: barbers, stylists,
+tutors, trainers, photographers, therapists, consultants, technicians.
+One professional or a whole team.
 
-## Get started
+The professional sets up their services and working hours and shares one link.
+The customer opens that link, sees the times that are genuinely free, and
+books. No account required.
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+app.example.com/p/demo-studio
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Status
 
-### Other setup steps
+**Phase 0 - Foundation.** The scaffold, the domain engine, the database schema
+and the security model are in place. The screens from Phase 1 onward are
+routed but not implemented yet; each one says which phase fills it in.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+| Phase | Scope                                                                                   | State                               |
+| ----- | --------------------------------------------------------------------------------------- | ----------------------------------- |
+| 0     | Repo, Expo scaffold, CI, database schema, RLS, availability engine, payment abstraction | Done                                |
+| 1     | Auth, business onboarding, services, weekly availability                                | Next                                |
+| 2     | Scheduling engine wired to the UI, exceptions, blocks                                   | Engine done, UI pending             |
+| 3     | Public booking page, guest booking, confirmation                                        | Pending                             |
+| 4     | Professional dashboard, calendar, status changes                                        | Pending                             |
+| 5     | Payment provider integration                                                            | Abstraction done, providers pending |
+| 6     | Security audit, concurrency testing, accessibility, performance                         | Pending                             |
+| 7     | Store distribution                                                                      | Pending                             |
 
-## Learn more
+## Stack
 
-To learn more about developing your project with Expo, look at the following resources:
+React Native + Expo + Expo Router + TypeScript, one codebase for iOS, Android
+and web. Supabase (PostgreSQL, Auth, Row Level Security) as the backend.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Everything runs on free tiers. No paid service is used, and none will be added
+without the product owner's approval.
 
-## Join the community
+## Quick start
 
-Join our community of developers creating universal apps.
+```bash
+npm install
+cp .env.example .env.local   # then fill in your Supabase project values
+npm run start
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+To run the database locally you need Docker and the Supabase CLI:
+
+```bash
+npm run db:start
+npm run db:reset             # applies migrations and loads the demo data
+```
+
+The demo login is `demo@bookingplatform.test` / `demo-password-123`, and the
+demo booking page is at `/p/demo-studio`.
+
+## Checks
+
+```bash
+npm run verify               # lint + typecheck + tests
+```
+
+## Documentation
+
+| Document                                     | What it covers                                                    |
+| -------------------------------------------- | ----------------------------------------------------------------- |
+| [docs/PRODUCT.md](docs/PRODUCT.md)           | What the product is, who it serves, what is in and out of the MVP |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the pieces fit, and where the availability engine lives       |
+| [docs/DATABASE.md](docs/DATABASE.md)         | The data model, and how double booking is made impossible         |
+| [docs/SECURITY.md](docs/SECURITY.md)         | Row Level Security, secrets, and the public API surface           |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)   | Working on this repo day to day                                   |
+| [docs/DECISIONS/](docs/DECISIONS/)           | Why things are the way they are                                   |
