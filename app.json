@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "booking-platform",
+    "name": "Booking Platform",
     "slug": "booking-platform",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -35,7 +35,7 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
+      "typedRoutes": false,
       "reactCompiler": true
     }
   }

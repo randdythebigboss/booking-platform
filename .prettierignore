@@ -1,0 +1,11 @@
+node_modules
+dist
+.expo
+coverage
+package-lock.json
+supabase/.temp
+assets
+supabase/migrations
+supabase/seed.sql
+supabase/tests
+dist

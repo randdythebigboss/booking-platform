@@ -1,20 +1,41 @@
 {
   "name": "booking-platform",
+  "version": "0.1.0",
+  "private": true,
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "expo:doctor": "npx --yes expo-doctor@latest",
+    "expo:export": "expo export --platform web --output-dir dist",
+    "db:start": "npx --yes supabase start",
+    "db:reset": "npx --yes supabase db reset",
+    "db:diff": "npx --yes supabase db diff",
+    "db:types": "npx --yes supabase gen types typescript --local > src/types/database.generated.ts",
+    "verify": "npm run lint && npm run typecheck && npm run test"
+  },
   "dependencies": {
-    "@expo/ui": "~57.0.19",
+    "@date-fns/tz": "^1.5.0",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@supabase/supabase-js": "^2.116.0",
+    "date-fns": "^4.4.0",
     "expo": "~57.0.24",
     "expo-constants": "~57.0.19",
-    "expo-device": "~57.0.2",
     "expo-font": "~57.0.4",
-    "expo-glass-effect": "~57.0.3",
-    "expo-image": "~57.0.5",
     "expo-linking": "~57.0.10",
     "expo-router": "~57.0.22",
     "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",
-    "expo-symbols": "~57.0.3",
     "expo-system-ui": "~57.0.4",
     "expo-web-browser": "~57.0.3",
     "react": "19.2.3",
@@ -24,20 +45,17 @@
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
+    "react-native-url-polyfill": "^4.0.0",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
-  },
-  "scripts": {
-    "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "lint": "expo lint"
-  },
-  "private": true
+    "eslint": "^9.39.0",
+    "eslint-config-expo": "^10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.6.2",
+    "typescript": "~6.0.3",
+    "vitest": "^3.2.4"
+  }
 }
