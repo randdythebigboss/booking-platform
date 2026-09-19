@@ -13,3 +13,5 @@ decision changes, a new record supersedes the old one.
 | [0006](0006-guest-booking-via-definer-rpc.md)            | Guest booking through a SECURITY DEFINER function                |
 | [0007](0007-vitest-for-domain-tests.md)                  | Vitest for domain tests                                          |
 | [0008](0008-typed-routes-disabled.md)                    | Typed routes disabled for now                                    |
+| [0009](0009-atomic-writes-via-invoker-functions.md)      | Multi-step writes go through SECURITY INVOKER functions          |
+| [0010](0010-no-data-fetching-library.md)                 | No data-fetching library yet                                     |

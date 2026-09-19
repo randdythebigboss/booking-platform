@@ -14,20 +14,21 @@ app.example.com/p/demo-studio
 
 ## Status
 
-**Phase 0 - Foundation.** The scaffold, the domain engine, the database schema
-and the security model are in place. The screens from Phase 1 onward are
-routed but not implemented yet; each one says which phase fills it in.
+**Phase 1 - Professional setup.** A professional can create an account, set up
+their business, publish a booking link, manage services and set their weekly
+hours. The customer-facing booking flow arrives in Phase 3; the screens that
+wait on it say which phase fills them in.
 
-| Phase | Scope                                                                                   | State                               |
-| ----- | --------------------------------------------------------------------------------------- | ----------------------------------- |
-| 0     | Repo, Expo scaffold, CI, database schema, RLS, availability engine, payment abstraction | Done                                |
-| 1     | Auth, business onboarding, services, weekly availability                                | Next                                |
-| 2     | Scheduling engine wired to the UI, exceptions, blocks                                   | Engine done, UI pending             |
-| 3     | Public booking page, guest booking, confirmation                                        | Pending                             |
-| 4     | Professional dashboard, calendar, status changes                                        | Pending                             |
-| 5     | Payment provider integration                                                            | Abstraction done, providers pending |
-| 6     | Security audit, concurrency testing, accessibility, performance                         | Pending                             |
-| 7     | Store distribution                                                                      | Pending                             |
+| Phase | Scope                                                                                   | State                                |
+| ----- | --------------------------------------------------------------------------------------- | ------------------------------------ |
+| 0     | Repo, Expo scaffold, CI, database schema, RLS, availability engine, payment abstraction | Done                                 |
+| 1     | Auth, business onboarding, services, weekly availability                                | Done                                 |
+| 2     | Scheduling engine wired to the UI, exceptions, blocks                                   | Engine and database done, UI pending |
+| 3     | Public booking page, guest booking, confirmation                                        | Next                                 |
+| 4     | Professional dashboard, calendar, status changes                                        | Pending                              |
+| 5     | Payment provider integration                                                            | Abstraction done, providers pending  |
+| 6     | Security audit, concurrency testing, accessibility, performance                         | Pending                              |
+| 7     | Store distribution                                                                      | Pending                              |
 
 ## Stack
 

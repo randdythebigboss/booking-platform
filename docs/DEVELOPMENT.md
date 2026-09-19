@@ -109,6 +109,7 @@ Never commit `.env`, `.env.local`, a service-role key, or any credential. See
 
 Every pull request runs install, lint, typecheck, tests and an Expo web
 export. A second job applies every migration to a real Postgres via the
-Supabase CLI and loads the seed, which is what proves the SQL is valid.
+Supabase CLI, loads the seed, and runs both SQL suites in `supabase/tests`.
+That job is what proves the SQL is valid.
 
 Nothing deploys automatically.

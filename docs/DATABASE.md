@@ -97,13 +97,16 @@ server-side validator:
 
 ## Functions
 
-| Function                      | Audience            | Purpose                                            |
-| ----------------------------- | ------------------- | -------------------------------------------------- |
-| `get_availability_context`    | anon, authenticated | The ingredients the engine needs, for a date range |
-| `book_appointment`            | anon, authenticated | The only way a guest creates an appointment        |
-| `get_appointment_by_token`    | anon, authenticated | A guest reads their own booking                    |
-| `cancel_appointment_by_token` | anon, authenticated | A guest cancels their own booking                  |
-| `is_slot_within_availability` | internal            | Server-side working-hours check                    |
+| Function                      | Audience            | Purpose                                                              |
+| ----------------------------- | ------------------- | -------------------------------------------------------------------- |
+| `get_availability_context`    | anon, authenticated | The ingredients the engine needs, for a date range                   |
+| `book_appointment`            | anon, authenticated | The only way a guest creates an appointment                          |
+| `get_appointment_by_token`    | anon, authenticated | A guest reads their own booking                                      |
+| `cancel_appointment_by_token` | anon, authenticated | A guest cancels their own booking                                    |
+| `is_slot_within_availability` | internal            | Server-side working-hours check                                      |
+| `create_business`             | authenticated       | Business, membership and professional profile in one transaction     |
+| `save_service`                | authenticated       | Create or update a service, keeping it assigned to the professionals |
+| `set_weekly_schedule`         | authenticated       | Replace a whole week of working hours atomically                     |
 
 `is_slot_within_availability` is deliberately not granted to `anon`: exposing
 it would let a stranger probe a private calendar one timestamp at a time.
@@ -132,3 +135,15 @@ npm run db:types    # regenerate TypeScript types from the live schema
 
 The seed creates Demo Studio, Alex Rivera, three services, a Monday-to-Saturday
 schedule, a block, an exception and one existing appointment.
+
+## Executable guarantees
+
+Two SQL suites run in CI against a database built from nothing:
+
+| File                                    | Proves                                                                                                             |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `supabase/tests/booking_guarantees.sql` | No double booking, blocks respected, working hours and policy enforced server-side, cancellation releases the slot |
+| `supabase/tests/tenant_isolation.sql`   | A stranger sees a published catalogue and nothing else, and cannot write into someone else's business              |
+
+The Phase 1 functions run as `SECURITY INVOKER`, so Row Level Security still
+decides who may do what. They exist for atomicity, not for privilege.

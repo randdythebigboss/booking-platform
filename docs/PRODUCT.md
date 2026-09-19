@@ -63,11 +63,12 @@ The customer can:
 
 The MVP is complete when all fifteen of these hold:
 
-- [ ] A professional can create a business
-- [ ] ...and a service
-- [ ] ...and a schedule
-- [ ] ...and block a time
-- [ ] ...and get a public link
+- [x] A professional can create a business
+- [x] ...and a service
+- [x] ...and a schedule
+- [ ] ...and block a time _(the database and the engine handle blocks; the
+      screen arrives with the calendar in Phase 4)_
+- [x] ...and get a public link
 - [ ] A customer can open that link in a browser
 - [ ] ...select a service
 - [ ] ...see real availability
@@ -78,7 +79,8 @@ The MVP is complete when all fifteen of these hold:
       exclusion constraint and `book_appointment` are in place)_
 - [ ] The professional can cancel or complete the appointment
 - [ ] It works on web, Android and iOS
-- [ ] Security rules prevent access to another business's data
+- [x] Security rules prevent access to another business's data _(proved by
+      `supabase/tests/tenant_isolation.sql` in CI)_
 
 ## Not in the MVP
 
@@ -96,14 +98,14 @@ Supabase structure, environment handling, CI, architecture documentation.
 _Done._
 
 **Phase 1 - Professional setup.** Authentication, business onboarding,
-professional profile, services, weekly availability.
+professional profile, services, weekly availability. _Done._
 
 **Phase 2 - Scheduling engine.** Slot calculation, exceptions, blocked times,
 appointment validation, double-booking protection, timezone handling.
 _Engine and database side done in Phase 0; the UI lands here._
 
 **Phase 3 - Customer booking.** Public page, service selection, calendar,
-slots, guest details, booking, confirmation.
+slots, guest details, booking, confirmation. _Next._
 
 **Phase 4 - Professional calendar.** Dashboard, calendar, appointment detail,
 status updates, manual blocks, cancellation.
