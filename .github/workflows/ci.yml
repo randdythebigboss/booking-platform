@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, types, tests, Expo export
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm run test
+
+      # Proves the app still bundles for every platform the web target covers,
+      # and that every route in src/app resolves.
+      - name: Expo validation
+        run: npx expo export --platform web --output-dir dist
+
+  database:
+    name: Migrations, seed and booking guarantees
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # Boots a real Postgres with the Supabase schemas, applies every
+      # migration from nothing, and loads the seed.
+      - name: Start Supabase
+        run: supabase start
+
+      - name: Reset from migrations
+        run: supabase db reset
+
+      # The executable version of the promises in docs/DATABASE.md: no double
+      # booking, blocks respected, working hours enforced server-side,
+      # cancellation releases the slot.
+      - name: Booking guarantees
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
+            -v ON_ERROR_STOP=1 \
+            -f supabase/tests/booking_guarantees.sql
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup
