@@ -136,6 +136,13 @@ create policy businesses_select_public on public.businesses
 create policy businesses_select_member on public.businesses
   for select to authenticated using (public.is_business_member(id));
 
+-- An owner always sees their own business, published or not, with or without
+-- a membership row. Without this, `insert ... returning` in create_business
+-- fails: RETURNING applies the SELECT policies, and at that instant the
+-- business is unpublished and its membership row does not exist yet.
+create policy businesses_select_owner on public.businesses
+  for select to authenticated using (owner_user_id = auth.uid());
+
 -- The creator becomes the owner; the matching business_members row is added
 -- by the same client transaction (see src/services/businesses.ts).
 create policy businesses_insert_own on public.businesses
