@@ -11,6 +11,7 @@ create or replace function public.time_to_clock(p_time time)
 returns text
 language sql
 immutable
+set search_path = pg_catalog, pg_temp
 as $$
   select lpad((extract(epoch from p_time)::int / 3600)::text, 2, '0')
       || ':'

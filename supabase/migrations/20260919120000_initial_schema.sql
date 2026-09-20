@@ -8,7 +8,8 @@
 --   * Double booking is impossible by construction, not by convention.
 -- ===========================================================================
 
-create extension if not exists btree_gist;
+create schema if not exists extensions;
+create extension if not exists btree_gist with schema extensions;
 
 -- ---------------------------------------------------------------------------
 -- Enums
@@ -44,6 +45,7 @@ create type public.payment_status as enum (
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
+set search_path = pg_catalog, pg_temp
 as $$
 begin
   new.updated_at := now();
@@ -56,6 +58,7 @@ $$;
 create or replace function public.assert_valid_timezone()
 returns trigger
 language plpgsql
+set search_path = pg_catalog, pg_temp
 as $$
 begin
   perform now() at time zone new.timezone;
@@ -358,6 +361,7 @@ create table public.appointments (
 create or replace function public.appointments_set_blocked_range()
 returns trigger
 language plpgsql
+set search_path = pg_catalog, pg_temp
 as $$
 begin
   new.blocked_range := tstzrange(
