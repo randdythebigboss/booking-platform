@@ -161,4 +161,140 @@ $$;
 
 commit;
 
+
+---------------------------------------------------------------------------
+-- The stranger cannot mutate another business's rows directly either.
+--
+-- RLS filters UPDATE and DELETE through the USING clause, so they match no
+-- rows rather than raising; INSERT is refused by WITH CHECK. Both shapes are
+-- checked, because "affected zero rows" and "was rejected" are different
+-- failures and only one of them is loud.
+---------------------------------------------------------------------------
+begin;
+
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', '77777777-7777-4777-8777-777777777777', 'role', 'authenticated')::text,
+  true
+);
+set local role authenticated;
+
+do $$
+declare
+  c_business constant uuid := '22222222-2222-4222-8222-222222222222';
+  c_professional constant uuid := '33333333-3333-4333-8333-333333333333';
+  v_rows integer;
+begin
+  update public.services set price = 0 where business_id = c_business;
+  get diagnostics v_rows = row_count;
+  if v_rows <> 0 then
+    raise exception 'FAIL: a stranger updated % service rows in another business', v_rows;
+  end if;
+
+  delete from public.availability_rules where professional_id = c_professional;
+  get diagnostics v_rows = row_count;
+  if v_rows <> 0 then
+    raise exception 'FAIL: a stranger deleted % working-hour rows', v_rows;
+  end if;
+
+  delete from public.appointments where business_id = c_business;
+  get diagnostics v_rows = row_count;
+  if v_rows <> 0 then
+    raise exception 'FAIL: a stranger deleted % appointments', v_rows;
+  end if;
+
+  update public.businesses set is_published = false where id = c_business;
+  get diagnostics v_rows = row_count;
+  if v_rows <> 0 then
+    raise exception 'FAIL: a stranger unpublished another business';
+  end if;
+
+  begin
+    insert into public.services (business_id, name, duration_minutes, price, currency)
+    values (c_business, 'Injected', 30, 0, 'DOP');
+    raise exception 'FAIL: a stranger inserted a service into another business';
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  begin
+    insert into public.availability_rules (professional_id, weekday, start_time, end_time)
+    values (c_professional, 1, time '00:00', time '23:00');
+    raise exception 'FAIL: a stranger inserted working hours for another professional';
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  raise notice 'stranger cannot mutate another business directly';
+end;
+$$;
+
+commit;
+
+---------------------------------------------------------------------------
+-- What an anonymous visitor may see: the published catalogue, and no more.
+---------------------------------------------------------------------------
+begin;
+
+select set_config('request.jwt.claims', json_build_object('role', 'anon')::text, true);
+set local role anon;
+
+do $$
+declare
+  v_count integer;
+begin
+  -- Demo Studio is published; Stranger Studio, created earlier in this suite,
+  -- is not.
+  select count(*) into v_count from public.businesses;
+  if v_count <> 1 then
+    raise exception 'FAIL: anon sees % businesses, expected only the published one', v_count;
+  end if;
+
+  select count(*) into v_count from public.businesses where slug = 'stranger-studio';
+  if v_count <> 0 then
+    raise exception 'FAIL: anon can see an unpublished business';
+  end if;
+
+  if not exists (
+    select 1 from public.professional_profiles where display_name = 'Alex Rivera'
+  ) then
+    raise exception 'FAIL: anon cannot see a bookable professional of a published business';
+  end if;
+
+  select count(*) into v_count
+  from public.professional_profiles
+  where display_name = 'Sam Stranger';
+  if v_count <> 0 then
+    raise exception 'FAIL: anon can see a professional inside an unpublished business';
+  end if;
+
+  if (select count(*) from public.services) = 0 then
+    raise exception 'FAIL: anon cannot see the services of a published business';
+  end if;
+
+  if (select count(*) from public.appointments) <> 0 then
+    raise exception 'FAIL: anon can read appointments';
+  end if;
+  if (select count(*) from public.customers) <> 0 then
+    raise exception 'FAIL: anon can read customer records';
+  end if;
+  if (select count(*) from public.availability_rules) <> 0 then
+    raise exception 'FAIL: anon can read a private calendar';
+  end if;
+  if (select count(*) from public.blocked_times) <> 0 then
+    raise exception 'FAIL: anon can read blocked time';
+  end if;
+  if (select count(*) from public.business_members) <> 0 then
+    raise exception 'FAIL: anon can read business membership';
+  end if;
+  if (select count(*) from public.payments) <> 0 then
+    raise exception 'FAIL: anon can read payments';
+  end if;
+
+  raise notice 'anon sees the published catalogue and nothing else';
+end;
+$$;
+
+commit;
+
 \echo 'Tenant isolation holds.'

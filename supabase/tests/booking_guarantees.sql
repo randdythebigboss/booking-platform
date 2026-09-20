@@ -122,6 +122,25 @@ begin
   end;
 
   ---------------------------------------------------------------------------
+  raise notice '5b. a service that would overrun closing time is refused';
+  ---------------------------------------------------------------------------
+  begin
+    -- 17:30 is inside 09:00-18:00, but a 45-minute service ends at 18:15.
+    perform public.book_appointment(
+      c_professional, c_service,
+      (v_monday::timestamp + time '17:30') at time zone c_timezone,
+      'Overrunner', '+1 809 555 1009'
+    );
+    raise exception 'FAIL: booked a service that does not fit before closing';
+  exception
+    when sqlstate '22023' then
+      get stacked diagnostics v_message = message_text;
+      if v_message <> 'OUTSIDE_AVAILABILITY' then
+        raise exception 'FAIL: expected OUTSIDE_AVAILABILITY, got %', v_message;
+      end if;
+  end;
+
+  ---------------------------------------------------------------------------
   raise notice '6. the booking horizon is enforced';
   ---------------------------------------------------------------------------
   begin
@@ -206,6 +225,229 @@ begin
     raise exception 'FAIL: the released slot could not be rebooked';
   end if;
 
-  raise notice 'All booking guarantees hold.';
+  ---------------------------------------------------------------------------
+  raise notice '11. the same clock time is fine for a different professional';
+  ---------------------------------------------------------------------------
+  -- The exclusion constraint is scoped per professional. Two people in the
+  -- same business must be able to work at the same time.
+  insert into public.professional_profiles (id, business_id, user_id, display_name)
+  values (
+    '33333333-3333-4333-8333-999999999999',
+    '22222222-2222-4222-8222-222222222222',
+    null,
+    'Second Chair'
+  )
+  on conflict (id) do nothing;
+
+  insert into public.appointments (
+    business_id, professional_id, customer_id, starts_at, ends_at, status
+  )
+  values (
+    '22222222-2222-4222-8222-222222222222',
+    '33333333-3333-4333-8333-999999999999',
+    '55555555-5555-4555-8555-555555555555',
+    v_slot,
+    v_slot + interval '45 minutes',
+    'confirmed'
+  );
+
+  -- ...while the same slot for the ORIGINAL professional is still refused.
+  begin
+    insert into public.appointments (
+      business_id, professional_id, customer_id, starts_at, ends_at, status
+    )
+    values (
+      '22222222-2222-4222-8222-222222222222',
+      c_professional,
+      '55555555-5555-4555-8555-555555555555',
+      v_slot,
+      v_slot + interval '45 minutes',
+      'confirmed'
+    );
+    raise exception 'FAIL: the exclusion constraint did not stop a same-professional overlap';
+  exception
+    when exclusion_violation then null;
+  end;
+
+  raise notice 'core booking guarantees hold';
 end;
 $$;
+
+-- ===========================================================================
+-- 11. An anonymous caller may book only through the RPC.
+--
+-- The public booking page holds the anon key. It must be able to read
+-- availability and create a booking through book_appointment, and must not be
+-- able to write to any table directly.
+-- ===========================================================================
+
+begin;
+
+select set_config(
+  'request.jwt.claims',
+  json_build_object('role', 'anon')::text,
+  true
+);
+set local role anon;
+
+do $$
+declare
+  c_professional constant uuid := '33333333-3333-4333-8333-333333333333';
+  c_service constant uuid := '44444444-4444-4444-8444-000000000002';
+  c_business constant uuid := '22222222-2222-4222-8222-222222222222';
+  v_context jsonb;
+begin
+  -- Allowed: read availability through the function.
+  v_context := public.get_availability_context(
+    c_professional, c_service, current_date, current_date + 7
+  );
+  if v_context is null then
+    raise exception 'FAIL: anon cannot read availability through the RPC';
+  end if;
+
+  -- Refused: writing to any table directly.
+  begin
+    insert into public.appointments (
+      business_id, professional_id, customer_id, starts_at, ends_at
+    )
+    values (
+      c_business, c_professional, '55555555-5555-4555-8555-555555555555',
+      now() + interval '10 days', now() + interval '10 days 45 minutes'
+    );
+    raise exception 'FAIL: anon inserted an appointment directly';
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  begin
+    insert into public.customers (business_id, full_name, phone)
+    values (c_business, 'Injected', '+1 809 555 9999');
+    raise exception 'FAIL: anon inserted a customer directly';
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  begin
+    insert into public.blocked_times (professional_id, starts_at, ends_at)
+    values (c_professional, now() + interval '20 days', now() + interval '21 days');
+    raise exception 'FAIL: anon blocked time directly';
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  begin
+    update public.services set price = 0 where business_id = c_business;
+    if found then
+      raise exception 'FAIL: anon updated a service directly';
+    end if;
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  raise notice '12. anon reads availability through the RPC and cannot write directly';
+end;
+$$;
+
+commit;
+
+
+-- ===========================================================================
+-- 13. A guest cannot reach hidden resources by supplying their identifiers.
+--
+-- book_appointment takes ids from an untrusted caller. It must derive the
+-- business from the professional, refuse an unpublished one, and refuse a
+-- service that the named professional does not actually offer.
+-- ===========================================================================
+
+do $$
+declare
+  c_demo_professional constant uuid := '33333333-3333-4333-8333-333333333333';
+  c_demo_service constant uuid := '44444444-4444-4444-8444-000000000002';
+  v_hidden_business uuid;
+  v_hidden_professional uuid;
+  v_hidden_service uuid;
+  v_slot timestamptz := date_trunc('hour', now()) + interval '8 days 4 hours';
+  v_message text;
+begin
+  -- A business that exists but was never published.
+  insert into public.businesses (owner_user_id, name, slug, timezone, is_published)
+  values (
+    '11111111-1111-4111-8111-111111111111',
+    'Hidden Studio', 'hidden-studio', 'America/Santo_Domingo', false
+  )
+  returning id into v_hidden_business;
+
+  insert into public.professional_profiles (business_id, display_name)
+  values (v_hidden_business, 'Hidden Pro')
+  returning id into v_hidden_professional;
+
+  insert into public.services (business_id, name, duration_minutes, price, currency)
+  values (v_hidden_business, 'Hidden Service', 30, 500, 'DOP')
+  returning id into v_hidden_service;
+
+  insert into public.professional_services (professional_id, service_id)
+  values (v_hidden_professional, v_hidden_service);
+
+  insert into public.availability_rules (professional_id, weekday, start_time, end_time)
+  select v_hidden_professional, d::smallint, time '00:00', time '23:59'
+  from generate_series(0, 6) as d;
+
+  -- The professional exists and is bookable, but the business is not public.
+  begin
+    perform public.book_appointment(
+      v_hidden_professional, v_hidden_service, v_slot, 'Prober', '+1 809 555 2001'
+    );
+    raise exception 'FAIL: booked against an unpublished business';
+  exception
+    when sqlstate 'P0002' then
+      get stacked diagnostics v_message = message_text;
+      if v_message <> 'BUSINESS_NOT_PUBLIC' then
+        raise exception 'FAIL: expected BUSINESS_NOT_PUBLIC, got %', v_message;
+      end if;
+  end;
+
+  -- A published professional cannot be paired with another business's service.
+  begin
+    perform public.book_appointment(
+      c_demo_professional, v_hidden_service, v_slot, 'Prober', '+1 809 555 2002'
+    );
+    raise exception 'FAIL: booked a service belonging to another business';
+  exception
+    when sqlstate 'P0002' then
+      get stacked diagnostics v_message = message_text;
+      if v_message <> 'SERVICE_NOT_AVAILABLE' then
+        raise exception 'FAIL: expected SERVICE_NOT_AVAILABLE, got %', v_message;
+      end if;
+  end;
+
+  -- ...and the hidden professional cannot borrow a published service either.
+  begin
+    perform public.book_appointment(
+      v_hidden_professional, c_demo_service, v_slot, 'Prober', '+1 809 555 2003'
+    );
+    raise exception 'FAIL: booked a published service through a hidden professional';
+  exception
+    when sqlstate 'P0002' then null;
+  end;
+
+  -- A professional who has stopped accepting bookings is refused.
+  update public.professional_profiles set is_bookable = false where id = c_demo_professional;
+  begin
+    perform public.book_appointment(
+      c_demo_professional, c_demo_service, v_slot, 'Prober', '+1 809 555 2004'
+    );
+    raise exception 'FAIL: booked with a professional who is not accepting bookings';
+  exception
+    when sqlstate 'P0002' then
+      get stacked diagnostics v_message = message_text;
+      if v_message <> 'PROFESSIONAL_NOT_BOOKABLE' then
+        raise exception 'FAIL: expected PROFESSIONAL_NOT_BOOKABLE, got %', v_message;
+      end if;
+  end;
+  update public.professional_profiles set is_bookable = true where id = c_demo_professional;
+
+  raise notice '13. supplied identifiers cannot reach hidden or mismatched resources';
+end;
+$$;
+
+\echo 'All booking guarantees hold.'
