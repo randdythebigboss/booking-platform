@@ -108,7 +108,7 @@ values
 on conflict (id) do nothing;
 
 insert into public.professional_services (professional_id, service_id)
-select '33333333-3333-4333-8333-333333333333', s.id
+select '33333333-3333-4333-8333-333333333333'::uuid, s.id
 from public.services s
 where s.business_id = '22222222-2222-4222-8222-222222222222'
 on conflict do nothing;
@@ -117,10 +117,10 @@ on conflict do nothing;
 -- Monday to Friday 09:00-18:00, Saturday 09:00-14:00, Sunday closed.
 
 insert into public.availability_rules (professional_id, weekday, start_time, end_time)
-select '33333333-3333-4333-8333-333333333333', weekday, time '09:00', time '18:00'
+select '33333333-3333-4333-8333-333333333333'::uuid, weekday::smallint, time '09:00', time '18:00'
 from generate_series(1, 5) as weekday
 union all
-select '33333333-3333-4333-8333-333333333333', 6, time '09:00', time '14:00';
+select '33333333-3333-4333-8333-333333333333'::uuid, 6::smallint, time '09:00', time '14:00';
 
 -- Exceptions: a long lunch in three days, a day off in twelve.
 
