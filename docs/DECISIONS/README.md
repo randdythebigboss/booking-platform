@@ -15,3 +15,4 @@ decision changes, a new record supersedes the old one.
 | [0008](0008-typed-routes-disabled.md)                    | Typed routes disabled for now                                    |
 | [0009](0009-atomic-writes-via-invoker-functions.md)      | Multi-step writes go through SECURITY INVOKER functions          |
 | [0010](0010-no-data-fetching-library.md)                 | No data-fetching library yet                                     |
+| [0011](0011-slot-grid-anchored-to-shift-start.md)        | The slot grid is anchored to the shift start                     |

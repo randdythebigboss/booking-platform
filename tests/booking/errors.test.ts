@@ -33,9 +33,19 @@ describe('toBookingError', () => {
 });
 
 describe('BookingError.isSlotConflict', () => {
-  it('is true exactly for the two cases where picking another time helps', () => {
+  it('is true exactly for the cases where picking another time helps', () => {
     expect(new BookingError('SLOT_TAKEN').isSlotConflict).toBe(true);
     expect(new BookingError('SLOT_BLOCKED').isSlotConflict).toBe(true);
+    expect(new BookingError('SLOT_NOT_ALIGNED').isSlotConflict).toBe(true);
     expect(new BookingError('TOO_SOON').isSlotConflict).toBe(false);
+    expect(new BookingError('BEYOND_HORIZON').isSlotConflict).toBe(false);
+  });
+});
+
+describe('SLOT_NOT_ALIGNED', () => {
+  it('maps the sentinel the alignment gate raises', () => {
+    const error = toBookingError({ message: 'SLOT_NOT_ALIGNED' });
+    expect(error.code).toBe('SLOT_NOT_ALIGNED');
+    expect(error.message).toMatch(/pick one from the list/);
   });
 });

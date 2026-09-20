@@ -7,6 +7,7 @@ export const BOOKING_ERROR_CODES = [
   'SLOT_TAKEN',
   'SLOT_BLOCKED',
   'OUTSIDE_AVAILABILITY',
+  'SLOT_NOT_ALIGNED',
   'TOO_SOON',
   'BEYOND_HORIZON',
   'SERVICE_NOT_AVAILABLE',
@@ -26,6 +27,7 @@ const BOOKING_ERROR_MESSAGES: Record<BookingErrorCode, string> = {
   SLOT_TAKEN: 'That time was just booked by someone else. Please pick another one.',
   SLOT_BLOCKED: 'That time is no longer available. Please pick another one.',
   OUTSIDE_AVAILABILITY: 'That time is outside the working hours for this professional.',
+  SLOT_NOT_ALIGNED: 'That is not one of the times this professional offers. Please pick one from the list.',
   TOO_SOON: 'That time is too close to now to be booked online.',
   BEYOND_HORIZON: 'That date is further ahead than this professional accepts bookings.',
   SERVICE_NOT_AVAILABLE: 'This service is not offered by that professional.',
@@ -50,7 +52,11 @@ export class BookingError extends Error {
 
   /** True when retrying with a different time is the right next step. */
   get isSlotConflict(): boolean {
-    return this.code === 'SLOT_TAKEN' || this.code === 'SLOT_BLOCKED';
+    return (
+      this.code === 'SLOT_TAKEN' ||
+      this.code === 'SLOT_BLOCKED' ||
+      this.code === 'SLOT_NOT_ALIGNED'
+    );
   }
 }
 

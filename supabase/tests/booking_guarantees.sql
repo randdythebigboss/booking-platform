@@ -450,4 +450,205 @@ begin
 end;
 $$;
 
+
+-- ===========================================================================
+-- 14. The configured slot interval is enforced server-side.
+--
+-- Demo Studio publishes a 15-minute grid. A request that skips the UI must
+-- not be able to land between the offered times.
+-- ===========================================================================
+
+do $$
+declare
+  c_professional constant uuid := '33333333-3333-4333-8333-333333333333';
+  c_service_30 constant uuid := '44444444-4444-4444-8444-000000000001';
+  c_service_45 constant uuid := '44444444-4444-4444-8444-000000000002';
+  c_service_60 constant uuid := '44444444-4444-4444-8444-000000000003';
+  c_timezone constant text := 'America/Santo_Domingo';
+
+  v_days_ahead int;
+  v_monday date;
+  v_quiet date;   -- a Monday with nothing else booked on it
+  v_odd date;     -- a Monday whose hours deliberately start off-grid
+  v_message text;
+begin
+  v_days_ahead := ((1 - extract(dow from current_date)::int + 7) % 7);
+  if v_days_ahead = 0 then
+    v_days_ahead := 7;
+  end if;
+  v_monday := current_date + v_days_ahead;
+  v_quiet := v_monday + 7;
+  v_odd := v_monday + 14;
+
+  ---------------------------------------------------------------------------
+  -- An aligned start is accepted, and a misaligned one is not.
+  ---------------------------------------------------------------------------
+  perform public.book_appointment(
+    c_professional, c_service_45,
+    (v_quiet::timestamp + time '10:00') at time zone c_timezone,
+    'Aligned Guest', '+1 809 555 3001'
+  );
+
+  begin
+    perform public.book_appointment(
+      c_professional, c_service_45,
+      (v_quiet::timestamp + time '11:07') at time zone c_timezone,
+      'Off Grid', '+1 809 555 3002'
+    );
+    raise exception 'FAIL: booked at 11:07 on a 15-minute grid';
+  exception
+    when sqlstate '22023' then
+      get stacked diagnostics v_message = message_text;
+      if v_message <> 'SLOT_NOT_ALIGNED' then
+        raise exception 'FAIL: expected SLOT_NOT_ALIGNED, got %', v_message;
+      end if;
+  end;
+
+  begin
+    perform public.book_appointment(
+      c_professional, c_service_45,
+      (v_quiet::timestamp + time '11:05') at time zone c_timezone,
+      'Off Grid', '+1 809 555 3003'
+    );
+    raise exception 'FAIL: booked at 11:05 on a 15-minute grid';
+  exception
+    when sqlstate '22023' then
+      get stacked diagnostics v_message = message_text;
+      if v_message <> 'SLOT_NOT_ALIGNED' then
+        raise exception 'FAIL: expected SLOT_NOT_ALIGNED, got %', v_message;
+      end if;
+  end;
+
+  ---------------------------------------------------------------------------
+  -- The grid belongs to the business, not to the service: every duration
+  -- lands on the same 15-minute marks.
+  ---------------------------------------------------------------------------
+  perform public.book_appointment(
+    c_professional, c_service_30,
+    (v_quiet::timestamp + time '12:15') at time zone c_timezone,
+    'Short Service', '+1 809 555 3004'
+  );
+
+  perform public.book_appointment(
+    c_professional, c_service_60,
+    (v_quiet::timestamp + time '14:30') at time zone c_timezone,
+    'Long Service', '+1 809 555 3005'
+  );
+
+  begin
+    perform public.book_appointment(
+      c_professional, c_service_60,
+      (v_quiet::timestamp + time '16:20') at time zone c_timezone,
+      'Long Off Grid', '+1 809 555 3006'
+    );
+    raise exception 'FAIL: a 60-minute service escaped the grid';
+  exception
+    when sqlstate '22023' then
+      get stacked diagnostics v_message = message_text;
+      if v_message <> 'SLOT_NOT_ALIGNED' then
+        raise exception 'FAIL: expected SLOT_NOT_ALIGNED, got %', v_message;
+      end if;
+  end;
+
+  raise notice '14. the slot interval is enforced for every service duration';
+end;
+$$;
+
+-- ===========================================================================
+-- 15. The grid starts where the shift starts, in business-local time.
+--
+-- This is the rule the engine uses: a professional who opens at 09:10 is
+-- offered 09:10 and 09:25, not 09:15. Aligning to midnight instead would get
+-- this backwards, and the difference only shows on an off-grid opening time.
+-- ===========================================================================
+
+do $$
+declare
+  c_professional constant uuid := '33333333-3333-4333-8333-333333333333';
+  c_service_30 constant uuid := '44444444-4444-4444-8444-000000000001';
+  c_timezone constant text := 'America/Santo_Domingo';
+
+  v_days_ahead int;
+  v_odd date;
+  v_message text;
+  v_first jsonb;
+begin
+  v_days_ahead := ((1 - extract(dow from current_date)::int + 7) % 7);
+  if v_days_ahead = 0 then
+    v_days_ahead := 7;
+  end if;
+  v_odd := current_date + v_days_ahead + 14;
+
+  -- Replace that day's hours with a shift that opens at 09:10.
+  insert into public.availability_exceptions (
+    professional_id, exception_date, exception_type, start_time, end_time, reason
+  )
+  values (c_professional, v_odd, 'available', time '09:10', time '12:00', 'Off-grid opening');
+
+  -- 09:15 is on the midnight grid but NOT on this shift's grid.
+  begin
+    perform public.book_appointment(
+      c_professional, c_service_30,
+      (v_odd::timestamp + time '09:15') at time zone c_timezone,
+      'Midnight Grid', '+1 809 555 4001'
+    );
+    raise exception 'FAIL: 09:15 was accepted on a shift that opens at 09:10';
+  exception
+    when sqlstate '22023' then
+      get stacked diagnostics v_message = message_text;
+      if v_message <> 'SLOT_NOT_ALIGNED' then
+        raise exception 'FAIL: expected SLOT_NOT_ALIGNED, got %', v_message;
+      end if;
+  end;
+
+  -- The opening minute itself is the first offered time.
+  v_first := public.book_appointment(
+    c_professional, c_service_30,
+    (v_odd::timestamp + time '09:10') at time zone c_timezone,
+    'Shift Grid', '+1 809 555 4002'
+  );
+
+  -- ...and the grid continues from there: 09:10 + three 15-minute steps.
+  perform public.book_appointment(
+    c_professional, c_service_30,
+    (v_odd::timestamp + time '09:55') at time zone c_timezone,
+    'Shift Grid Two', '+1 809 555 4003'
+  );
+
+  ---------------------------------------------------------------------------
+  -- Alignment must not have weakened overlap protection: an aligned time that
+  -- is already taken is still refused, and as SLOT_TAKEN, not as misaligned.
+  ---------------------------------------------------------------------------
+  begin
+    perform public.book_appointment(
+      c_professional, c_service_30,
+      (v_odd::timestamp + time '09:10') at time zone c_timezone,
+      'Double Booker', '+1 809 555 4004'
+    );
+    raise exception 'FAIL: an aligned but taken slot was booked twice';
+  exception
+    when sqlstate '23P01' then
+      get stacked diagnostics v_message = message_text;
+      if v_message <> 'SLOT_TAKEN' then
+        raise exception 'FAIL: expected SLOT_TAKEN, got %', v_message;
+      end if;
+  end;
+
+  -- Cancelling releases it, and the released time is still on the grid.
+  perform public.cancel_appointment_by_token(
+    (v_first ->> 'appointmentId')::uuid,
+    (v_first ->> 'accessToken')::uuid,
+    'Testing alignment'
+  );
+
+  perform public.book_appointment(
+    c_professional, c_service_30,
+    (v_odd::timestamp + time '09:10') at time zone c_timezone,
+    'Rebooker', '+1 809 555 4005'
+  );
+
+  raise notice '15. the grid is anchored to the shift start, in business-local time';
+end;
+$$;
+
 \echo 'All booking guarantees hold.'

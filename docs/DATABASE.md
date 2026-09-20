@@ -104,6 +104,8 @@ server-side validator:
 | `get_appointment_by_token`    | anon, authenticated | A guest reads their own booking                                      |
 | `cancel_appointment_by_token` | anon, authenticated | A guest cancels their own booking                                    |
 | `is_slot_within_availability` | internal            | Server-side working-hours check                                      |
+| `is_slot_aligned`             | internal            | Server-side slot-interval check                                      |
+| `working_windows`             | internal            | The shared definition of a professional's open hours on a date       |
 | `create_business`             | authenticated       | Business, membership and professional profile in one transaction     |
 | `save_service`                | authenticated       | Create or update a service, keeping it assigned to the professionals |
 | `set_weekly_schedule`         | authenticated       | Replace a whole week of working hours atomically                     |
@@ -120,6 +122,7 @@ map them exactly. See [`src/features/booking/errors.ts`](../src/features/booking
 SLOT_TAKEN              lost the race for that time
 SLOT_BLOCKED            overlaps a manual block
 OUTSIDE_AVAILABILITY    not within working hours
+SLOT_NOT_ALIGNED        not on the published slot grid
 TOO_SOON                inside the minimum notice window
 BEYOND_HORIZON          further ahead than the business accepts
 SERVICE_NOT_AVAILABLE   that professional does not offer it
