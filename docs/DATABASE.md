@@ -138,7 +138,8 @@ schedule, a block, an exception and one existing appointment.
 
 ## Executable guarantees
 
-Two SQL suites run in CI against a database built from nothing:
+Two SQL suites run against a database built from nothing, in CI and via
+`tools/local-postgres/run-validation.sh`:
 
 | File                                    | Proves                                                                                                             |
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |

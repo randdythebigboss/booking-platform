@@ -55,6 +55,24 @@ npx supabase migration new add_something
 npm run db:reset
 ```
 
+## Validating the SQL without Docker
+
+CI uses the Supabase CLI, which is the faithful environment. When Docker is
+not available, the same SQL can be run against any stock PostgreSQL:
+
+```bash
+PGBIN=/path/to/pgsql/bin ./tools/local-postgres/run-validation.sh
+```
+
+It recreates the database from nothing, applies
+`tools/local-postgres/bootstrap.sql` (the roles, grants, `extensions` schema
+and minimal `auth` schema that Supabase would otherwise provide), then runs
+every migration in order, the seed, and both SQL suites.
+
+The bootstrap deliberately reproduces Supabase's broad table grants. Without
+them an RLS test would pass for the wrong reason -- "permission denied"
+instead of "no rows".
+
 ## Checks
 
 ```bash
