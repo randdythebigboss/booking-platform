@@ -2,8 +2,10 @@ name: CI
 
 on:
   pull_request:
+  # Every branch is validated, not just main: phase work has to be able to
+  # prove itself before it is merged anywhere.
   push:
-    branches: [main]
+    branches: ["**"]
 
 concurrency:
   group: ci-${{ github.ref }}
