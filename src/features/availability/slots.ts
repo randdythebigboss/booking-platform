@@ -43,13 +43,13 @@ export function computeAvailableSlots(input: ComputeSlotsInput): Slot[] {
     return [];
   }
 
-  const workingWindows = resolveWorkingWindows(
+  const { windows, closures } = resolveScheduleForDate(
     input.date,
     input.timezone,
     input.rules,
     input.exceptions ?? [],
   );
-  if (workingWindows.length === 0) {
+  if (windows.length === 0) {
     return [];
   }
 
@@ -69,14 +69,18 @@ export function computeAvailableSlots(input: ComputeSlotsInput): Slot[] {
 
   const slots: Slot[] = [];
 
-  for (const window of workingWindows) {
-    // Align candidate starts to the window opening, not to the clock hour:
-    // a shift starting at 09:10 should offer 09:10, not 09:15.
+  for (const window of windows) {
+    // The grid is anchored to the shift opening, not to the clock hour and not
+    // to midnight: a shift starting at 09:10 offers 09:10, then 09:25. A timed
+    // closure later in the day removes slots but does NOT move the grid, which
+    // is what public.get_available_slots does too. See docs/DECISIONS/0011.
     for (let start = window.start; start + durationMs <= window.end; start += stepMs) {
       if (start < earliestStart) continue;
 
       const service: Interval = { start, end: start + durationMs };
       if (!contains(window, service)) continue;
+
+      if (closures.some((closure) => overlaps(service, closure))) continue;
 
       // Buffers may spill outside working hours, but must not touch busy time.
       const occupied: Interval = {
@@ -96,26 +100,42 @@ export function computeAvailableSlots(input: ComputeSlotsInput): Slot[] {
  * Turns weekly rules and exceptions into absolute working windows for a date.
  * Exported for tests and for the calendar UI, which shows the shift itself.
  */
-export function resolveWorkingWindows(
+export interface DaySchedule {
+  /** The shifts themselves. Each one anchors the slot grid. */
+  windows: Interval[];
+  /** Timed closures carved out of those shifts. They never move the grid. */
+  closures: Interval[];
+}
+
+/**
+ * Resolves weekly rules and exceptions into the shifts and closures of one
+ * date, keeping them separate.
+ *
+ * The separation is the point: `public.working_windows` returns the shifts
+ * and `public.get_available_slots` filters closures out afterwards, so the
+ * engine has to do the same or the two would offer different times whenever a
+ * closure ends off-grid.
+ */
+export function resolveScheduleForDate(
   date: string,
   timezone: string,
   rules: readonly WeeklyRule[],
   exceptions: readonly DateException[],
-): Interval[] {
+): DaySchedule {
   const forDate = exceptions.filter((exception) => exception.date === date);
 
   const fullDayClosure = forDate.some(
     (exception) => exception.type === 'unavailable' && !exception.startTime && !exception.endTime,
   );
   if (fullDayClosure) {
-    return [];
+    return { windows: [], closures: [] };
   }
 
   const overrides = forDate.filter(
     (exception) => exception.type === 'available' && exception.startTime && exception.endTime,
   );
 
-  const base: Interval[] =
+  const windows: Interval[] =
     overrides.length > 0
       ? overrides.map((exception) =>
           toInterval(date, exception.startTime as string, exception.endTime as string, timezone),
@@ -132,7 +152,22 @@ export function resolveWorkingWindows(
       toInterval(date, exception.startTime as string, exception.endTime as string, timezone),
     );
 
-  return subtract(base, closures);
+  return { windows: normalize(windows), closures: normalize(closures) };
+}
+
+/**
+ * The hours a professional is actually open on a date, closures already
+ * removed. This is the shape a calendar draws; the slot engine uses
+ * `resolveScheduleForDate` instead, because it needs the anchor.
+ */
+export function resolveWorkingWindows(
+  date: string,
+  timezone: string,
+  rules: readonly WeeklyRule[],
+  exceptions: readonly DateException[],
+): Interval[] {
+  const { windows, closures } = resolveScheduleForDate(date, timezone, rules, exceptions);
+  return subtract(windows, closures);
 }
 
 function rulesForDate(date: string, timezone: string, rules: readonly WeeklyRule[]): WeeklyRule[] {

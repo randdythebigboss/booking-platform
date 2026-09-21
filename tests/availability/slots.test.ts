@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   InvalidAvailabilityInputError,
   computeAvailableSlots,
+  resolveScheduleForDate,
   resolveWorkingWindows,
 } from '@/features/availability';
 import type {
@@ -296,5 +297,55 @@ describe('computeAvailableSlots - input validation', () => {
         }),
       ),
     ).toThrow(InvalidAvailabilityInputError);
+  });
+});
+
+describe('computeAvailableSlots - closures do not move the grid', () => {
+  // A closure that ends off-grid used to re-anchor the rest of the day,
+  // because the engine stepped from the post-subtraction window. The database
+  // never did that, so the two would offer different times. They now agree.
+  const withOddClosure = () =>
+    computeAvailableSlots(
+      input({
+        service: { durationMinutes: 30, bufferBeforeMinutes: 0, bufferAfterMinutes: 0 },
+        exceptions: [
+          { date: MONDAY, type: 'unavailable', startTime: '12:00', endTime: '12:40' },
+        ],
+      }),
+    );
+
+  it('keeps the grid anchored to the shift start', () => {
+    const times = localTimes(withOddClosure());
+    expect(times).toContain('12:45');
+    expect(times).not.toContain('12:40');
+  });
+
+  it('still removes every slot the closure touches', () => {
+    const times = localTimes(withOddClosure());
+    expect(times).not.toContain('11:45');
+    expect(times).not.toContain('12:00');
+    expect(times).not.toContain('12:30');
+    expect(times).toContain('11:30');
+  });
+});
+
+describe('resolveScheduleForDate', () => {
+  it('reports shifts and closures separately', () => {
+    const schedule = resolveScheduleForDate(MONDAY, SDQ, NINE_TO_FIVE, [
+      { date: MONDAY, type: 'unavailable', startTime: '12:00', endTime: '13:00' },
+    ]);
+
+    expect(schedule.windows).toHaveLength(1);
+    expect(schedule.closures).toHaveLength(1);
+    // The shift is untouched; the closure is a separate fact about it.
+    expect(schedule.windows[0]!.start).toBe(resolveWorkingWindows(MONDAY, SDQ, NINE_TO_FIVE, [])[0]!.start);
+  });
+
+  it('reports a closed day as no shifts at all', () => {
+    const schedule = resolveScheduleForDate(MONDAY, SDQ, NINE_TO_FIVE, [
+      { date: MONDAY, type: 'unavailable' },
+    ]);
+    expect(schedule.windows).toEqual([]);
+    expect(schedule.closures).toEqual([]);
   });
 });

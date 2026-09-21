@@ -1,7 +1,9 @@
 export {
   computeAvailableSlots,
+  resolveScheduleForDate,
   resolveWorkingWindows,
   InvalidAvailabilityInputError,
+  type DaySchedule,
 } from './slots';
 export {
   parseAvailabilityContext,
