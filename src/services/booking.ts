@@ -1,4 +1,8 @@
-import { toBookingError } from '@/features/booking';
+import {
+  parseGuestAppointment,
+  toBookingError,
+  type GuestAppointment,
+} from '@/features/booking';
 import { getSupabase } from '@/lib/supabase';
 import type { AppointmentStatus } from '@/types/domain';
 
@@ -69,14 +73,14 @@ export async function bookAppointment(input: BookAppointmentInput): Promise<Book
 export async function fetchAppointmentByToken(
   appointmentId: string,
   accessToken: string,
-): Promise<Record<string, unknown>> {
+): Promise<GuestAppointment> {
   const { data, error } = await getSupabase().rpc('get_appointment_by_token', {
     p_appointment_id: appointmentId,
     p_access_token: accessToken,
   });
 
   if (error) throw toBookingError(error);
-  return data as Record<string, unknown>;
+  return parseGuestAppointment(data);
 }
 
 export async function cancelAppointmentByToken(

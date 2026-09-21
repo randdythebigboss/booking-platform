@@ -87,10 +87,34 @@ export default function PublicBusinessScreen() {
 
   return (
     <Screen title={business.name} subtitle={business.description ?? undefined}>
+      {business.phone && (
+        <Text variant="caption" tone="muted" selectable>
+          {business.phone}
+        </Text>
+      )}
+
       {business.address && (
         <Text variant="caption" tone="muted">
           {business.address}
         </Text>
+      )}
+
+      {business.professionals.length > 0 && (
+        <>
+          <Text variant="heading">Who you will see</Text>
+          <View style={{ gap: spacing.sm }}>
+            {business.professionals.map((professional) => (
+              <Card key={professional.id}>
+                <Text variant="heading">{professional.displayName}</Text>
+                {professional.bio && (
+                  <Text variant="body" tone="muted">
+                    {professional.bio}
+                  </Text>
+                )}
+              </Card>
+            ))}
+          </View>
+        </>
       )}
 
       <Text variant="heading">Services</Text>
