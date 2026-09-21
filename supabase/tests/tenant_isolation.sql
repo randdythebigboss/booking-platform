@@ -297,4 +297,69 @@ $$;
 
 commit;
 
+
+---------------------------------------------------------------------------
+-- Phase 2: scheduling writes are tenant-scoped too.
+--
+-- Blocked time and date exceptions are as private as the calendar they shape,
+-- so a stranger must not be able to create or delete either for someone
+-- else's professional.
+---------------------------------------------------------------------------
+begin;
+
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', '77777777-7777-4777-8777-777777777777', 'role', 'authenticated')::text,
+  true
+);
+set local role authenticated;
+
+do $$
+declare
+  c_professional constant uuid := '33333333-3333-4333-8333-333333333333';
+  v_rows integer;
+begin
+  begin
+    insert into public.blocked_times (professional_id, starts_at, ends_at, reason)
+    values (
+      c_professional,
+      now() + interval '30 days',
+      now() + interval '30 days 1 hour',
+      'Injected block'
+    );
+    raise exception 'FAIL: a stranger blocked another professional''s calendar';
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  begin
+    insert into public.availability_exceptions (
+      professional_id, exception_date, exception_type, reason
+    )
+    values (c_professional, (current_date + 30)::date, 'unavailable', 'Injected exception');
+    raise exception 'FAIL: a stranger closed another professional''s day';
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  -- Deletes are filtered by the USING clause, so they match nothing instead
+  -- of raising. Silent is still wrong, so it is asserted explicitly.
+  delete from public.blocked_times where professional_id = c_professional;
+  get diagnostics v_rows = row_count;
+  if v_rows <> 0 then
+    raise exception 'FAIL: a stranger deleted % blocked-time rows', v_rows;
+  end if;
+
+  delete from public.availability_exceptions where professional_id = c_professional;
+  get diagnostics v_rows = row_count;
+  if v_rows <> 0 then
+    raise exception 'FAIL: a stranger deleted % availability exceptions', v_rows;
+  end if;
+
+  raise notice 'stranger cannot create or delete another tenant blocks and exceptions';
+end;
+$$;
+
+commit;
+
 \echo 'Tenant isolation holds.'

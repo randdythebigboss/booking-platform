@@ -49,5 +49,6 @@ done
 run "seed" -f "$REPO_ROOT/supabase/seed.sql"
 run "booking_guarantees.sql" -f "$REPO_ROOT/supabase/tests/booking_guarantees.sql"
 run "tenant_isolation.sql" -f "$REPO_ROOT/supabase/tests/tenant_isolation.sql"
+run "availability_api.sql" -f "$REPO_ROOT/supabase/tests/availability_api.sql"
 
 printf '\nAll database validation passed.\n'
