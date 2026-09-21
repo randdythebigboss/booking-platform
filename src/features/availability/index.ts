@@ -7,6 +7,7 @@ export {
 } from './slots';
 export {
   parseAvailabilityContext,
+  parseSlotRows,
   slotsForDate,
   MalformedAvailabilityContextError,
   type AvailabilityContext,
@@ -33,3 +34,14 @@ export {
   type Slot,
   type WeeklyRule,
 } from './types';
+export {
+  validateBlock,
+  validateException,
+  toBlockRange,
+  describeException,
+  type BlockDraft,
+  type BlockErrors,
+  type ExceptionDraft,
+  type ExceptionErrors,
+  type ExceptionKind,
+} from './overrides';

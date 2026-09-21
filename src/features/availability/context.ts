@@ -132,3 +132,19 @@ export function slotsForDate(
     now,
   });
 }
+
+/**
+ * Maps the rows `public.get_available_slots` returns.
+ *
+ * The backend result is authoritative: the engine may still be used to render
+ * or group these, but it must never produce a competing list.
+ */
+export function parseSlotRows(raw: unknown): Slot[] {
+  return asArray(raw, 'slots').map((entry, index) => {
+    const row = asRecord(entry, `slots[${index}]`);
+    return {
+      startsAt: asDate(row.starts_at ?? row.startsAt, `slots[${index}].starts_at`),
+      endsAt: asDate(row.ends_at ?? row.endsAt, `slots[${index}].ends_at`),
+    };
+  });
+}

@@ -308,9 +308,7 @@ describe('computeAvailableSlots - closures do not move the grid', () => {
     computeAvailableSlots(
       input({
         service: { durationMinutes: 30, bufferBeforeMinutes: 0, bufferAfterMinutes: 0 },
-        exceptions: [
-          { date: MONDAY, type: 'unavailable', startTime: '12:00', endTime: '12:40' },
-        ],
+        exceptions: [{ date: MONDAY, type: 'unavailable', startTime: '12:00', endTime: '12:40' }],
       }),
     );
 
@@ -338,7 +336,9 @@ describe('resolveScheduleForDate', () => {
     expect(schedule.windows).toHaveLength(1);
     expect(schedule.closures).toHaveLength(1);
     // The shift is untouched; the closure is a separate fact about it.
-    expect(schedule.windows[0]!.start).toBe(resolveWorkingWindows(MONDAY, SDQ, NINE_TO_FIVE, [])[0]!.start);
+    expect(schedule.windows[0]!.start).toBe(
+      resolveWorkingWindows(MONDAY, SDQ, NINE_TO_FIVE, [])[0]!.start,
+    );
   });
 
   it('reports a closed day as no shifts at all', () => {

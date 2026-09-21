@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   MalformedAvailabilityContextError,
   parseAvailabilityContext,
+  parseSlotRows,
   slotsForDate,
 } from '@/features/availability';
 
@@ -76,5 +77,35 @@ describe('slotsForDate', () => {
       '2026-09-21T13:30:00.000Z',
       '2026-09-21T14:30:00.000Z',
     ]);
+  });
+});
+
+describe('parseSlotRows', () => {
+  it('reads the rows get_available_slots returns', () => {
+    const slots = parseSlotRows([
+      { starts_at: '2026-09-21T13:00:00+00:00', ends_at: '2026-09-21T13:30:00+00:00' },
+      { starts_at: '2026-09-21T13:30:00+00:00', ends_at: '2026-09-21T14:00:00+00:00' },
+    ]);
+
+    expect(slots).toHaveLength(2);
+    expect(slots[0]?.startsAt.toISOString()).toBe('2026-09-21T13:00:00.000Z');
+    expect(slots[1]?.endsAt.toISOString()).toBe('2026-09-21T14:00:00.000Z');
+  });
+
+  it('accepts the camelCase shape too, in case the RPC is wrapped', () => {
+    const slots = parseSlotRows([
+      { startsAt: '2026-09-21T13:00:00+00:00', endsAt: '2026-09-21T13:30:00+00:00' },
+    ]);
+    expect(slots[0]?.startsAt.toISOString()).toBe('2026-09-21T13:00:00.000Z');
+  });
+
+  it('treats no availability as an empty list, not an error', () => {
+    expect(parseSlotRows([])).toEqual([]);
+  });
+
+  it('names the field it could not read', () => {
+    expect(() => parseSlotRows([{ starts_at: 'nope', ends_at: 'nope' }])).toThrow(
+      /slots\[0\]\.starts_at/,
+    );
   });
 });

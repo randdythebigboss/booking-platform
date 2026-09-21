@@ -1,8 +1,8 @@
+import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
-import { RoadmapNote } from '@/components/roadmap-note';
 import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
 import {
   DEFAULT_WEEKLY_SCHEDULE,
@@ -178,15 +178,30 @@ export default function AvailabilityScreen() {
 
       <Button label="Save weekly hours" onPress={submit} loading={busy} disabled={!entries} />
 
-      <RoadmapNote
-        phase="Phase 2 - Scheduling engine"
-        summary="One-off exceptions and ad-hoc blocks are already in the database and the engine; the screens for them arrive with the calendar."
-        items={[
-          'Close a single date',
-          'Open a date that is normally closed',
-          'Block time without cancelling',
-        ]}
-      />
+      <Card>
+        <Text variant="heading">Date-specific changes</Text>
+        <Text variant="body" tone="muted">
+          The weekly schedule above is the norm. Everything else is an exception to it.
+        </Text>
+        <Link href="/app/availability/exceptions" asChild>
+          <Button label="Date exceptions" variant="secondary" />
+        </Link>
+        <Text variant="caption" tone="muted">
+          Close a single date, or open it with different hours.
+        </Text>
+        <Link href="/app/availability/blocks" asChild>
+          <Button label="Blocked time" variant="secondary" />
+        </Link>
+        <Text variant="caption" tone="muted">
+          Take a period out of a day without changing the schedule itself.
+        </Text>
+        <Link href="/app/availability/preview" asChild>
+          <Button label="Schedule preview" variant="secondary" />
+        </Link>
+        <Text variant="caption" tone="muted">
+          See exactly the times the booking system would offer.
+        </Text>
+      </Card>
     </Screen>
   );
 }

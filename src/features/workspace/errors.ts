@@ -19,6 +19,7 @@ export const WORKSPACE_ERROR_CODES = [
   'INVALID_SCHEDULE',
   'INVALID_WEEKDAY',
   'INVALID_TIME_RANGE',
+  'BLOCK_CONFLICTS_WITH_APPOINTMENT',
   'INVALID_TIMEZONE',
   'INVALID_CREDENTIALS',
   'EMAIL_TAKEN',
@@ -42,6 +43,8 @@ const MESSAGES: Record<WorkspaceErrorCode, string> = {
   INVALID_SCHEDULE: 'That schedule could not be read.',
   INVALID_WEEKDAY: 'That is not a valid day of the week.',
   INVALID_TIME_RANGE: 'The end time has to come after the start time.',
+  BLOCK_CONFLICTS_WITH_APPOINTMENT:
+    'There is already an appointment in that period. Cancel it first if you really want the time back.',
   INVALID_TIMEZONE: 'That is not a timezone we recognise.',
   INVALID_CREDENTIALS: 'That email and password do not match an account.',
   EMAIL_TAKEN: 'There is already an account with that email.',
