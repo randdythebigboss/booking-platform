@@ -45,6 +45,7 @@ $$;
 create or replace function public.appointments_enforce_transition()
 returns trigger
 language plpgsql
+security definer
 set search_path = public, pg_temp
 as $$
 begin
