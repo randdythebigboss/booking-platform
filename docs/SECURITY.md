@@ -98,6 +98,23 @@ and a policy expression is evaluated with the querying role’s privileges, so
 revoking would break the isolation they enforce. They only ever answer
 questions about the caller.
 
+## What the public may see
+
+An anonymous visitor may read exactly this, all through RLS, never through
+a service-role client:
+
+| Visible                                                                                   | Not visible                                                           |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Published, active businesses: name, slug, description, timezone, phone, address, currency | Business email, publication state of others, any unpublished business |
+| Bookable professionals of those businesses: display name, bio, avatar                     | Professionals of unpublished businesses                               |
+| Active services: name, description, duration, price, currency                             | Inactive services, services of other businesses                       |
+| Bookable start and end times, via `get_available_slots`                                   | Weekly rules, exceptions, blocked time, block reasons                 |
+| Their own appointment, via its token                                                      | Any other appointment, any customer record, any appointment item      |
+
+A guest creates an appointment only through `book_appointment`. `anon` has
+no INSERT anywhere, and the three professional write RPCs are revoked from
+it as well.
+
 ## Secrets
 
 The anon key is **not** a secret. It is designed to ship in the client bundle,

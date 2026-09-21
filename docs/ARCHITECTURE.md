@@ -112,6 +112,23 @@ for a whole date range, which is what makes moving between days in a picker
 free. The two are complementary: the context is a fast local model, the slot
 API is the authority.
 
+### The customer journey
+
+One shared link is the whole entry point: `/p/<slug>` shows the business,
+its bookable professionals and its active services, and `/p/<slug>/book`
+walks service, day, time, details, review.
+
+The screen never computes availability. Every list of times is
+`get_available_slots`, and the chosen time is re-checked against each
+refresh, so a slot that disappears while the customer is typing disappears
+from the page too rather than failing at the end.
+
+Losing the race is an ordinary outcome, not an error state: the booking
+fails with `SLOT_TAKEN`, the stale choice is dropped, and the times reload.
+
+The confirmation is reached with the token issued at booking time; see
+[DECISIONS/0013](DECISIONS/0013-guest-access-by-bearer-link.md).
+
 ## Preventing double booking
 
 See [DATABASE.md](DATABASE.md#no-double-booking). In short: a GiST exclusion

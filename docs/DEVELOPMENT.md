@@ -81,6 +81,17 @@ instead of "no rows".
 | `tenant_isolation.sql`   | One business cannot read or touch another, including blocks and exceptions |
 | `availability_api.sql`   | `get_available_slots` offers the right times and reveals nothing else      |
 
+### Driving the customer flow without Docker
+
+The guest journey is entirely anonymous, so it needs PostgREST but not
+GoTrue. Pointing PostgREST at a local PostgreSQL and putting a small proxy
+in front of it -- rewriting `/rest/v1/*` to the PostgREST root -- is enough
+to drive the whole public booking flow in a real browser, including the
+double-booking race, with no cloud project and no Docker.
+
+The professional side needs real authentication and cannot be exercised
+that way.
+
 ## Checks
 
 ```bash

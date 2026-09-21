@@ -24,8 +24,8 @@ wait on it say which phase fills them in.
 | 0     | Repo, Expo scaffold, CI, database schema, RLS, availability engine, payment abstraction | Done                                |
 | 1     | Auth, business onboarding, services, weekly availability                                | Done                                |
 | 2     | Scheduling engine wired to the UI, exceptions, blocks                                   | Done                                |
-| 3     | Public booking page, guest booking, confirmation                                        | Next                                |
-| 4     | Professional dashboard, calendar, status changes                                        | Pending                             |
+| 3     | Public booking page, guest booking, confirmation                                        | Done                                |
+| 4     | Professional dashboard, calendar, status changes                                        | Next                                |
 | 5     | Payment provider integration                                                            | Abstraction done, providers pending |
 | 6     | Security audit, concurrency testing, accessibility, performance                         | Pending                             |
 | 7     | Store distribution                                                                      | Pending                             |

@@ -134,6 +134,10 @@ it would let a stranger probe a private calendar one timestamp at a time.
 
 ### Error codes
 
+A hidden or missing resource raises SQLSTATE `PT404`. PostgREST reads a
+`PTnnn` state as the HTTP status to answer with, so those become 404s
+rather than the 500 that `P0002` produced.
+
 `book_appointment` raises bare sentinels rather than prose, so the client can
 map them exactly. See [`src/features/booking/errors.ts`](../src/features/booking/errors.ts).
 
@@ -167,6 +171,8 @@ Two SQL suites run against a database built from nothing, in CI and via
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `supabase/tests/booking_guarantees.sql` | No double booking, blocks respected, working hours and policy enforced server-side, cancellation releases the slot |
 | `supabase/tests/tenant_isolation.sql`   | A stranger sees a published catalogue and nothing else, and cannot write into someone else's business              |
+| `supabase/tests/availability_api.sql`   | `get_available_slots` offers the right times and reveals nothing else                                              |
+| `supabase/tests/public_booking.sql`     | The guest path: discovery, booking, the race, token access, tenant isolation                                       |
 
 The Phase 1 functions run as `SECURITY INVOKER`, so Row Level Security still
 decides who may do what. They exist for atomicity, not for privilege.

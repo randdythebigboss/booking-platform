@@ -68,12 +68,12 @@ The MVP is complete when all fifteen of these hold:
 - [x] ...and a schedule
 - [x] ...and block a time
 - [x] ...and get a public link
-- [ ] A customer can open that link in a browser
-- [ ] ...select a service
-- [ ] ...see real availability
-- [ ] ...and book
-- [ ] The appointment appears immediately in the professional's calendar
-- [ ] That time stops being offered
+- [x] A customer can open that link in a browser
+- [x] ...select a service
+- [x] ...see real availability
+- [x] ...and book
+- [x] The appointment appears immediately in the professional's calendar
+- [x] That time stops being offered
 - [x] Two customers cannot book the same slot _(enforced by the database; the
       exclusion constraint and `book_appointment` are in place)_
 - [ ] The professional can cancel or complete the appointment
@@ -106,7 +106,7 @@ management, and a professional-side preview of exactly what the booking
 system would offer.
 
 **Phase 3 - Customer booking.** Public page, service selection, calendar,
-slots, guest details, booking, confirmation. _Next._
+slots, guest details, booking, confirmation. _Done._
 
 **Phase 4 - Professional calendar.** Dashboard, calendar, appointment detail,
 status updates, manual blocks, cancellation.
