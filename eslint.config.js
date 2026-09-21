@@ -8,6 +8,19 @@ module.exports = [
     ignores: ['dist/*', '.expo/*', 'node_modules/*', 'coverage/*', 'supabase/.temp/*'],
   },
   {
+    files: ['tools/**/*.js'],
+    languageOptions: {
+      globals: {
+        Buffer: 'readonly',
+        process: 'readonly',
+        require: 'readonly',
+        module: 'writable',
+        console: 'readonly',
+        __dirname: 'readonly',
+      },
+    },
+  },
+  {
     rules: {
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       eqeqeq: ['error', 'always', { null: 'ignore' }],
