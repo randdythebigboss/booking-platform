@@ -76,7 +76,7 @@ The MVP is complete when all fifteen of these hold:
 - [x] That time stops being offered
 - [x] Two customers cannot book the same slot _(enforced by the database; the
       exclusion constraint and `book_appointment` are in place)_
-- [ ] The professional can cancel or complete the appointment
+- [x] The professional can cancel or complete the appointment
 - [ ] It works on web, Android and iOS
 - [x] Security rules prevent access to another business's data _(proved by
       `supabase/tests/tenant_isolation.sql` in CI)_
@@ -109,7 +109,7 @@ system would offer.
 slots, guest details, booking, confirmation. _Done._
 
 **Phase 4 - Professional calendar.** Dashboard, calendar, appointment detail,
-status updates, manual blocks, cancellation.
+status updates, manual blocks, cancellation. _Done._
 
 **Phase 5 - Payment foundation.** Payment domain model, mock payment, state
 machine, provider abstraction. _Abstraction done in Phase 0._

@@ -68,6 +68,19 @@ The lock is an optimisation, not the guarantee: it turns a lost race into a
 short wait instead of a rollback. The constraint is still what makes double
 booking impossible.
 
+## The appointment lifecycle
+
+```
+pending   -> confirmed | cancelled
+confirmed -> completed | no_show | cancelled
+completed, cancelled, no_show are terminal
+```
+
+Completing or marking a no-show requires the appointment to have started.
+Cancelling is terminal because it frees the time, and un-cancelling would
+make the appointment lose a race it never entered. A trigger enforces both,
+so a direct UPDATE cannot route around `set_appointment_status`.
+
 ## Three ways a day can differ
 
 These are separate tables on purpose. Collapsing them would make a calendar
@@ -167,12 +180,14 @@ schedule, a block, an exception and one existing appointment.
 Two SQL suites run against a database built from nothing, in CI and via
 `tools/local-postgres/run-validation.sh`:
 
-| File                                    | Proves                                                                                                             |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `supabase/tests/booking_guarantees.sql` | No double booking, blocks respected, working hours and policy enforced server-side, cancellation releases the slot |
-| `supabase/tests/tenant_isolation.sql`   | A stranger sees a published catalogue and nothing else, and cannot write into someone else's business              |
-| `supabase/tests/availability_api.sql`   | `get_available_slots` offers the right times and reveals nothing else                                              |
-| `supabase/tests/public_booking.sql`     | The guest path: discovery, booking, the race, token access, tenant isolation                                       |
+| File                                         | Proves                                                                                                             |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `supabase/tests/booking_guarantees.sql`      | No double booking, blocks respected, working hours and policy enforced server-side, cancellation releases the slot |
+| `supabase/tests/tenant_isolation.sql`        | A stranger sees a published catalogue and nothing else, and cannot write into someone else's business              |
+| `supabase/tests/availability_api.sql`        | `get_available_slots` offers the right times and reveals nothing else                                              |
+| `supabase/tests/public_booking.sql`          | The guest path: discovery, booking, the race, token access, tenant isolation                                       |
+| `supabase/tests/professional_operations.sql` | The appointment lifecycle, and who may drive it                                                                    |
+| `supabase/tests/function_grants.sql`         | Every function is classified, RLS covers every table                                                               |
 
 The Phase 1 functions run as `SECURITY INVOKER`, so Row Level Security still
 decides who may do what. They exist for atomicity, not for privilege.

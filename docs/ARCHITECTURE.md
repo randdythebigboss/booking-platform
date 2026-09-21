@@ -129,6 +129,17 @@ fails with `SLOT_TAKEN`, the stale choice is dropped, and the times reload.
 The confirmation is reached with the token issued at booking time; see
 [DECISIONS/0013](DECISIONS/0013-guest-access-by-bearer-link.md).
 
+### Professional operations
+
+The professional side reads appointments straight through Row Level
+Security -- no RPC is needed to see your own business -- and writes status
+through `set_appointment_status`, which touches status and the cancellation
+reason only. A status change can never become a way to rewrite a time, a
+customer or a price.
+
+The lifecycle itself is a trigger, so a direct UPDATE cannot route around
+the RPC. See [DECISIONS/0014](DECISIONS/0014-appointment-lifecycle.md).
+
 ## Preventing double booking
 
 See [DATABASE.md](DATABASE.md#no-double-booking). In short: a GiST exclusion

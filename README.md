@@ -25,7 +25,7 @@ wait on it say which phase fills them in.
 | 1     | Auth, business onboarding, services, weekly availability                                | Done                                |
 | 2     | Scheduling engine wired to the UI, exceptions, blocks                                   | Done                                |
 | 3     | Public booking page, guest booking, confirmation                                        | Done                                |
-| 4     | Professional dashboard, calendar, status changes                                        | Next                                |
+| 4     | Professional dashboard, calendar, status changes                                        | Done                                |
 | 5     | Payment provider integration                                                            | Abstraction done, providers pending |
 | 6     | Security audit, concurrency testing, accessibility, performance                         | Pending                             |
 | 7     | Store distribution                                                                      | Pending                             |

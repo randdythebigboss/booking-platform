@@ -115,6 +115,23 @@ A guest creates an appointment only through `book_appointment`. `anon` has
 no INSERT anywhere, and the three professional write RPCs are revoked from
 it as well.
 
+## Every function is classified
+
+Supabase grants EXECUTE on new functions to `anon`, `authenticated` and
+`service_role` by default, so a function added without thought is public by
+accident. That has caused a real leak twice, so every function in `public`
+now belongs to exactly one group:
+
+| Group                      | Means                                                                                                                     |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| PUBLIC / ANON-SAFE         | A stranger may call it: the booking and availability surface, plus the two helpers the public catalogue policies evaluate |
+| AUTHENTICATED PROFESSIONAL | A signed-in member may call it: the write RPCs and the membership helpers                                                 |
+| INTERNAL ONLY              | Only other functions and triggers call it                                                                                 |
+
+`supabase/tests/function_grants.sql` asserts the classification and fails
+when a new function appears in `public` without being placed in a group.
+The friction is deliberate.
+
 ## Secrets
 
 The anon key is **not** a secret. It is designed to ship in the client bundle,

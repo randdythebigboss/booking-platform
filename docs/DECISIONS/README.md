@@ -18,3 +18,4 @@ decision changes, a new record supersedes the old one.
 | [0011](0011-slot-grid-anchored-to-shift-start.md)        | The slot grid is anchored to the shift start                     |
 | [0012](0012-availability-api-returns-empty.md)           | The availability API answers with silence, not with errors       |
 | [0013](0013-guest-access-by-bearer-link.md)              | A guest's appointment is reached by a bearer link                |
+| [0014](0014-appointment-lifecycle.md)                    | The appointment lifecycle is a graph, not a column               |

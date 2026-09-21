@@ -92,6 +92,21 @@ double-booking race, with no cloud project and no Docker.
 The professional side needs real authentication and cannot be exercised
 that way.
 
+### Driving the authenticated side locally
+
+`tools/local-postgres/supabase-shim.js` puts a Supabase-shaped front door on
+a local PostgreSQL + PostgREST pair: `/rest/v1/*` is forwarded, and the few
+`/auth/v1/*` endpoints supabase-js calls are implemented against
+`auth.users` with pgcrypto.
+
+The access token is a real HS256 JWT carrying `sub` and
+`role=authenticated`, signed with the secret PostgREST verifies, so Row
+Level Security sees a genuine `auth.uid()`. The authorization being
+exercised is the real thing; only the identity provider is local.
+
+It is a development tool, not a security boundary, and must never listen
+beyond localhost.
+
 ## Checks
 
 ```bash

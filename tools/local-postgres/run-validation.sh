@@ -52,5 +52,6 @@ run "tenant_isolation.sql" -f "$REPO_ROOT/supabase/tests/tenant_isolation.sql"
 run "availability_api.sql" -f "$REPO_ROOT/supabase/tests/availability_api.sql"
 run "public_booking.sql" -f "$REPO_ROOT/supabase/tests/public_booking.sql"
 run "professional_operations.sql" -f "$REPO_ROOT/supabase/tests/professional_operations.sql"
+run "function_grants.sql" -f "$REPO_ROOT/supabase/tests/function_grants.sql"
 
 printf '\nAll database validation passed.\n'
