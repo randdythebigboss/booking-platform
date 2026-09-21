@@ -210,7 +210,7 @@ begin
     perform public.get_appointment_by_token(v_appointment_id, gen_random_uuid());
     raise exception 'FAIL: a wrong token returned an appointment';
   exception
-    when sqlstate 'P0002' then null;
+    when sqlstate 'PT404' then null;
   end;
 
   ---------------------------------------------------------------------------
@@ -399,7 +399,7 @@ begin
     );
     raise exception 'FAIL: booked against an unpublished business';
   exception
-    when sqlstate 'P0002' then
+    when sqlstate 'PT404' then
       get stacked diagnostics v_message = message_text;
       if v_message <> 'BUSINESS_NOT_PUBLIC' then
         raise exception 'FAIL: expected BUSINESS_NOT_PUBLIC, got %', v_message;
@@ -413,7 +413,7 @@ begin
     );
     raise exception 'FAIL: booked a service belonging to another business';
   exception
-    when sqlstate 'P0002' then
+    when sqlstate 'PT404' then
       get stacked diagnostics v_message = message_text;
       if v_message <> 'SERVICE_NOT_AVAILABLE' then
         raise exception 'FAIL: expected SERVICE_NOT_AVAILABLE, got %', v_message;
@@ -427,7 +427,7 @@ begin
     );
     raise exception 'FAIL: booked a published service through a hidden professional';
   exception
-    when sqlstate 'P0002' then null;
+    when sqlstate 'PT404' then null;
   end;
 
   -- A professional who has stopped accepting bookings is refused.
@@ -438,7 +438,7 @@ begin
     );
     raise exception 'FAIL: booked with a professional who is not accepting bookings';
   exception
-    when sqlstate 'P0002' then
+    when sqlstate 'PT404' then
       get stacked diagnostics v_message = message_text;
       if v_message <> 'PROFESSIONAL_NOT_BOOKABLE' then
         raise exception 'FAIL: expected PROFESSIONAL_NOT_BOOKABLE, got %', v_message;
