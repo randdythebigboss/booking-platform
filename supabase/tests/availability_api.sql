@@ -526,4 +526,73 @@ begin
 end;
 $$;
 
+
+-- ===========================================================================
+-- 18. The internal helpers stay internal.
+--
+-- get_available_slots is the only scheduling function a stranger may call.
+-- The helpers behind it answer questions about someone else's calendar
+-- directly, so an execute grant on any of them is a private-schedule leak and
+-- a yes/no oracle for mapping a hidden professional's hours.
+-- ===========================================================================
+
+begin;
+
+select set_config('request.jwt.claims', json_build_object('role', 'anon')::text, true);
+set local role anon;
+
+do $$
+declare
+  c_pro_a constant uuid := 'aaaaaaaa-0000-4000-8000-00000000000a';
+  c_s30 constant uuid := 'bbbbbbbb-0000-4000-8000-000000000030';
+  v_days int;
+  v_monday date;
+begin
+  v_days := ((1 - extract(dow from current_date)::int + 7) % 7);
+  if v_days = 0 then v_days := 7; end if;
+  v_monday := current_date + v_days + 21;
+
+  begin
+    perform public.working_windows(c_pro_a, 'America/Santo_Domingo', v_monday);
+    raise exception 'FAIL: anon can read a professional''s shifts through working_windows';
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  begin
+    perform public.is_slot_within_availability(
+      c_pro_a, 'America/Santo_Domingo',
+      (v_monday::timestamp + time '10:00') at time zone 'America/Santo_Domingo',
+      (v_monday::timestamp + time '10:30') at time zone 'America/Santo_Domingo'
+    );
+    raise exception 'FAIL: anon has a working-hours oracle';
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  begin
+    perform public.is_slot_aligned(
+      c_pro_a, 'America/Santo_Domingo',
+      (v_monday::timestamp + time '10:00') at time zone 'America/Santo_Domingo',
+      (v_monday::timestamp + time '10:30') at time zone 'America/Santo_Domingo',
+      15
+    );
+    raise exception 'FAIL: anon has a slot-grid oracle';
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  -- ...while the one function that is meant to be public still answers.
+  -- Earlier assertions left a booking and a block on this day, so the exact
+  -- count is no longer 11; what matters is that the public API still answers.
+  if (select count(*) from public.get_available_slots(c_pro_a, c_s30, v_monday)) = 0 then
+    raise exception 'FAIL: locking down the helpers broke the public API';
+  end if;
+
+  raise notice '18. only get_available_slots is reachable by a stranger';
+end;
+$$;
+
+commit;
+
 \echo 'Availability API holds.'

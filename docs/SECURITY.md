@@ -76,6 +76,28 @@ The membership helpers (`is_business_member`, `is_business_manager`,
 `can_manage_professional`) are `SECURITY DEFINER` for a narrower reason: a
 policy on `business_members` that queried `business_members` would recurse.
 
+## Revoking on Supabase takes more than REVOKE FROM PUBLIC
+
+On stock PostgreSQL, `revoke all on function f() from public` makes a
+function private. On Supabase it does not. The platform sets default
+privileges that GRANT execute on every new function directly to `anon`,
+`authenticated` and `service_role`; revoking from `PUBLIC` leaves those
+explicit role grants in place.
+
+This was a real leak, found in the Phase 2 security review and fixed in
+`20260921110000_lock_down_internal_helpers.sql`: `working_windows` let a
+stranger read the exact shifts of any professional, including inside an
+unpublished business, and `is_slot_within_availability` was a yes/no oracle
+for mapping a private calendar one timestamp at a time.
+
+So: **any function that is not meant to be public must be revoked from
+`anon` and `authenticated` by name**, and `availability_api.sql` asserts it.
+
+The membership helpers are the deliberate exception. RLS policies call them,
+and a policy expression is evaluated with the querying role’s privileges, so
+revoking would break the isolation they enforce. They only ever answer
+questions about the caller.
+
 ## Secrets
 
 The anon key is **not** a secret. It is designed to ship in the client bundle,
