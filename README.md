@@ -19,16 +19,16 @@ their business, publish a booking link, manage services and set their weekly
 hours. The customer-facing booking flow arrives in Phase 3; the screens that
 wait on it say which phase fills them in.
 
-| Phase | Scope                                                                                   | State                                |
-| ----- | --------------------------------------------------------------------------------------- | ------------------------------------ |
-| 0     | Repo, Expo scaffold, CI, database schema, RLS, availability engine, payment abstraction | Done                                 |
-| 1     | Auth, business onboarding, services, weekly availability                                | Done                                 |
-| 2     | Scheduling engine wired to the UI, exceptions, blocks                                   | Engine and database done, UI pending |
-| 3     | Public booking page, guest booking, confirmation                                        | Next                                 |
-| 4     | Professional dashboard, calendar, status changes                                        | Pending                              |
-| 5     | Payment provider integration                                                            | Abstraction done, providers pending  |
-| 6     | Security audit, concurrency testing, accessibility, performance                         | Pending                              |
-| 7     | Store distribution                                                                      | Pending                              |
+| Phase | Scope                                                                                   | State                               |
+| ----- | --------------------------------------------------------------------------------------- | ----------------------------------- |
+| 0     | Repo, Expo scaffold, CI, database schema, RLS, availability engine, payment abstraction | Done                                |
+| 1     | Auth, business onboarding, services, weekly availability                                | Done                                |
+| 2     | Scheduling engine wired to the UI, exceptions, blocks                                   | Done                                |
+| 3     | Public booking page, guest booking, confirmation                                        | Next                                |
+| 4     | Professional dashboard, calendar, status changes                                        | Pending                             |
+| 5     | Payment provider integration                                                            | Abstraction done, providers pending |
+| 6     | Security audit, concurrency testing, accessibility, performance                         | Pending                             |
+| 7     | Store distribution                                                                      | Pending                             |
 
 ## Stack
 

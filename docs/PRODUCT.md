@@ -66,8 +66,7 @@ The MVP is complete when all fifteen of these hold:
 - [x] A professional can create a business
 - [x] ...and a service
 - [x] ...and a schedule
-- [ ] ...and block a time _(the database and the engine handle blocks; the
-      screen arrives with the calendar in Phase 4)_
+- [x] ...and block a time
 - [x] ...and get a public link
 - [ ] A customer can open that link in a browser
 - [ ] ...select a service
@@ -102,7 +101,9 @@ professional profile, services, weekly availability. _Done._
 
 **Phase 2 - Scheduling engine.** Slot calculation, exceptions, blocked times,
 appointment validation, double-booking protection, timezone handling.
-_Engine and database side done in Phase 0; the UI lands here._
+_Done._ The authoritative availability API, blocked-time and date-exception
+management, and a professional-side preview of exactly what the booking
+system would offer.
 
 **Phase 3 - Customer booking.** Public page, service selection, calendar,
 slots, guest details, booking, confirmation. _Next._

@@ -68,6 +68,24 @@ The lock is an optimisation, not the guarantee: it turns a lost race into a
 short wait instead of a rollback. The constraint is still what makes double
 booking impossible.
 
+## Three ways a day can differ
+
+These are separate tables on purpose. Collapsing them would make a calendar
+unable to explain why a time is missing.
+
+| Concept         | Table                     | Means                                                                                            |
+| --------------- | ------------------------- | ------------------------------------------------------------------------------------------------ |
+| Weekly schedule | `availability_rules`      | "I work Mondays 09:00-18:00." The norm.                                                          |
+| Date exception  | `availability_exceptions` | "This Tuesday I open 12:00-20:00", or "not at all". Changes what the schedule SAYS for one date. |
+| Blocked time    | `blocked_times`           | "I am out 12:00-14:30 that day." Carves a hole in whatever the schedule already said.            |
+
+An untimed `unavailable` exception closes the day. A timed one carves a hole
+without moving the slot grid. An `available` exception replaces that date’s
+hours entirely.
+
+A block may not be created over a live appointment: a trigger refuses it, so
+a customer’s booking is never silently invalidated. Nothing is auto-cancelled.
+
 ## Snapshots
 
 `appointment_items` stores the service name, duration and price as they were
@@ -97,18 +115,19 @@ server-side validator:
 
 ## Functions
 
-| Function                      | Audience            | Purpose                                                              |
-| ----------------------------- | ------------------- | -------------------------------------------------------------------- |
-| `get_availability_context`    | anon, authenticated | The ingredients the engine needs, for a date range                   |
-| `book_appointment`            | anon, authenticated | The only way a guest creates an appointment                          |
-| `get_appointment_by_token`    | anon, authenticated | A guest reads their own booking                                      |
-| `cancel_appointment_by_token` | anon, authenticated | A guest cancels their own booking                                    |
-| `is_slot_within_availability` | internal            | Server-side working-hours check                                      |
-| `is_slot_aligned`             | internal            | Server-side slot-interval check                                      |
-| `working_windows`             | internal            | The shared definition of a professional's open hours on a date       |
-| `create_business`             | authenticated       | Business, membership and professional profile in one transaction     |
-| `save_service`                | authenticated       | Create or update a service, keeping it assigned to the professionals |
-| `set_weekly_schedule`         | authenticated       | Replace a whole week of working hours atomically                     |
+| Function                      | Audience            | Purpose                                                                               |
+| ----------------------------- | ------------------- | ------------------------------------------------------------------------------------- |
+| `get_availability_context`    | anon, authenticated | The ingredients the engine needs, for a date range                                    |
+| `get_available_slots`         | anon, authenticated | The authoritative list of bookable start times for one professional, service and date |
+| `book_appointment`            | anon, authenticated | The only way a guest creates an appointment                                           |
+| `get_appointment_by_token`    | anon, authenticated | A guest reads their own booking                                                       |
+| `cancel_appointment_by_token` | anon, authenticated | A guest cancels their own booking                                                     |
+| `is_slot_within_availability` | internal            | Server-side working-hours check                                                       |
+| `is_slot_aligned`             | internal            | Server-side slot-interval check                                                       |
+| `working_windows`             | internal            | The shared definition of a professional's open hours on a date                        |
+| `create_business`             | authenticated       | Business, membership and professional profile in one transaction                      |
+| `save_service`                | authenticated       | Create or update a service, keeping it assigned to the professionals                  |
+| `set_weekly_schedule`         | authenticated       | Replace a whole week of working hours atomically                                      |
 
 `is_slot_within_availability` is deliberately not granted to `anon`: exposing
 it would let a stranger probe a private calendar one timestamp at a time.

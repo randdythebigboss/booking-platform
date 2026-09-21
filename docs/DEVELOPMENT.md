@@ -73,6 +73,14 @@ The bootstrap deliberately reproduces Supabase's broad table grants. Without
 them an RLS test would pass for the wrong reason -- "permission denied"
 instead of "no rows".
 
+### The SQL suites
+
+| File                     | Proves                                                                     |
+| ------------------------ | -------------------------------------------------------------------------- |
+| `booking_guarantees.sql` | No double booking, and every rule `book_appointment` enforces              |
+| `tenant_isolation.sql`   | One business cannot read or touch another, including blocks and exceptions |
+| `availability_api.sql`   | `get_available_slots` offers the right times and reveals nothing else      |
+
 ## Checks
 
 ```bash

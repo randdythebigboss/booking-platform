@@ -95,6 +95,23 @@ transaction guarded by an exclusion constraint.
 
 A crafted request that skips the UI entirely gets rejected by the same rules.
 
+### The availability API
+
+`public.get_available_slots(professional, service, date)` is the authoritative
+answer to "what can be booked". It reads the same helpers `book_appointment`
+uses to decide what may be accepted -- `working_windows` for the shifts, the
+same closures, busy ranges, buffers, interval, notice and horizon -- so the
+two cannot drift apart.
+
+The professional-side preview screen renders its result directly and computes
+nothing of its own. That is the point of the screen: a disagreement between
+the engine and the database would be visible instead of hidden.
+
+`get_availability_context` still exists and still returns the raw ingredients
+for a whole date range, which is what makes moving between days in a picker
+free. The two are complementary: the context is a fast local model, the slot
+API is the authority.
+
 ## Preventing double booking
 
 See [DATABASE.md](DATABASE.md#no-double-booking). In short: a GiST exclusion

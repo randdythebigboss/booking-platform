@@ -27,6 +27,21 @@ The booking page gets availability through `get_availability_context`, which
 returns anonymous busy ranges: a start and an end, and nothing else. No name,
 no service, no appointment id.
 
+## The availability boundary
+
+`get_available_slots` is designed for an anonymous caller holding identifiers
+from a URL. Every visibility failure returns zero rows rather than an error:
+an unpublished business, a professional not accepting bookings, an inactive
+service, a service from another business, or one this professional does not
+offer are all indistinguishable from "nothing is free that day".
+
+Distinct errors would be an enumeration oracle. See
+[DECISIONS/0012](DECISIONS/0012-availability-api-returns-empty.md).
+
+The rows carry a start and an end. No block reasons, no customer, no
+appointment, no schedule configuration. Blocked time, exceptions and weekly
+rules remain unreadable by `anon`, which the suites assert directly.
+
 ## Guest booking
 
 A guest has no account, so they cannot be given INSERT rights on
