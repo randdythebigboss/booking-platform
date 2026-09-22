@@ -7,6 +7,11 @@ import {
 } from '@/features/appointments';
 import { WEEKDAY_KEYS } from '@/features/availability/schedule';
 import { BOOKING_ERROR_CODES, guestStatusKey } from '@/features/booking';
+import {
+  NOTIFICATION_CHANNELS,
+  NOTIFICATION_KINDS,
+  NOTIFICATION_STATUSES,
+} from '@/features/notifications';
 import { WORKSPACE_ERROR_CODES } from '@/features/workspace';
 import { SUPPORTED_LOCALES, en, es, resources } from '@/locales';
 import { APPOINTMENT_STATUSES, type Weekday } from '@/types/domain';
@@ -115,6 +120,14 @@ describe('keys the app builds at runtime', () => {
 
   it('has a name for all seven weekdays', () => {
     for (let day = 0; day <= 6; day += 1) both(WEEKDAY_KEYS[day as Weekday]);
+  });
+
+  it('has a label for every notification the outbox can hold', () => {
+    // Three enums, all built into keys on screen. A kind added to the database
+    // and forgotten here would render as `notifications.kind.whatever`.
+    for (const kind of NOTIFICATION_KINDS) both(`notifications.kind.${kind}`);
+    for (const channel of NOTIFICATION_CHANNELS) both(`notifications.channel.${channel}`);
+    for (const status of NOTIFICATION_STATUSES) both(`notifications.status.${status}`);
   });
 
   it('has a message for every error code the backend can produce', () => {

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
-import { useRequiredWorkspace } from '@/components/providers';
+import { useLocale, useRequiredWorkspace } from '@/components/providers';
 import { SlotPicker } from '@/components/slot-picker';
 import { Button, Card, Feedback, Field, Screen, Select, Text, ToggleRow } from '@/components/ui';
 import { isoDateIn, parseClockTime, zonedInstant } from '@/features/availability';
@@ -27,6 +27,7 @@ export default function NewAppointmentScreen() {
   const router = useRouter();
   const { business, professional } = useRequiredWorkspace();
   const { t } = useTranslation();
+  const { locale } = useLocale();
   const format = useFormat();
   const errorText = useWorkspaceErrorText();
   const timezone = business.timezone;
@@ -87,6 +88,9 @@ export default function NewAppointmentScreen() {
         customerEmail: email.trim() || undefined,
         notes: note.trim() || undefined,
         allowOutsideHours: outsideHours,
+        // Nobody asked the customer what language they read: the professional's
+        // own is the best guess this path has.
+        locale,
       });
 
       router.replace(`/app/appointments/${id}`);

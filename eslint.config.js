@@ -8,7 +8,7 @@ module.exports = [
     ignores: ['dist/*', '.expo/*', 'node_modules/*', 'coverage/*', 'supabase/.temp/*'],
   },
   {
-    files: ['tools/**/*.js'],
+    files: ['tools/**/*.js', 'tools/**/*.ts'],
     languageOptions: {
       globals: {
         Buffer: 'readonly',
@@ -18,6 +18,13 @@ module.exports = [
         console: 'readonly',
         __dirname: 'readonly',
       },
+    },
+    rules: {
+      // These are command line programs. Printing to the terminal is what they
+      // are for, and `console.log` is how a program does that. The rule below
+      // exists to keep stray logging out of the *application*, where it would
+      // ship to a device and, sooner or later, print somebody's data.
+      'no-console': 'off',
     },
   },
   {

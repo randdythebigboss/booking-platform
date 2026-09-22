@@ -81,4 +81,5 @@ npm run verify               # lint + typecheck + tests
 | [docs/DATABASE.md](docs/DATABASE.md)         | The data model, and how double booking is made impossible         |
 | [docs/SECURITY.md](docs/SECURITY.md)         | Row Level Security, secrets, and the public API surface           |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)   | Working on this repo day to day                                   |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md)     | Running it: migrations, demo data, the dispatcher, supporting somebody |
 | [docs/DECISIONS/](docs/DECISIONS/)           | Why things are the way they are                                   |

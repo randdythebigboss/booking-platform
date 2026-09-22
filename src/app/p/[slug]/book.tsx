@@ -1,6 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { useLocale } from '@/components/providers';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { LanguageSwitcher } from '@/components/language-switcher';
@@ -38,6 +40,7 @@ export default function BookScreen() {
   const router = useRouter();
   const { palette } = useTheme();
   const { t } = useTranslation();
+  const { locale } = useLocale();
   const format = useFormat();
   const issueText = useIssueText();
   const errorText = useBookingErrorText();
@@ -175,6 +178,9 @@ export default function BookScreen() {
         customerName: selection.customer.fullName,
         customerPhone: selection.customer.phone,
         customerEmail: selection.customer.email || undefined,
+        // The language this page is in is the language the customer chose to
+        // book in, and the one every message about it will be written in.
+        locale,
       });
 
       router.replace(confirmationPath(result.appointmentId, result.accessToken));

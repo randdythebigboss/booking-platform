@@ -212,6 +212,40 @@ Rules:
 - If a service-role key is ever committed or pasted anywhere shared, rotate it
   in the Supabase dashboard. Removing the commit is not enough.
 
+## The outbox
+
+`notifications` holds, for every message the product owes a customer, their
+address and their name. It is treated accordingly.
+
+**No client may write to it, and writing is refused rather than ignored.**
+There is a SELECT policy for members of the business and no other policy, and
+`INSERT`, `UPDATE`, `DELETE` are revoked from `anon` and `authenticated` at
+the privilege level as well. Without the revoke, an `UPDATE` with no matching
+policy simply reports zero rows -- true, silent, and invisible to an audit.
+
+**An anonymous caller has no access at all.** Not "sees no rows": no privilege
+on the table. A guest holding a booking link has an appointment to look at,
+never a queue.
+
+**Draining it is not a client operation.** `claim_due_notifications`,
+`mark_notification_sent`, `mark_notification_failed`,
+`requeue_stalled_notifications`, `enqueue_notification`,
+`schedule_appointment_reminder` and `cancel_pending_reminders` are revoked from
+every client role. A dispatcher runs on an operator's connection; see
+[OPERATIONS.md](OPERATIONS.md).
+
+**A queue row carries as little as it can.** Business, professional, service,
+customer name, the instant, the timezone. No notes, no price, no phone number
+where email is the channel, and above all **no booking access token** -- that
+is a bearer credential (ADR 0019), and a queue is read by more systems than an
+appointment is. When an email one day needs a link, it gets one built at send
+time in the fragment form.
+
+**`last_error` is a short reason, truncated, never a response body.** Provider
+responses echo the request, and the request is the message. The dispatcher's
+log redacts addresses to `l***@example.test` and `***0144`, and never prints a
+subject or a body.
+
 ## Input handling
 
 `book_appointment` treats its arguments as hostile. It re-derives the end time
@@ -229,5 +263,6 @@ Phase 6 in [PRODUCT.md](PRODUCT.md) covers the pre-launch security work:
 - [ ] Concurrency test: N clients racing for one slot, exactly one wins
 - [ ] Rate limiting on `book_appointment`
 - [ ] Review `get_availability_context` for enumeration abuse
-- [ ] Decide on retention and deletion for customer personal data
+- [ ] Decide on retention and deletion for customer personal data, including
+      how long a sent notification and its recipient are kept
 - [ ] Confirm no `EXPO_PUBLIC_` variable holds anything sensitive

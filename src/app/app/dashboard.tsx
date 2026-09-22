@@ -133,6 +133,9 @@ export default function DashboardScreen() {
         <Link href="/app/services" asChild>
           <Button label={t('nav.services')} variant="secondary" />
         </Link>
+        <Link href="/app/notifications" asChild>
+          <Button label={t('nav.notifications')} variant="secondary" />
+        </Link>
         <Link href="/app/settings" asChild>
           <Button label={t('nav.settings')} variant="secondary" />
         </Link>

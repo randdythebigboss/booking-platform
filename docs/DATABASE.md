@@ -22,6 +22,7 @@ hand in a dashboard.
 | `appointment_items`       | What was booked, snapshotted.                                                      |
 | `payments`                | Provider-agnostic payment records.                                                 |
 | `appointment_events`      | Append-only history of an appointment. Written by a trigger, editable by nobody.   |
+| `notifications`           | The outbox: what has to be said to a customer, and what happened when it was.      |
 
 `profiles.preferred_locale` holds a user's interface language. It needed no
 new policy: `profiles` was already scoped to `id = auth.uid()` for both select
@@ -163,6 +164,44 @@ at booking time, and `appointments` stores the buffers the same way.
 Raising a price or shortening a service must not rewrite history, and must not
 silently change how much room a booking already made occupies on the calendar.
 
+The customer is snapshotted for the same reason and was not, until Phase 8:
+`customer_name_snapshot`, `customer_phone_snapshot` and
+`customer_email_snapshot` are frozen at booking time by a `BEFORE INSERT`
+trigger, and an `UPDATE` that tries to change one raises
+`APPOINTMENT_IDENTITY_IS_IMMUTABLE`. `customer_id` still points at the reusable
+record, which is what makes a returning customer one person; what a human
+reads no longer moves when that record is edited. See
+[ADR 0021](DECISIONS/0021-an-appointment-remembers-who-booked-it.md).
+
+`appointments.customer_locale` is a snapshot too. It is the language the
+booking was made in, and every message queued for it is written in that
+language whatever anybody switches to later.
+
+## The outbox
+
+`notifications` is a durable queue, filled by a deferred trigger on
+`appointment_events` and drained by a dispatcher. Nothing in a booking
+transaction talks to a messaging provider; see
+[ADR 0020](DECISIONS/0020-notifications-leave-through-an-outbox.md).
+
+* `dedupe_key` is unique and deterministic, so nothing is ever queued twice.
+  For an event it is derived from the event; for a reminder, from the
+  appointment and the instant it is for -- which is what lets a move cancel the
+  old reminder and queue a correct new one.
+* `status` walks `pending -> processing -> sent | failed`, or is `cancelled`
+  when the appointment it was for went away. `claimed_at` records when a
+  dispatcher took it, so `requeue_stalled_notifications` can put back what a
+  dispatcher that died never finished.
+* The payload is minimal and frozen: business, professional, service, customer
+  name, the instant, the timezone. No notes, no price, no token.
+* Reminders are one per appointment per instant, `reminder_lead_minutes`
+  before it -- 24 hours by default, `0` to send none. An appointment booked
+  closer than the lead time gets no reminder, because one that fires as you
+  book is noise.
+* Only email is queued today, and only when the booking left an address. The
+  channel enum carries `sms`, `whatsapp`, `push` and `in_app` so the next one
+  is an adapter rather than a migration.
+
 ## Timezones
 
 `timestamptz` for anything absolute. `time` for working hours, which are local
@@ -240,7 +279,7 @@ schedule, a block, an exception and one existing appointment.
 
 ## Executable guarantees
 
-Eight SQL suites run against a database built from nothing, in CI and via
+Nine SQL suites run against a database built from nothing, in CI and via
 `tools/local-postgres/run-validation.sh`:
 
 | File                                         | Proves                                                                                                             |
@@ -252,6 +291,7 @@ Eight SQL suites run against a database built from nothing, in CI and via
 | `supabase/tests/professional_operations.sql` | The appointment lifecycle, and who may drive it                                                                    |
 | `supabase/tests/appointment_lifecycle.sql`   | Rescheduling, manual booking, the reschedule race, history integrity and privacy, DST                             |
 | `supabase/tests/customer_identity.sql`       | Who counts as the same customer, and the tenant boundary that is never crossed to decide                          |
+| `supabase/tests/notification_outbox.sql`     | What booking queues and what it refuses to queue twice, reminders following their appointment, claiming and retrying, who may read or drain the outbox |
 | `supabase/tests/function_grants.sql`         | Every function is classified, RLS covers every table                                                               |
 
 The Phase 1 functions run as `SECURITY INVOKER`, so Row Level Security still

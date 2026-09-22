@@ -54,6 +54,7 @@ run "public_booking.sql" -f "$REPO_ROOT/supabase/tests/public_booking.sql"
 run "professional_operations.sql" -f "$REPO_ROOT/supabase/tests/professional_operations.sql"
 run "appointment_lifecycle.sql" -f "$REPO_ROOT/supabase/tests/appointment_lifecycle.sql"
 run "customer_identity.sql" -f "$REPO_ROOT/supabase/tests/customer_identity.sql"
+run "notification_outbox.sql" -f "$REPO_ROOT/supabase/tests/notification_outbox.sql"
 run "function_grants.sql" -f "$REPO_ROOT/supabase/tests/function_grants.sql"
 
 printf '\nAll database validation passed.\n'

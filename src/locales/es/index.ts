@@ -102,6 +102,7 @@ export const es = {
     appointments: 'Todas las citas',
     availability: 'Disponibilidad',
     services: 'Servicios',
+    notifications: 'Avisos',
     settings: 'Ajustes',
   },
 
@@ -498,6 +499,42 @@ export const es = {
     status_cancelled: 'Cancelada',
     status_completed: 'Completada',
     status_no_show: 'No asististe',
+  },
+
+  notifications: {
+    title: 'Avisos',
+    subtitle: 'Los mensajes que el sistema tiene que enviar a tus clientes.',
+    none: 'Todavía no hay avisos.',
+    forThisAppointment: 'Avisos al cliente',
+    noneForAppointment: 'Esta cita no tiene avisos.',
+    noEmailOnFile: 'Esta reserva no dejó un correo, así que no hay nada que enviar.',
+    scheduledFor: 'Programado para el {{when}}',
+    sentAt: 'Enviado el {{when}}',
+    failedAt: 'Falló el {{when}}',
+    attempts_one: '{{count}} intento',
+    attempts_other: '{{count}} intentos',
+    developmentDelivery:
+      'Todavía no sale nada de aquí: en desarrollo los entrega un proveedor simulado.',
+    kind: {
+      booking_confirmed: 'Confirmación de la reserva',
+      booking_rescheduled: 'Cambio de hora',
+      booking_cancelled: 'Cancelación',
+      booking_reminder: 'Recordatorio',
+    },
+    status: {
+      pending: 'Pendiente',
+      processing: 'Enviándose',
+      sent: 'Enviado',
+      failed: 'Falló',
+      cancelled: 'Cancelado',
+    },
+    channel: {
+      email: 'Correo',
+      sms: 'SMS',
+      whatsapp: 'WhatsApp',
+      push: 'Notificación',
+      in_app: 'En la aplicación',
+    },
   },
 
   validation: {

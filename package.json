@@ -23,7 +23,8 @@
     "db:diff": "npx --yes supabase db diff",
     "db:types": "npx --yes supabase gen types typescript --local > src/types/database.generated.ts",
     "verify": "npm run lint && npm run typecheck && npm run test",
-    "test:i18n": "vitest run tests/i18n"
+    "test:i18n": "vitest run tests/i18n",
+    "notifications:dispatch": "tsx tools/notifications/dispatch.ts"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
@@ -59,6 +60,7 @@
     "eslint-config-expo": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.6.2",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "vitest": "^3.2.4"
   }

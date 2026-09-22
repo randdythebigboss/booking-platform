@@ -123,6 +123,22 @@ that evidence comes from. On the client side, what the app believes when a
 token is refreshed or revoked is covered by
 `tests/services/auth-session.test.ts` against a fake SDK.
 
+## Sending notifications in development
+
+Nothing sends by itself, on purpose: a booking never waits on a provider
+(ADR 0020). To move what is queued, run the dispatcher against a database:
+
+```bash
+DISPATCH_DB_URL=postgresql://postgres@127.0.0.1:55432/booking   npm run notifications:dispatch
+
+# psql not on PATH (Windows, or the portable build above):
+PSQL=/path/to/psql.exe DISPATCH_DB_URL=... npm run notifications:dispatch
+```
+
+It uses the mock provider, which delivers nowhere and records everything, and
+its log is redacted. `/app/notifications` shows the same queue from inside the
+product. [OPERATIONS.md](OPERATIONS.md) has the rest.
+
 ## Checks
 
 ```bash
@@ -148,6 +164,10 @@ src/
 supabase/
   migrations/    Every schema change, in order.
   seed.sql       Demo data.
+  tests/         SQL suites: what the database itself promises.
+tools/
+  local-postgres/  Run the SQL anywhere PostgreSQL runs, without Docker.
+  notifications/   The outbox dispatcher.
 tests/           Domain and unit tests.
 docs/            This.
 ```

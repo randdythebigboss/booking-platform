@@ -97,6 +97,7 @@ export const en: Translations = {
     appointments: 'All appointments',
     availability: 'Availability',
     services: 'Services',
+    notifications: 'Notifications',
     settings: 'Settings',
   },
 
@@ -487,6 +488,42 @@ export const en: Translations = {
     status_cancelled: 'Cancelled',
     status_completed: 'Completed',
     status_no_show: 'Missed',
+  },
+
+  notifications: {
+    title: 'Notifications',
+    subtitle: 'The messages the system has to send your customers.',
+    none: 'No notifications yet.',
+    forThisAppointment: 'Messages to the customer',
+    noneForAppointment: 'This appointment has no notifications.',
+    noEmailOnFile: 'This booking left no email address, so there is nothing to send.',
+    scheduledFor: 'Scheduled for {{when}}',
+    sentAt: 'Sent {{when}}',
+    failedAt: 'Failed {{when}}',
+    attempts_one: '{{count}} attempt',
+    attempts_other: '{{count}} attempts',
+    developmentDelivery:
+      'Nothing leaves here yet: in development a mock provider delivers them.',
+    kind: {
+      booking_confirmed: 'Booking confirmation',
+      booking_rescheduled: 'Time changed',
+      booking_cancelled: 'Cancellation',
+      booking_reminder: 'Reminder',
+    },
+    status: {
+      pending: 'Pending',
+      processing: 'Sending',
+      sent: 'Sent',
+      failed: 'Failed',
+      cancelled: 'Cancelled',
+    },
+    channel: {
+      email: 'Email',
+      sms: 'SMS',
+      whatsapp: 'WhatsApp',
+      push: 'Push',
+      in_app: 'In app',
+    },
   },
 
   validation: {

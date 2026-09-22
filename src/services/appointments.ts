@@ -32,7 +32,9 @@ export interface ProfessionalAppointment {
 
 const COLUMNS =
   'id, professional_id, starts_at, ends_at, status, notes, cancellation_reason,' +
-  ' customers ( full_name, phone, email ),' +
+  // The customer as this booking recorded them, not as the reusable record
+  // has since become. See the 20260926100000 migration.
+  ' customer_name_snapshot, customer_phone_snapshot, customer_email_snapshot,' +
   ' professional_profiles ( display_name ),' +
   ' appointment_items ( service_id, service_name_snapshot, duration_minutes_snapshot, price_snapshot, currency_snapshot )';
 
@@ -42,7 +44,6 @@ function first<T>(value: T | T[] | null | undefined): T | null {
 }
 
 function toAppointment(row: Record<string, any>): ProfessionalAppointment {
-  const customer = first<Record<string, any>>(row.customers);
   const professional = first<Record<string, any>>(row.professional_profiles);
 
   return {
@@ -55,9 +56,9 @@ function toAppointment(row: Record<string, any>): ProfessionalAppointment {
     notes: row.notes ?? null,
     cancellationReason: row.cancellation_reason ?? null,
     customer: {
-      fullName: customer ? String(customer.full_name) : 'Unknown',
-      phone: customer ? String(customer.phone) : '',
-      email: customer?.email ?? null,
+      fullName: String(row.customer_name_snapshot),
+      phone: String(row.customer_phone_snapshot),
+      email: row.customer_email_snapshot ?? null,
     },
     items: (row.appointment_items ?? []).map((item: Record<string, any>) => ({
       serviceId: item.service_id ? String(item.service_id) : null,
@@ -178,6 +179,8 @@ export interface ManualAppointmentInput {
   customerEmail?: string;
   notes?: string;
   allowOutsideHours?: boolean;
+  /** Nobody asked the customer, so this is the professional's language. */
+  locale?: string;
 }
 
 /**
@@ -199,6 +202,7 @@ export async function createManualAppointment(input: ManualAppointmentInput): Pr
     p_customer_email: input.customerEmail ?? null,
     p_notes: input.notes ?? null,
     p_override_schedule: input.allowOutsideHours ?? false,
+    p_locale: input.locale ?? null,
   });
 
   if (error) throw toWorkspaceError(error);

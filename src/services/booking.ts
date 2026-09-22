@@ -15,6 +15,14 @@ export interface BookAppointmentInput {
   customerPhone: string;
   customerEmail?: string;
   notes?: string;
+  /**
+   * The language this booking is being made in.
+   *
+   * Recorded on the appointment and copied onto every message queued for it,
+   * so a confirmation that is written later is still written in the language
+   * the customer chose here. Omitted, the database records Spanish.
+   */
+  locale?: string;
 }
 
 export interface BookingConfirmation {
@@ -64,6 +72,7 @@ export async function bookAppointment(input: BookAppointmentInput): Promise<Book
     p_customer_phone: input.customerPhone,
     p_customer_email: input.customerEmail ?? null,
     p_notes: input.notes ?? null,
+    p_locale: input.locale ?? null,
   });
 
   if (error) throw toBookingError(error);

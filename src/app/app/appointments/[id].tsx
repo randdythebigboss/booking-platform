@@ -25,6 +25,7 @@ import {
   rescheduleAppointment,
   setAppointmentStatus,
 } from '@/services/appointments';
+import { fetchAppointmentNotifications } from '@/services/notifications';
 import { spacing } from '@/theme';
 import type { AppointmentStatus } from '@/types/domain';
 
@@ -47,6 +48,13 @@ export default function AppointmentDetailScreen() {
     [id],
   );
 
+  // What the customer has been, or is about to be, told. Read-only: the
+  // outbox is written by the database, never from here.
+  const notifications = useAsyncData(
+    () => (id ? fetchAppointmentNotifications(id) : Promise.resolve([])),
+    [id],
+  );
+
   const [reason, setReason] = useState('');
   const [pending, setPending] = useState<AppointmentStatus | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
@@ -64,6 +72,7 @@ export default function AppointmentDetailScreen() {
   function refresh() {
     appointment.reload();
     history.reload();
+    notifications.reload();
   }
 
   async function apply(next: AppointmentStatus) {
@@ -157,6 +166,7 @@ export default function AppointmentDetailScreen() {
   const canMove = row.status === 'pending' || row.status === 'confirmed';
   const serviceId = row.items[0]?.serviceId ?? null;
   const events = history.data ?? [];
+  const queued = notifications.data ?? [];
   const moved = rescheduleCount(events);
 
   return (
@@ -355,6 +365,41 @@ export default function AppointmentDetailScreen() {
             {t('appointments.afterStartHint')}
           </Text>
         )}
+      </Card>
+
+      <Card>
+        <Text variant="heading">{t('notifications.forThisAppointment')}</Text>
+        {notifications.loading && <ActivityIndicator />}
+        {queued.length === 0 && !notifications.loading && (
+          <Text variant="body" tone="muted">
+            {row.customer.email
+              ? t('notifications.noneForAppointment')
+              : t('notifications.noEmailOnFile')}
+          </Text>
+        )}
+        <View style={{ gap: spacing.sm }}>
+          {queued.map((notification) => (
+            <View key={notification.id} style={{ gap: 2 }}>
+              <Text variant="body">
+                {tk(`notifications.kind.${notification.kind}`)} {'·'}{' '}
+                {tk(`notifications.channel.${notification.channel}`)}
+              </Text>
+              <Text
+                variant="caption"
+                tone={notification.status === 'failed' ? 'danger' : 'muted'}
+              >
+                {tk(`notifications.status.${notification.status}`)} {'·'}{' '}
+                {notification.sentAt
+                  ? t('notifications.sentAt', {
+                      when: format.dateTime(notification.sentAt, timezone),
+                    })
+                  : t('notifications.scheduledFor', {
+                      when: format.dateTime(notification.scheduledFor, timezone),
+                    })}
+              </Text>
+            </View>
+          ))}
+        </View>
       </Card>
 
       <Card>
