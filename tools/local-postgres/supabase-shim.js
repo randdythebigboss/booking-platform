@@ -11,6 +11,11 @@
  *   /rest/v1/*   forwarded to PostgREST with the prefix stripped
  *   /auth/v1/*   the handful of GoTrue endpoints supabase-js actually calls
  *
+ * It is NOT GoTrue. There is no sign-up, no email confirmation, no password
+ * reset, no token expiry and no refresh -- its tokens never expire. A flow
+ * that works here shows that Row Level Security and the RPCs behave; it shows
+ * nothing about authentication. See docs/DEVELOPMENT.md.
+ *
  * Passwords are checked against auth.users with pgcrypto, and the access token
  * is a real HS256 JWT carrying `sub` and `role=authenticated`, signed with the
  * same secret PostgREST verifies. Row Level Security therefore sees a genuine

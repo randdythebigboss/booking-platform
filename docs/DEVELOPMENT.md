@@ -107,6 +107,22 @@ exercised is the real thing; only the identity provider is local.
 It is a development tool, not a security boundary, and must never listen
 beyond localhost.
 
+**It is not GoTrue, and the difference matters when reading a green run.**
+What it implements is the password grant and the session endpoints
+supabase-js calls on start-up. What it does not implement:
+
+- sign-up, and therefore the `handle_new_user` trigger path
+- email confirmation, password reset and recovery
+- token expiry and refresh -- its tokens simply do not expire
+- rate limiting, lockout, and every other abuse control
+
+So a professional flow that works here is evidence that Row Level Security
+and the RPCs behave, and is not evidence that authentication does. The CI
+job runs the real Supabase stack against the same migrations, which is where
+that evidence comes from. On the client side, what the app believes when a
+token is refreshed or revoked is covered by
+`tests/services/auth-session.test.ts` against a fake SDK.
+
 ## Checks
 
 ```bash
