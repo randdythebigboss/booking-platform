@@ -56,7 +56,9 @@ jobs:
         run: |
           test -f dist/manifest.webmanifest
           test -f dist/sw.js
+          test -f dist/icons/icon-192.png
           test -f dist/icons/icon-512.png
+          test -f dist/icons/icon-maskable-512.png
           grep -q '"display": "standalone"' dist/manifest.webmanifest
           grep -q 'rel="manifest"' dist/index.html
           grep -q 'serviceWorker' dist/index.html

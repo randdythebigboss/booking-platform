@@ -34,6 +34,22 @@ theme colour and a service worker, so a browser offers "install" and the
 result opens without browser chrome, has its own icon, and behaves like an
 application. Nothing about installation requires an account or a store.
 
+The icons come from `tools/dev/generate-web-icons.cjs`, which derives them from
+the native ones and is run by hand when those change. It exists because the two
+kinds of manifest icon are not interchangeable and look identical in a file
+listing:
+
+* An icon marked **`any`** is drawn literally — in the install prompt, in the
+  task switcher, and on an iOS home screen, where transparency composites onto
+  black rather than onto the page. It has to be opaque and full bleed.
+* An icon marked **`maskable`** is cropped by the launcher to a circle, a
+  squircle or a rounded square, so its corners must be filled and its logo must
+  sit inside the middle 80%.
+
+Android's adaptive *foreground* is the second kind. Serving it as the first is
+how an application ends up with a black square for an icon, so the packaging
+tests assert opacity and coverage rather than merely that a file exists.
+
 Two things are true about that install and are deliberate:
 
 * It caches the build's own static files and **nothing else** — no page, no

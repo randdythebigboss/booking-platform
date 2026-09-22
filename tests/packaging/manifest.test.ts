@@ -1,6 +1,56 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
+import { PNG } from 'pngjs';
 import { describe, expect, it } from 'vitest';
+
+type Icon = { src: string; sizes: string; type: string; purpose: string };
+
+const pixels = (path: string) => PNG.sync.read(readFileSync(path));
+
+// `readUInt8` rather than indexing, because every index here is in bounds by
+// construction and TypeScript cannot see that.
+const hasAlpha = (path: string) => {
+  const image = pixels(path);
+
+  for (let i = 3; i < image.data.length; i += 4) {
+    if (image.data.readUInt8(i) < 255) return true;
+  }
+
+  return false;
+};
+
+/**
+ * How much of the frame the artwork occupies, as a fraction of the width.
+ *
+ * "Artwork" is whatever differs from the colour in the corner, which is the
+ * background of any icon worth shipping. A full-bleed icon returns ~1; a logo
+ * floating in a margin returns the width of the logo.
+ */
+const coverage = (path: string) => {
+  const image = pixels(path);
+  const data = image.data;
+  const background = [data.readUInt8(0), data.readUInt8(1), data.readUInt8(2)] as const;
+  let left = image.width;
+  let right = 0;
+
+  for (let y = 0; y < image.height; y++) {
+    for (let x = 0; x < image.width; x++) {
+      const i = (image.width * y + x) * 4;
+      const distance = Math.max(
+        Math.abs(data.readUInt8(i) - background[0]),
+        Math.abs(data.readUInt8(i + 1) - background[1]),
+        Math.abs(data.readUInt8(i + 2) - background[2]),
+      );
+
+      if (distance > 24) {
+        if (x < left) left = x;
+        if (x > right) right = x;
+      }
+    }
+  }
+
+  return right < left ? 0 : (right - left + 1) / image.width;
+};
 
 /**
  * The packaging contract, checked in CI.
@@ -26,11 +76,48 @@ describe('the web manifest', () => {
   });
 
   it('ships an icon big enough to install with, and a maskable one', () => {
-    const sizes = manifest.icons.map((icon: { sizes: string }) => icon.sizes);
+    const sizes = manifest.icons.map((icon: Icon) => icon.sizes);
+    expect(sizes).toContain('192x192');
     expect(sizes).toContain('512x512');
 
-    const purposes = manifest.icons.map((icon: { purpose: string }) => icon.purpose);
+    const purposes = manifest.icons.map((icon: Icon) => icon.purpose);
+    expect(purposes).toContain('any');
     expect(purposes).toContain('maskable');
+  });
+
+  it('points at icons that exist', () => {
+    for (const icon of manifest.icons as Icon[]) {
+      expect(existsSync(`public${icon.src}`), icon.src).toBe(true);
+    }
+  });
+
+  /**
+   * The defect this exists to prevent: Android's adaptive *foreground* is a
+   * small logo on transparency, and it is tempting to reuse it everywhere.
+   * Declared as `any` it is drawn literally -- and on an iOS home screen the
+   * transparency composites onto black, so the application's icon becomes a
+   * black square with a little glyph floating in the middle of it.
+   */
+  it('has no transparency in any icon it declares', () => {
+    for (const icon of manifest.icons as Icon[]) {
+      expect(hasAlpha(`public${icon.src}`), `${icon.src} must be opaque`).toBe(false);
+    }
+  });
+
+  it('fills the frame with the `any` icons, and keeps the maskable one inside the safe zone', () => {
+    const icons = manifest.icons as Icon[];
+
+    // A literally drawn icon that leaves a margin looks shrunken next to every
+    // other icon on the home screen.
+    for (const icon of icons.filter((i) => i.purpose === 'any')) {
+      expect(coverage(`public${icon.src}`), `${icon.src} should fill its frame`).toBeGreaterThan(0.9);
+    }
+
+    // A maskable icon is cropped to a circle or a squircle, so anything
+    // outside the middle 80% can be cut off.
+    for (const icon of icons.filter((i) => i.purpose === 'maskable')) {
+      expect(coverage(`public${icon.src}`), `${icon.src} should stay inside the safe zone`).toBeLessThan(0.8);
+    }
   });
 
   it('starts in the product language', () => {
