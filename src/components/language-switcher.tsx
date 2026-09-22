@@ -48,6 +48,12 @@ export function LanguageSwitcher({ showLabel = true }: LanguageSwitcherProps) {
               accessibilityLabel={LOCALE_NAMES[option]}
               onPress={() => setLocale(option)}
               style={{
+                // 44 is the size a thumb reliably hits. The padding alone left
+                // these at 38, which is legal -- WCAG AA asks for 24 -- and
+                // still the control most often missed on a phone, because it
+                // sits at the very bottom of every screen.
+                minHeight: 44,
+                justifyContent: 'center',
                 paddingVertical: spacing.sm,
                 paddingHorizontal: spacing.md,
                 borderRadius: radius.md,

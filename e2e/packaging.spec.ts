@@ -62,7 +62,16 @@ test.describe('the installable web application', () => {
    */
   test('never caches an API response', async ({ page }) => {
     await page.goto(`/p/${TENANT_A.slug}/book`);
-    await page.waitForTimeout(1500); // let the worker settle after registering
+
+    // A service worker does not control the page that registered it, so the
+    // first load caches nothing. Reloading is what makes this test mean
+    // something: without it the cache is empty and every assertion below
+    // passes for the wrong reason.
+    await expect
+      .poll(() => page.evaluate(() => !!navigator.serviceWorker.controller), { timeout: 15_000 })
+      .toBe(true);
+    await page.reload();
+    await page.waitForTimeout(1500);
 
     const cached = await page.evaluate(async () => {
       if (!('caches' in window)) return [];
@@ -77,14 +86,15 @@ test.describe('the installable web application', () => {
       return urls;
     });
 
+    // It really is caching, so the checks below are about something.
+    expect(cached.length, 'the service worker cached nothing at all').toBeGreaterThan(0);
+
     for (const url of cached) {
       expect(url, 'the cache holds an API response').not.toMatch(/\/rest\/v1\//);
       expect(url, 'the cache holds an auth response').not.toMatch(/\/auth\/v1\//);
-    }
 
-    // Whatever it did cache is the build's own output.
-    for (const url of cached) {
-      expect(url).toMatch(/\/(_expo|assets|icons|fonts)\//);
+      // Whatever it did cache is the build's own output.
+      expect(url, `${url} is not build output`).toMatch(/\/(_expo|assets|icons|fonts)\//);
     }
   });
 
