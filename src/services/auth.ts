@@ -52,10 +52,29 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   return user ? { id: user.id, email: user.email ?? null } : null;
 }
 
-/** Returns an unsubscribe function. */
+/**
+ * Tells the caller who is signed in, and only when that changes.
+ *
+ * Supabase emits an auth event for more than sign-in and sign-out: it refreshes
+ * the token on a timer, and again when a backgrounded tab becomes visible. Each
+ * one would otherwise hand out a freshly allocated user object for the same
+ * person, and anything watching that object by identity -- a React effect, a
+ * memo -- would treat it as a new user and start over.
+ *
+ * So the same id is reported once. Callers see a change only when there is one.
+ *
+ * Returns an unsubscribe function.
+ */
 export function onAuthChange(listener: (user: AuthUser | null) => void): () => void {
+  let lastId: string | null | undefined;
+
   const { data } = getSupabase().auth.onAuthStateChange((_event, session) => {
     const user = session?.user;
+    const id = user ? user.id : null;
+
+    if (id === lastId) return;
+    lastId = id;
+
     listener(user ? { id: user.id, email: user.email ?? null } : null);
   });
 

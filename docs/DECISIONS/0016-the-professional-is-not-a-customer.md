@@ -71,6 +71,14 @@ which the original slot has been released and the new one not yet acquired --
 which is what makes rescheduling safe to offer to a guest who may lose a race
 to somebody refreshing the public page.
 
+**A professional may move an appointment that has already begun; a guest may
+not.** The guest is refused because moving something already under way is a
+conversation with the shop, not a self-service action. The shop, having had
+that conversation, has to be able to act on it -- and moving the appointment
+keeps the customer, the snapshot and the history that cancel-and-rebook would
+throw away. The asymmetry is asserted in the suite so that it is not later
+mistaken for an oversight.
+
 **Customer identity stays as it was.** `customers` is unique on
 `(business_id, phone)`, and manual booking upserts on it exactly as
 `book_appointment` does. Phone is the identity of a guest customer within one

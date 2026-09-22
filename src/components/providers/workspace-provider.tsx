@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -36,6 +37,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
 
+  // Read inside the effect without making the effect depend on it.
+  const workspaceRef = useRef<Workspace | null>(null);
+  workspaceRef.current = workspace;
+
+  // The id, not the user object: onAuthChange builds a fresh { id, email } for
+  // every auth event, including the token refresh the SDK performs when a
+  // backgrounded tab becomes visible again. Depending on the object would
+  // re-run the effect below on each of them.
+  const userId = session.user?.id ?? null;
+
   const refresh = useCallback(() => setNonce((value) => value + 1), []);
 
   useEffect(() => {
@@ -49,17 +60,21 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (session.status === 'signed-out' || !session.user) {
+    if (session.status === 'signed-out' || !userId) {
       setWorkspace(null);
       setStatus('no-session');
       return;
     }
 
     let cancelled = false;
-    setStatus('loading');
+    // Only announce loading when there is nothing to show. A refresh that
+    // replaces a workspace we already have must not blank the tree: the guard
+    // above renders a spinner instead of the navigator, and unmounting the
+    // navigator throws the professional off whatever screen they were on.
+    setStatus((current) => (workspaceRef.current ? current : 'loading'));
     setError(null);
 
-    fetchWorkspace(session.user.id)
+    fetchWorkspace(userId)
       .then((result) => {
         if (cancelled) return;
         setWorkspace(result);
@@ -74,7 +89,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [session.status, session.user, nonce]);
+  }, [session.status, userId, nonce]);
 
   const value = useMemo<WorkspaceValue>(
     () => ({ status, workspace, error, refresh }),

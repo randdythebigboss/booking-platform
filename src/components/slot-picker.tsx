@@ -18,6 +18,11 @@ export interface SlotPickerProps {
   /** ISO instant of the chosen slot, or null. */
   selected: string | null;
   onSelect: (startsAt: string) => void;
+  /**
+   * Bump to re-ask. A list fetched a minute ago may be offering a time that
+   * has since gone, and the caller finds that out when a write is refused.
+   */
+  reloadKey?: number;
 }
 
 /**
@@ -37,6 +42,7 @@ export function SlotPicker({
   onDateChange,
   selected,
   onSelect,
+  reloadKey = 0,
 }: SlotPickerProps) {
   const { palette } = useTheme();
 
@@ -65,7 +71,7 @@ export function SlotPicker({
     return () => {
       cancelled = true;
     };
-  }, [professionalId, serviceId, date]);
+  }, [professionalId, serviceId, date, reloadKey]);
 
   // The time the appointment already holds is never in this list: it is
   // occupied, so the engine does not offer it. Every option here is a move.

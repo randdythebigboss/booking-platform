@@ -1060,4 +1060,139 @@ $$;
 
 rollback;
 
+-- ===========================================================================
+-- Two asymmetries that are deliberate, asserted so they are not "fixed".
+-- ===========================================================================
+begin;
+
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', 'a9990000-0000-4000-8000-0000000000a1', 'role', 'authenticated')::text,
+  true
+);
+set local role authenticated;
+
+insert into public.customers (id, business_id, full_name, phone)
+values ('a9990000-0000-4000-8000-0000000000f2', 'a9990000-0000-4000-8000-000000000001',
+        'Late Customer', '+1 809 555 9401');
+
+-- One that has already started, still open.
+insert into public.appointments (
+  id, business_id, professional_id, customer_id, starts_at, ends_at,
+  status, source, access_token
+)
+values (
+  'a9990000-0000-4000-8000-0000000000e2', 'a9990000-0000-4000-8000-000000000001',
+  'a9990000-0000-4000-8000-0000000000b1', 'a9990000-0000-4000-8000-0000000000f2',
+  now() - interval '2 hours', now() - interval '75 minutes',
+  'confirmed', 'manual', 'a9990000-0000-4000-8000-0000000000aa'
+);
+
+do $$
+declare
+  c_pro constant uuid := 'a9990000-0000-4000-8000-0000000000b1';
+  c_service constant uuid := 'a9990000-0000-4000-8000-0000000000c1';
+  c_tz constant text := 'America/Santo_Domingo';
+  c_started constant uuid := 'a9990000-0000-4000-8000-0000000000e2';
+  v_date date := ((now() at time zone c_tz)::date + 7);
+  v_ten timestamptz;
+  v_two timestamptz;
+  v_message text;
+begin
+  v_ten := (v_date::timestamp + time '10:00') at time zone c_tz;
+  v_two := (v_date::timestamp + time '14:00') at time zone c_tz;
+
+  ---------------------------------------------------------------------------
+  raise notice '34. a professional may correct an appointment that already began';
+  ---------------------------------------------------------------------------
+  -- The guest is refused this, on purpose: moving something that has started
+  -- is a conversation with the shop, not a self-service action. The shop,
+  -- having had that conversation, must be able to act on it -- and moving the
+  -- appointment keeps the customer and the history that cancel-and-rebook
+  -- would throw away.
+  perform public.reschedule_appointment(c_started, v_two, 'They called, coming Tuesday instead');
+
+  if (select starts_at from public.appointments where id = c_started) <> v_two then
+    raise exception 'FAIL: a professional could not correct an appointment that had started';
+  end if;
+
+  if not exists (
+    select 1 from public.appointment_events
+    where appointment_id = c_started and event_type = 'rescheduled'
+      and actor_type = 'professional'
+      and reason = 'They called, coming Tuesday instead'
+  ) then
+    raise exception 'FAIL: the correction was not recorded';
+  end if;
+
+  ---------------------------------------------------------------------------
+  raise notice '35. the guest is refused the same move, through their own link';
+  ---------------------------------------------------------------------------
+  -- Move it back into the past first, so the refusal is about having started
+  -- rather than about anything else.
+  perform public.reschedule_appointment(c_started, now() - interval '2 hours', null, true);
+
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('role', 'anon')::text, true);
+  set local role anon;
+
+  begin
+    perform public.reschedule_appointment_by_token(
+      c_started, 'a9990000-0000-4000-8000-0000000000aa', v_two
+    );
+    raise exception 'FAIL: a guest moved an appointment that had already started';
+  exception
+    when sqlstate '22023' then
+      get stacked diagnostics v_message = message_text;
+      if v_message <> 'APPOINTMENT_ALREADY_STARTED' then
+        raise exception 'FAIL: expected APPOINTMENT_ALREADY_STARTED, got %', v_message;
+      end if;
+  end;
+
+  reset role;
+  perform set_config(
+    'request.jwt.claims',
+    json_build_object('sub', 'a9990000-0000-4000-8000-0000000000a1', 'role', 'authenticated')::text,
+    true
+  );
+  set local role authenticated;
+
+  ---------------------------------------------------------------------------
+  raise notice '36. a move hands back the time it left, and defends the time it took';
+  ---------------------------------------------------------------------------
+  perform public.create_manual_appointment(
+    c_pro, c_service, v_ten, 'Mover Customer', '+1 809 555 9402'
+  );
+
+  perform public.reschedule_appointment(
+    (select id from public.appointments
+     where professional_id = c_pro and starts_at = v_ten and status = 'confirmed'),
+    v_two
+  );
+
+  -- The time it left is free, and blocking it is allowed.
+  insert into public.blocked_times (professional_id, starts_at, ends_at, reason)
+  values (c_pro, v_ten, v_ten + interval '30 minutes', 'Reclaimed');
+
+  -- The time it took is not, and blocking that is refused -- by a trigger that
+  -- now takes the same advisory lock the move takes, so the two cannot each
+  -- decide in a world where the other has not happened.
+  begin
+    insert into public.blocked_times (professional_id, starts_at, ends_at, reason)
+    values (c_pro, v_two, v_two + interval '30 minutes', 'Should be refused');
+    raise exception 'FAIL: a block was created over a live appointment';
+  exception
+    when sqlstate '23P01' then
+      get stacked diagnostics v_message = message_text;
+      if v_message <> 'BLOCK_CONFLICTS_WITH_APPOINTMENT' then
+        raise exception 'FAIL: expected BLOCK_CONFLICTS_WITH_APPOINTMENT, got %', v_message;
+      end if;
+  end;
+
+  raise notice '34-36 hold';
+end;
+$$;
+
+rollback;
+
 \echo 'Appointment lifecycle holds.'

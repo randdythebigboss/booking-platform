@@ -73,6 +73,33 @@ describe('onAuthChange', () => {
     expect(seen).toEqual([{ id: 'user-1', email: 'pro@example.test' }]);
   });
 
+  it('does not report the same person twice', () => {
+    // The SDK refreshes on a timer and again whenever a backgrounded tab
+    // becomes visible. Handing out a freshly allocated user object each time
+    // makes anything watching it by identity start over -- which threw the
+    // professional off the screen they were on every time they came back to
+    // the tab.
+    const seen: (AuthUser | null)[] = [];
+    onAuthChange((user) => seen.push(user));
+
+    listeners[0]?.('SIGNED_IN', SESSION);
+    listeners[0]?.('TOKEN_REFRESHED', { ...SESSION, access_token: 'd.e.f' });
+    listeners[0]?.('TOKEN_REFRESHED', { ...SESSION, access_token: 'g.h.i' });
+
+    expect(seen).toHaveLength(1);
+  });
+
+  it('still reports a different person, and a person going away', () => {
+    const seen: (AuthUser | null)[] = [];
+    onAuthChange((user) => seen.push(user));
+
+    listeners[0]?.('SIGNED_IN', SESSION);
+    listeners[0]?.('SIGNED_OUT', null);
+    listeners[0]?.('SIGNED_IN', { ...SESSION, user: { id: 'user-2', email: 'other@example.test' } });
+
+    expect(seen.map((user) => user?.id ?? null)).toEqual(['user-1', null, 'user-2']);
+  });
+
   it('signs the user out when the session goes away', () => {
     const seen: (AuthUser | null)[] = [];
     onAuthChange((user) => seen.push(user));

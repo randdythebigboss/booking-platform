@@ -58,6 +58,7 @@ export default function AppointmentDetailScreen() {
   const [outsideHours, setOutsideHours] = useState(false);
   const [moveFailure, setMoveFailure] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [slotsNonce, setSlotsNonce] = useState(0);
 
   function refresh() {
     appointment.reload();
@@ -112,11 +113,19 @@ export default function AppointmentDetailScreen() {
       setOutsideHours(false);
       refresh();
     } catch (cause) {
-      setMoveFailure(
-        cause instanceof Error && cause.name === 'InvalidTimeValueError'
-          ? 'Use a 24-hour time like 14:30.'
-          : toWorkspaceError(cause).message,
-      );
+      if (cause instanceof Error && cause.name === 'InvalidTimeValueError') {
+        setMoveFailure('Use a 24-hour time like 14:30.');
+        return;
+      }
+
+      const failure = toWorkspaceError(cause);
+      setMoveFailure(failure.message);
+      // The list was drawn before somebody took that time. Leaving it up would
+      // offer the same gone slot again, and fail again.
+      if (failure.code === 'SLOT_TAKEN' || failure.code === 'SLOT_BLOCKED') {
+        setMoveSlot(null);
+        setSlotsNonce((value) => value + 1);
+      }
     } finally {
       setSaving(false);
     }
@@ -252,6 +261,7 @@ export default function AppointmentDetailScreen() {
                     setMoveSlot(iso);
                     setMoveTime('');
                   }}
+                  reloadKey={slotsNonce}
                 />
               ) : (
                 <Feedback

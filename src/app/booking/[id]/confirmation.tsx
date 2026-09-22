@@ -39,6 +39,7 @@ export default function ConfirmationScreen() {
   const [moveSlot, setMoveSlot] = useState<string | null>(null);
   const [moveFailure, setMoveFailure] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [slotsNonce, setSlotsNonce] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -130,7 +131,14 @@ export default function ConfirmationScreen() {
       // still where it was, and the page should say so.
       setNonce((value) => value + 1);
     } catch (cause) {
-      setMoveFailure(toBookingError(cause).message);
+      const failure = toBookingError(cause);
+      setMoveFailure(failure.message);
+      // The list was drawn before somebody else took that time. Leaving it up
+      // would offer the same gone slot again, and fail again.
+      if (failure.isSlotConflict) {
+        setMoveSlot(null);
+        setSlotsNonce((value) => value + 1);
+      }
     } finally {
       setSaving(false);
     }
@@ -214,6 +222,7 @@ export default function ConfirmationScreen() {
                 }}
                 selected={moveSlot}
                 onSelect={setMoveSlot}
+                reloadKey={slotsNonce}
               />
 
               {moveFailure && <Feedback tone="danger" message={moveFailure} />}
