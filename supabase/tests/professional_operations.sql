@@ -388,4 +388,53 @@ $$;
 
 commit;
 
+
+-- ---------------------------------------------------------------------------
+-- 15. An appointment cannot be made to point across tenants.
+--
+-- Run as the owner so Row Level Security is not what stops it: the point is
+-- that the schema refuses the reference even when the caller can write the row.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_foreign_customer uuid;
+  v_foreign_professional uuid;
+begin
+  select id into v_foreign_customer
+  from public.customers
+  where business_id <> '44440000-0000-4000-8000-000000000004'
+  limit 1;
+
+  select id into v_foreign_professional
+  from public.professional_profiles
+  where business_id <> '44440000-0000-4000-8000-000000000004'
+  limit 1;
+
+  if v_foreign_customer is null or v_foreign_professional is null then
+    raise exception 'FAIL: the fixture needs another tenant to point at';
+  end if;
+
+  begin
+    update public.appointments
+    set customer_id = v_foreign_customer
+    where id = '88880000-0000-4000-8000-000000000001';
+    raise exception 'FAIL: an appointment accepted a customer from another business';
+  exception
+    when foreign_key_violation then null;
+  end;
+
+  begin
+    update public.appointments
+    set professional_id = v_foreign_professional
+    where id = '88880000-0000-4000-8000-000000000001';
+    raise exception 'FAIL: an appointment accepted a professional from another business';
+  exception
+    when foreign_key_violation then null;
+  end;
+
+  raise notice '15. an appointment cannot reference another tenant''s customer or professional';
+end;
+$$;
+
 \echo 'Professional operations hold.'

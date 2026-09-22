@@ -6,6 +6,7 @@ import { useRequiredWorkspace } from '@/components/providers';
 import { Card, Feedback, Screen, Select, Text } from '@/components/ui';
 import { isoDateIn, zonedInstant } from '@/features/availability';
 import { useAsyncData } from '@/hooks/use-async-data';
+import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import { fetchAppointments } from '@/services/appointments';
 import { spacing } from '@/theme';
 import type { AppointmentStatus } from '@/types/domain';
@@ -60,6 +61,8 @@ export default function AppointmentsScreen() {
   );
 
   const rows = appointments.data ?? [];
+
+  useRefreshOnFocus(appointments.reload);
 
   return (
     <Screen title="Appointments" subtitle="Everything booked, past and future.">

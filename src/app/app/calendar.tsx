@@ -6,6 +6,7 @@ import { useRequiredWorkspace } from '@/components/providers';
 import { Button, Card, Feedback, Screen, Text } from '@/components/ui';
 import { addDays, isoDateIn, zonedInstant } from '@/features/availability';
 import { useAsyncData } from '@/hooks/use-async-data';
+import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import { formatDateIn } from '@/lib/format';
 import { fetchAppointments } from '@/services/appointments';
 import { spacing } from '@/theme';
@@ -45,6 +46,9 @@ export default function CalendarScreen() {
       }),
     [business.id, today],
   );
+
+  useRefreshOnFocus(day.reload);
+  useRefreshOnFocus(upcoming.reload);
 
   return (
     <Screen title="Calendar" subtitle={`Times are ${timezone.replace(/_/g, ' ')}.`}>

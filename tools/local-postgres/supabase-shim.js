@@ -227,6 +227,7 @@ const server = http.createServer((req, res) => {
     (up) => {
       res.writeHead(up.statusCode || 500, {
         ...up.headers,
+        'cache-control': 'no-store',
         'access-control-allow-origin': '*',
         'access-control-expose-headers': '*',
       });

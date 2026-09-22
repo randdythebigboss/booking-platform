@@ -7,6 +7,7 @@ import { useRequiredWorkspace } from '@/components/providers';
 import { Button, Card, Feedback, Screen, Text } from '@/components/ui';
 import { isoDateIn, zonedInstant } from '@/features/availability';
 import { useAsyncData } from '@/hooks/use-async-data';
+import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import { publicBookingUrl } from '@/lib/env';
 import { formatDateIn, formatTimeIn } from '@/lib/format';
 import { fetchAppointments } from '@/services/appointments';
@@ -52,6 +53,9 @@ export default function DashboardScreen() {
   const next = (upcoming.data ?? [])[0] ?? null;
   const pendingCount = (upcoming.data ?? []).filter((a) => a.status === 'pending').length;
   const link = publicBookingUrl(business.slug);
+
+  useRefreshOnFocus(todays.reload);
+  useRefreshOnFocus(upcoming.reload);
 
   return (
     <Screen title={business.name} subtitle={professional?.displayName ?? undefined}>
