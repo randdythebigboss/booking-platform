@@ -1,8 +1,10 @@
 import { Redirect, Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useSession, useWorkspace } from '@/components/providers';
-import { Card, Screen, Text } from '@/components/ui';
+import { Button, Card, Screen, Text } from '@/components/ui';
+import { useWorkspaceErrorText } from '@/i18n/use-error-text';
 import { useTheme } from '@/theme';
 
 /**
@@ -13,16 +15,17 @@ import { useTheme } from '@/theme';
  */
 export default function WorkspaceLayout() {
   const { palette } = useTheme();
+  const { t } = useTranslation();
+  const errorText = useWorkspaceErrorText();
   const session = useSession();
   const workspace = useWorkspace();
 
   if (session.status === 'unconfigured') {
     return (
-      <Screen title="Workspace">
+      <Screen title={t('auth.notConfigured')}>
         <Card>
-          <Text variant="heading">Supabase is not configured</Text>
           <Text variant="body" tone="muted">
-            Copy .env.example to .env.local and restart the dev server.
+            {t('auth.notConfiguredBody')}
           </Text>
         </Card>
       </Screen>
@@ -42,11 +45,14 @@ export default function WorkspaceLayout() {
 
   if (workspace.status === 'error') {
     return (
-      <Screen title="Something went wrong">
+      <Screen title={t('common.somethingWentWrong')}>
         <Card>
           <Text variant="body" tone="danger">
-            {workspace.error ?? 'Could not load your business.'}
+            {errorText(workspace.error)}
           </Text>
+          {/* Sign-in can race the first read of the business. One press is a
+              cheaper way back than signing out and in again. */}
+          <Button label={t('common.retry')} onPress={workspace.refresh} />
         </Card>
       </Screen>
     );

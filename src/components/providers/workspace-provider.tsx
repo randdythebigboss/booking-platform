@@ -18,7 +18,15 @@ export type WorkspaceStatus =
 export interface WorkspaceValue {
   status: WorkspaceStatus;
   workspace: Workspace | null;
-  error: string | null;
+  /**
+   * The failure itself, not a sentence taken out of it.
+   *
+   * A backend message is a code in one fixed language; turning it into words
+   * is the job of `useWorkspaceErrorText`, in the language the screen is
+   * being read in. Storing the message here once put the raw code "UNKNOWN" in
+   * front of a professional.
+   */
+  error: unknown;
   /** Re-reads the business after it changes, so every screen stays in step. */
   refresh: () => void;
 }
@@ -34,7 +42,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const session = useSession();
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [status, setStatus] = useState<WorkspaceStatus>('loading');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [nonce, setNonce] = useState(0);
 
   // Read inside the effect without making the effect depend on it.
@@ -82,7 +90,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       })
       .catch((cause: unknown) => {
         if (cancelled) return;
-        setError(cause instanceof Error ? cause.message : 'Could not load your business.');
+        setError(cause);
         setStatus('error');
       });
 
