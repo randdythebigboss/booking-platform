@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { toBookingError } from '@/features/booking';
 import { toWorkspaceError } from '@/features/workspace';
+import { recordErrorCode } from '@/lib/last-error';
 
 /**
  * Turns a failure into a sentence in the current language.
@@ -18,13 +19,22 @@ import { toWorkspaceError } from '@/features/workspace';
  */
 export function useBookingErrorText(): (error: unknown) => string {
   const { t } = useTranslation();
-  return useCallback((error: unknown) => t(`errors.booking.${toBookingError(error).code}`), [t]);
+  return useCallback((error: unknown) => {
+    const { code } = toBookingError(error);
+    // Remembered for the diagnostics panel: a code, never the words.
+    recordErrorCode(code);
+    return t(`errors.booking.${code}`);
+  }, [t]);
 }
 
 export function useWorkspaceErrorText(): (error: unknown) => string {
   const { t } = useTranslation();
   return useCallback(
-    (error: unknown) => t(`errors.workspace.${toWorkspaceError(error).code}`),
+    (error: unknown) => {
+      const { code } = toWorkspaceError(error);
+      recordErrorCode(code);
+      return t(`errors.workspace.${code}`);
+    },
     [t],
   );
 }

@@ -1,3 +1,5 @@
+import { isNetworkFailure } from '@/features/booking/network';
+
 /**
  * Professional-side failures.
  *
@@ -41,6 +43,7 @@ export const WORKSPACE_ERROR_CODES = [
   'PAYMENT_NOT_FOUND',
   'PAYMENT_NOT_REFUNDABLE',
   'PAYMENT_SIMULATION_DISABLED',
+  'OFFLINE',
   'UNKNOWN',
 ] as const;
 
@@ -86,6 +89,7 @@ function messageOf(error: unknown): string | undefined {
 
 export function toWorkspaceError(error: unknown): WorkspaceError {
   if (error instanceof WorkspaceError) return error;
+  if (isNetworkFailure(error)) return new WorkspaceError('OFFLINE');
 
   if (codeOf(error) === '23505') return new WorkspaceError('SLUG_TAKEN');
 

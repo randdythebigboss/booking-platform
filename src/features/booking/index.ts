@@ -34,3 +34,5 @@ export {
   tokenFromUrl,
   upgradeLegacyTokenUrl,
 } from './guest-token';
+
+export { isNetworkFailure } from './network';

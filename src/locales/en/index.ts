@@ -102,6 +102,9 @@ export const en: Translations = {
   },
 
   dashboard: {
+    shareLink: 'Share link',
+    linkCopied: 'Link copied.',
+    linkCopyUnsupported: 'Copy the link above by hand.',
     nextAppointment: 'Next appointment',
     noNextAppointment: 'Nothing coming up.',
     upcoming: 'upcoming',
@@ -540,6 +543,11 @@ export const en: Translations = {
   },
 
   payments: {
+    demoNotice: 'Demo payment — no real charge will be made.',
+    demoCompleted: 'Demo payment completed.',
+    unavailableService: 'Cannot be booked online',
+    unavailableExplainer: 'This service asks for a payment up front and we cannot take one right now. Contact the business to book it.',
+    policyLocked: 'Payments are not available in this environment, so a service cannot ask to be paid up front.',
     title: 'Payment',
     dueNow: 'Due now',
     servicePrice: 'Service price',
@@ -578,6 +586,27 @@ export const en: Translations = {
       refunded: 'Refunded',
       cancelled: 'Cancelled',
     },
+  },
+
+  diagnostics: {
+    title: 'Diagnostics',
+    subtitle: 'Technical details, for when something goes wrong.',
+    version: 'Version',
+    platform: 'Platform',
+    environment: 'Environment',
+    connection: 'Connection',
+    online: 'Online',
+    offline: 'Offline',
+    session: 'Session',
+    signedIn: 'Signed in',
+    signedOut: 'Signed out',
+    language: 'Language',
+    business: 'Business id',
+    role: 'Your role',
+    timezone: 'Timezone',
+    lastError: 'Last error',
+    noErrors: 'None this session',
+    privacyNote: 'This screen shows no customer data, no passwords, no keys and no booking links.',
   },
 
   validation: {
@@ -620,6 +649,7 @@ export const en: Translations = {
   },
 
   errors: {
+    appCrashed: 'The application hit a problem and could not show this screen. Please try again.',
     booking: {
       SLOT_TAKEN: 'That time was just booked by someone else. Please pick another one.',
       SLOT_BLOCKED: 'That time is no longer available. Please pick another one.',
@@ -644,6 +674,8 @@ export const en: Translations = {
       NO_PAYMENT_DUE: 'This appointment has nothing left to pay.',
       PAYMENT_NOT_RETRYABLE: 'That payment cannot be tried again.',
       APPOINTMENT_NOT_PAYABLE: 'This appointment no longer takes payments.',
+      OFFLINE: 'No connection. Go online to see current availability.',
+      PAYMENT_NOT_AVAILABLE: 'This service cannot be booked online right now.',
       UNKNOWN: 'Something went wrong. Please try again.',
     },
     workspace: {
@@ -686,6 +718,7 @@ export const en: Translations = {
       PAYMENT_NOT_FOUND: 'We could not find that payment.',
       PAYMENT_NOT_REFUNDABLE: 'That payment cannot be refunded.',
       PAYMENT_SIMULATION_DISABLED: 'Simulated payments are not enabled here.',
+      OFFLINE: 'No connection. Try again when you are back online.',
       UNKNOWN: 'Something went wrong. Please try again.',
     },
   },

@@ -14,10 +14,12 @@ export function setPaymentProvider(next: PaymentProvider): void {
 
 export {
   fetchAppointmentPayments,
+  fetchPaymentCapabilities,
   fetchPaymentByToken,
   refundPayment,
   retryPayment,
   simulatePayment,
   type GuestPaymentSummary,
+  type PaymentCapabilities,
   type ProfessionalPayment,
 } from './api';

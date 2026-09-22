@@ -48,6 +48,21 @@ var h=l.hash&&l.hash.indexOf('token=')>=0?l.hash:'#token='+encodeURIComponent(t)
 window.history.replaceState(null,'',l.pathname+(q?'?'+q:'')+h);
 }catch(e){}})();`;
 
+/**
+ * Registers the service worker, quietly.
+ *
+ * Wrapped and deferred: nothing about installability is worth delaying the
+ * first paint for, and a browser without service workers -- or a page served
+ * from a file, or a context that refuses them -- must load exactly as before.
+ * A failure here is not an error the customer needs to hear about.
+ */
+const REGISTER_SERVICE_WORKER = `(function(){try{
+if(!('serviceWorker' in navigator))return;
+window.addEventListener('load',function(){
+navigator.serviceWorker.register('/sw.js').catch(function(){});
+});
+}catch(e){}})();`;
+
 export default function Root({ children }: PropsWithChildren) {
   return (
     <html lang="es">
@@ -64,6 +79,26 @@ export default function Root({ children }: PropsWithChildren) {
 
         {/* Before the router can read it: the credential leaves the query. */}
         <script dangerouslySetInnerHTML={{ __html: UPGRADE_LEGACY_TOKEN }} />
+
+        {/* Installable as a web application: the manifest, the colour the
+            browser paints its chrome, and the bits iOS reads instead. None of
+            this changes how the application behaves in a tab. */}
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content="#208AEF" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Booking" />
+        <link rel="apple-touch-icon" href="/icons/icon-512.png" />
+        <meta
+          name="description"
+          content="Toma citas con un solo enlace. Tu calendario, tus servicios, tus clientes."
+        />
+
+        {/* Registers the service worker, which exists so a browser will offer
+            to install this, and which caches nothing but the build's own
+            static files. See public/sw.js. */}
+        <script dangerouslySetInnerHTML={{ __html: REGISTER_SERVICE_WORKER }} />
 
         {/* Disables body scrolling on web so ScrollView works as it does on native. */}
         <ScrollViewStyleReset />

@@ -26,7 +26,11 @@ import {
   setAppointmentStatus,
 } from '@/services/appointments';
 import { fetchAppointmentNotifications } from '@/services/notifications';
-import { fetchAppointmentPayments, refundPayment } from '@/services/payments';
+import {
+  fetchAppointmentPayments,
+  fetchPaymentCapabilities,
+  refundPayment,
+} from '@/services/payments';
 import { spacing } from '@/theme';
 import type { AppointmentStatus } from '@/types/domain';
 
@@ -62,6 +66,10 @@ export default function AppointmentDetailScreen() {
     () => (id ? fetchAppointmentPayments(id) : Promise.resolve([])),
     [id],
   );
+
+  // Whether the money on this screen is real. Asked of the server, not
+  // assumed from the build.
+  const capabilities = useAsyncData(() => fetchPaymentCapabilities(), []);
 
   const [refundReason, setRefundReason] = useState('');
   const [refunding, setRefunding] = useState(false);
@@ -403,6 +411,11 @@ export default function AppointmentDetailScreen() {
 
       <Card>
         <Text variant="heading">{t('payments.title')}</Text>
+        {capabilities.data?.demo && charges.length > 0 && (
+          <Text variant="label" tone="accent">
+            {t('payments.demoNotice')}
+          </Text>
+        )}
         {payments.loading && <ActivityIndicator />}
 
         {charges.length === 0 && !payments.loading && (

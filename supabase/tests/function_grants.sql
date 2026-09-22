@@ -23,6 +23,8 @@ declare
     'get_payment_by_token',
     'get_available_slots',
     'is_business_public',
+    'payment_capabilities',
+    'payments_are_available',
     'professional_business_id',
     'reschedule_appointment_by_token',
     'retry_payment_by_token',

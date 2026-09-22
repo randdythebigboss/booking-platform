@@ -988,4 +988,138 @@ $$;
 
 rollback;
 
+---------------------------------------------------------------------------
+-- 11. Nothing asks to be paid when nothing can take a payment.
+---------------------------------------------------------------------------
+begin;
+
+update public.platform_settings set payment_simulation_enabled = false;
+
+do $$
+declare
+  c_pro constant uuid := 'f1110000-0000-4000-8000-0000000000b1';
+  c_tz constant text := 'America/Santo_Domingo';
+  v_date date := ((now() at time zone c_tz)::date + 6);
+  v_refused boolean := false;
+  v_caps jsonb;
+begin
+  ---------------------------------------------------------------------------
+  raise notice '27. with no provider and no demo, a paid service cannot be booked';
+  ---------------------------------------------------------------------------
+  v_caps := public.payment_capabilities();
+  if (v_caps ->> 'available')::boolean then
+    raise exception 'FAIL: payments are reported available with nothing to take them';
+  end if;
+
+  begin
+    perform public.book_appointment(
+      c_pro, 'f1110000-0000-4000-8000-0000000000c1',
+      (v_date::timestamp + time '09:00') at time zone c_tz,
+      'Sin Proveedor', '+1 809 555 7020', 'sinprov@example.test', null, 'es'
+    );
+  exception
+    when invalid_parameter_value then v_refused := (sqlerrm = 'PAYMENT_NOT_AVAILABLE');
+  end;
+
+  if not v_refused then
+    raise exception 'FAIL: a customer was sent to a checkout that cannot exist';
+  end if;
+
+  ---------------------------------------------------------------------------
+  raise notice '28. and a free service books exactly as it always did';
+  ---------------------------------------------------------------------------
+  perform public.book_appointment(
+    c_pro, 'f1110000-0000-4000-8000-0000000000c0',
+    (v_date::timestamp + time '10:00') at time zone c_tz,
+    'Gratis Igual', '+1 809 555 7021', 'gratisigual@example.test', null, 'es'
+  );
+
+  raise notice '27-28 hold';
+end;
+$$;
+
+rollback;
+
+---------------------------------------------------------------------------
+-- 12. One unpaid hold per customer per business.
+---------------------------------------------------------------------------
+begin;
+
+do $$
+declare
+  c_pro constant uuid := 'f1110000-0000-4000-8000-0000000000b1';
+  c_tz constant text := 'America/Santo_Domingo';
+  v_date date := ((now() at time zone c_tz)::date + 5);
+  v_first jsonb;
+  v_second jsonb;
+  v_held integer;
+begin
+  ---------------------------------------------------------------------------
+  raise notice '29. starting a second checkout releases the first';
+  ---------------------------------------------------------------------------
+  v_first := public.book_appointment(
+    c_pro, 'f1110000-0000-4000-8000-0000000000c1',
+    (v_date::timestamp + time '09:00') at time zone c_tz,
+    'Acaparador Cliente', '809 555 7030', 'acaparador@example.test', null, 'es'
+  );
+
+  v_second := public.book_appointment(
+    c_pro, 'f1110000-0000-4000-8000-0000000000c1',
+    (v_date::timestamp + time '11:00') at time zone c_tz,
+    'Acaparador Cliente', '809 555 7030', 'acaparador@example.test', null, 'es'
+  );
+
+  select count(*) into v_held
+  from public.appointments a
+  join public.customers c on c.id = a.customer_id
+  where c.phone_normalized = '8095557030'
+    and a.hold_expires_at is not null
+    and a.status in ('pending', 'confirmed');
+
+  if v_held <> 1 then
+    raise exception 'FAIL: one customer is holding % slots without paying', v_held;
+  end if;
+
+  if (select status from public.appointments where id = (v_first ->> 'appointmentId')::uuid)
+       <> 'cancelled' then
+    raise exception 'FAIL: the abandoned hold is still holding its slot';
+  end if;
+
+  ---------------------------------------------------------------------------
+  raise notice '30. and the slot the first one gave up is free again';
+  ---------------------------------------------------------------------------
+  if not exists (
+    select 1 from public.get_available_slots(
+      c_pro, 'f1110000-0000-4000-8000-0000000000c1', v_date
+    ) s where s.starts_at = (v_date::timestamp + time '09:00') at time zone c_tz
+  ) then
+    raise exception 'FAIL: the released slot is still busy';
+  end if;
+
+  ---------------------------------------------------------------------------
+  raise notice '31. a paid booking is not a hold, and is never released';
+  ---------------------------------------------------------------------------
+  perform public.simulate_payment_by_token(
+    (v_second ->> 'appointmentId')::uuid,
+    (select access_token from public.appointments where id = (v_second ->> 'appointmentId')::uuid),
+    'success', 'test:abuse-paid'
+  );
+
+  perform public.book_appointment(
+    c_pro, 'f1110000-0000-4000-8000-0000000000c1',
+    (v_date::timestamp + time '13:00') at time zone c_tz,
+    'Acaparador Cliente', '809 555 7030', 'acaparador@example.test', null, 'es'
+  );
+
+  if (select status from public.appointments where id = (v_second ->> 'appointmentId')::uuid)
+       = 'cancelled' then
+    raise exception 'FAIL: a paid appointment was released to make room for a hold';
+  end if;
+
+  raise notice '29-31 hold';
+end;
+$$;
+
+rollback;
+
 \echo 'Payments hold.'

@@ -1,15 +1,17 @@
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, Share, View } from 'react-native';
 
 import { AppointmentRow } from '@/components/appointment-row';
 import { useRequiredWorkspace } from '@/components/providers';
+import { OfflineNotice } from '@/components/offline-notice';
 import { Button, Card, Feedback, Screen, Text } from '@/components/ui';
 import { isoDateIn, zonedInstant } from '@/features/availability';
 import { useFormat } from '@/i18n/use-format';
 import { useAsyncData } from '@/hooks/use-async-data';
 import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
+import { shareOrCopy, webShareCapabilities } from '@/features/sharing';
 import { publicBookingUrl } from '@/lib/env';
 import { fetchAppointments } from '@/services/appointments';
 import { signOut } from '@/services/auth';
@@ -56,12 +58,37 @@ export default function DashboardScreen() {
   const next = (upcoming.data ?? [])[0] ?? null;
   const pendingCount = (upcoming.data ?? []).filter((a) => a.status === 'pending').length;
   const link = publicBookingUrl(business.slug);
+  const [shared, setShared] = useState<'shared' | 'copied' | 'unsupported' | 'dismissed' | null>(
+    null,
+  );
+
+  /**
+   * Hands the link over, using whatever the platform already has.
+   *
+   * On a phone that is the share sheet the person already uses; on a desktop
+   * browser it is the clipboard. Nothing is sent by the product, and no
+   * messaging provider is involved.
+   */
+  async function share() {
+    const capabilities =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? webShareCapabilities(window)
+        : {
+            share: async ({ url, title }: { url: string; title?: string }) => {
+              await Share.share({ message: url, url, title });
+            },
+          };
+
+    setShared(await shareOrCopy(link, capabilities, { title: business.name }));
+  }
 
   useRefreshOnFocus(todays.reload);
   useRefreshOnFocus(upcoming.reload);
 
   return (
     <Screen title={business.name} subtitle={professional?.displayName ?? undefined}>
+      <OfflineNotice />
+
       <Card>
         <Text variant="label">{t('dashboard.nextAppointment')}</Text>
         {upcoming.loading && <ActivityIndicator />}
@@ -153,6 +180,19 @@ export default function DashboardScreen() {
         ) : (
           <Feedback tone="muted" message={t('dashboard.notPublished')} />
         )}
+        <Button label={t('dashboard.shareLink')} variant="secondary" onPress={share} />
+
+        {shared === 'copied' && (
+          <Text variant="caption" tone="success">
+            {t('dashboard.linkCopied')}
+          </Text>
+        )}
+        {shared === 'unsupported' && (
+          <Text variant="caption" tone="muted">
+            {t('dashboard.linkCopyUnsupported')}
+          </Text>
+        )}
+
         <Link href={`/p/${business.slug}`} asChild>
           <Button label={t('dashboard.openPublicPage')} variant="secondary" />
         </Link>

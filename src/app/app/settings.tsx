@@ -4,6 +4,8 @@ import { View } from 'react-native';
 
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useRequiredWorkspace, useWorkspace } from '@/components/providers';
+import { Link } from 'expo-router';
+
 import { Button, Card, Feedback, Field, Screen, Select, Text, ToggleRow } from '@/components/ui';
 import { validateSlug } from '@/features/business/slug';
 import { COMMON_TIMEZONES, formatTimezoneLabel } from '@/features/business/timezones';
@@ -292,6 +294,11 @@ export default function SettingsScreen() {
         {saved && <Feedback tone="success" message={t('settings.saved')} />}
 
         <Button label={t('settings.save')} onPress={submit} loading={busy} />
+
+        {/* Technical details for a support conversation. No customer data. */}
+        <Link href="/app/diagnostics" asChild>
+          <Button label={t('diagnostics.title')} variant="ghost" />
+        </Link>
 
         <Card>
           <LanguageSwitcher />

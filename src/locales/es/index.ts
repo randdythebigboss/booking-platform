@@ -107,6 +107,9 @@ export const es = {
   },
 
   dashboard: {
+    shareLink: 'Compartir enlace',
+    linkCopied: 'Enlace copiado.',
+    linkCopyUnsupported: 'Copia el enlace de arriba a mano.',
     nextAppointment: 'Próxima cita',
     noNextAppointment: 'No tienes citas próximas.',
     upcoming: 'próximas',
@@ -551,6 +554,11 @@ export const es = {
   },
 
   payments: {
+    demoNotice: 'Pago de demostración — no se realizará ningún cargo real.',
+    demoCompleted: 'Pago de demostración completado.',
+    unavailableService: 'No se puede reservar en línea',
+    unavailableExplainer: 'Este servicio pide un pago por adelantado y ahora mismo no podemos cobrarlo. Escríbele al negocio para reservarlo.',
+    policyLocked: 'Los pagos no están disponibles en este entorno, así que no puedes pedir un pago por adelantado.',
     title: 'Pago',
     dueNow: 'A pagar ahora',
     servicePrice: 'Precio del servicio',
@@ -589,6 +597,27 @@ export const es = {
       refunded: 'Reembolsado',
       cancelled: 'Cancelado',
     },
+  },
+
+  diagnostics: {
+    title: 'Diagnóstico',
+    subtitle: 'Datos técnicos para ayudarte si algo falla.',
+    version: 'Versión',
+    platform: 'Plataforma',
+    environment: 'Entorno',
+    connection: 'Conexión',
+    online: 'Con conexión',
+    offline: 'Sin conexión',
+    session: 'Sesión',
+    signedIn: 'Sesión iniciada',
+    signedOut: 'Sin sesión',
+    language: 'Idioma',
+    business: 'ID del negocio',
+    role: 'Tu rol',
+    timezone: 'Zona horaria',
+    lastError: 'Último error',
+    noErrors: 'Ninguno en esta sesión',
+    privacyNote: 'Esta pantalla no muestra datos de clientes, ni contraseñas, ni claves, ni enlaces de reserva.',
   },
 
   validation: {
@@ -636,6 +665,7 @@ export const es = {
    * something a person can act on.
    */
   errors: {
+    appCrashed: 'La aplicación tuvo un problema y no pudo mostrar esta pantalla. Vuelve a intentarlo.',
     booking: {
       SLOT_TAKEN: 'Alguien acaba de reservar esa hora. Elige otra, por favor.',
       SLOT_BLOCKED: 'Esa hora ya no está disponible. Elige otra, por favor.',
@@ -660,6 +690,8 @@ export const es = {
       NO_PAYMENT_DUE: 'Esta cita no tiene ningún pago pendiente.',
       PAYMENT_NOT_RETRYABLE: 'Ese pago ya no se puede reintentar.',
       APPOINTMENT_NOT_PAYABLE: 'Esta cita ya no admite pagos.',
+      OFFLINE: 'Sin conexión. Conéctate para consultar la disponibilidad actual.',
+      PAYMENT_NOT_AVAILABLE: 'Este servicio no se puede reservar en línea ahora mismo.',
       UNKNOWN: 'Algo salió mal. Inténtalo de nuevo.',
     },
     workspace: {
@@ -700,6 +732,7 @@ export const es = {
       PAYMENT_NOT_FOUND: 'No encontramos ese pago.',
       PAYMENT_NOT_REFUNDABLE: 'Ese pago no se puede reembolsar.',
       PAYMENT_SIMULATION_DISABLED: 'Los pagos simulados no están habilitados aquí.',
+      OFFLINE: 'Sin conexión. Vuelve a intentarlo cuando tengas internet.',
       UNKNOWN: 'Algo salió mal. Inténtalo de nuevo.',
     },
   },

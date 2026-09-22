@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { MissingEnvError, getEnv, isConfigured, publicBookingUrl } from '@/lib/env';
+import {
+  InvalidEnvError,
+  MissingEnvError,
+  environmentName,
+  getEnv,
+  isConfigured,
+  publicBookingUrl,
+} from '@/lib/env';
 
 const KEYS = [
   'EXPO_PUBLIC_SUPABASE_URL',
@@ -38,7 +45,7 @@ describe('getEnv', () => {
 
   it('defaults the site URL for local development', () => {
     process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
-    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'anon-key';
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'sb_publishable_abcdefghijklmnop';
     expect(getEnv().siteUrl).toBe('http://localhost:8081');
   });
 });
@@ -48,5 +55,62 @@ describe('publicBookingUrl', () => {
     expect(publicBookingUrl('demo-studio', 'https://app.example.com/')).toBe(
       'https://app.example.com/p/demo-studio',
     );
+  });
+});
+
+describe('configuration that is present but wrong', () => {
+  const GOOD_KEY = 'sb_publishable_abcdefghijklmnop';
+
+  it('refuses a URL that is not a project URL', () => {
+    // The expensive failure this prevents: a URL that is merely wrong connects
+    // to somebody else's project and the app looks like it works.
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = GOOD_KEY;
+
+    for (const url of [
+      'example.supabase.co',
+      'http://example.supabase.co',
+      'https://supabase.com/dashboard/project/example',
+      'https://example.com',
+    ]) {
+      process.env.EXPO_PUBLIC_SUPABASE_URL = url;
+      expect(() => getEnv(), url).toThrow(InvalidEnvError);
+    }
+  });
+
+  it('refuses a key that is not a publishable key', () => {
+    process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
+
+    for (const key of ['anon-key', 'sb_secret_abcdefghijklmnop', 'eyJ.short']) {
+      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = key;
+      expect(() => getEnv(), key).toThrow(InvalidEnvError);
+    }
+  });
+
+  it('accepts both key formats Supabase issues', () => {
+    process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
+
+    for (const key of [GOOD_KEY, 'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.c2lnbmF0dXJlXw']) {
+      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = key;
+      expect(() => getEnv(), key).not.toThrow();
+    }
+  });
+
+  it('never puts a value in the message, only the name', () => {
+    process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'sb_secret_should_never_be_echoed';
+
+    expect(() => getEnv()).toThrow(/EXPO_PUBLIC_SUPABASE_ANON_KEY/);
+    expect(() => getEnv()).not.toThrow(/should_never_be_echoed/);
+  });
+});
+
+describe('environmentName', () => {
+  it('names the project this build talks to', () => {
+    process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://abcdefghijklmnop.supabase.co';
+    expect(environmentName()).toBe('abcdefghijklmnop');
+  });
+
+  it('says so when nothing is configured', () => {
+    expect(environmentName()).toBe('unconfigured');
   });
 });

@@ -8,7 +8,12 @@
     "scheme": "bookingplatform",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.bookingplatform.app",
+      "supportsTablet": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,11 +22,20 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.bookingplatform.app",
+      "versionCode": 1
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "Booking Platform",
+      "shortName": "Booking",
+      "themeColor": "#208AEF",
+      "backgroundColor": "#ffffff",
+      "display": "standalone",
+      "lang": "es",
+      "description": "Toma citas con un solo enlace. Tu calendario, tus servicios, tus clientes."
     },
     "plugins": [
       "expo-router",
@@ -38,6 +52,9 @@
     "experiments": {
       "typedRoutes": false,
       "reactCompiler": true
-    }
+    },
+    "description": "Toma citas con un solo enlace. Tu calendario, tus servicios, tus clientes.",
+    "primaryColor": "#208AEF",
+    "backgroundColor": "#ffffff"
   }
 }

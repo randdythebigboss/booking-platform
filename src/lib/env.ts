@@ -15,6 +15,21 @@ export interface AppEnv {
   siteUrl: string;
 }
 
+/**
+ * The shape a Supabase URL has.
+ *
+ * Checked because the failure it prevents is the expensive one: a URL that is
+ * merely *wrong* connects successfully to somebody else's project and the app
+ * looks like it works. A typo in a project reference is silent; a missing
+ * scheme is silent; "https://supabase.com/dashboard/..." pasted from a browser
+ * is silent. None of them are silent any more.
+ */
+const SUPABASE_URL_SHAPE = /^https:\/\/[a-z0-9-]+\.supabase\.(co|in)$/;
+
+/** Both key formats Supabase issues. Neither is a secret; see docs/SECURITY.md. */
+const PUBLISHABLE_KEY_SHAPE =
+  /^(sb_publishable_[A-Za-z0-9_-]{10,}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})$/;
+
 export class MissingEnvError extends Error {
   constructor(keys: string[]) {
     super(
@@ -22,6 +37,24 @@ export class MissingEnvError extends Error {
         'Copy .env.example to .env.local and fill them in.',
     );
     this.name = 'MissingEnvError';
+  }
+}
+
+/**
+ * Configuration that is present but wrong.
+ *
+ * Deliberately separate from `MissingEnvError`: "you forgot to set it" and
+ * "you set it to something that cannot be right" need different answers, and
+ * the second one is the one that otherwise ships.
+ */
+export class InvalidEnvError extends Error {
+  readonly key: string;
+
+  constructor(key: string, reason: string) {
+    // The key's name, never its value: this message reaches logs and screens.
+    super(`${key} is not valid: ${reason}.`);
+    this.name = 'InvalidEnvError';
+    this.key = key;
   }
 }
 
@@ -50,11 +83,52 @@ export function getEnv(): AppEnv {
     throw new MissingEnvError(missing);
   }
 
+  if (!SUPABASE_URL_SHAPE.test(supabaseUrl as string)) {
+    throw new InvalidEnvError(
+      'EXPO_PUBLIC_SUPABASE_URL',
+      'it should look like https://<project>.supabase.co',
+    );
+  }
+
+  if (!PUBLISHABLE_KEY_SHAPE.test(supabaseAnonKey as string)) {
+    throw new InvalidEnvError(
+      'EXPO_PUBLIC_SUPABASE_ANON_KEY',
+      'it should be the project publishable key',
+    );
+  }
+
   return {
     supabaseUrl: supabaseUrl as string,
     supabaseAnonKey: supabaseAnonKey as string,
     siteUrl: rawSiteUrl() ?? 'http://localhost:8081',
   };
+}
+
+/**
+ * Which project this build talks to, as a name a person can compare.
+ *
+ * The project reference out of the URL, and nothing else. Safe to show in a
+ * diagnostics panel: it is already in every request the app makes, and seeing
+ * it is how somebody notices the app is pointed at the wrong environment.
+ */
+export function environmentName(): string {
+  const url = rawSupabaseUrl();
+  if (!url) return 'unconfigured';
+
+  const match = url.match(/^https:\/\/([a-z0-9-]+)\.supabase\./);
+  if (!match) return 'unknown';
+  if (url.includes('127.0.0.1') || url.includes('localhost')) return 'local';
+  return match[1] ?? 'unknown';
+}
+
+/** True when the configuration is present and the right shape. */
+export function isValidConfiguration(): boolean {
+  try {
+    getEnv();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Builds the shareable public link for a business. */

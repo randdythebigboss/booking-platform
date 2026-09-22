@@ -63,5 +63,12 @@
     "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "vitest": "^3.2.4"
+  },
+  "expo": {
+    "install": {
+      "exclude": [
+        "eslint-config-expo"
+      ]
+    }
   }
 }

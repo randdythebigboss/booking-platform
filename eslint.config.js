@@ -26,6 +26,12 @@ module.exports = [
     },
   },
   {
+    // The service worker runs in a worker scope, not a browser page: its
+    // globals are the standard ones and ESLint already knows them all.
+    files: ['public/sw.js'],
+    languageOptions: { sourceType: 'script' },
+  },
+  {
     files: ['tools/**/*.js', 'tools/**/*.ts'],
     languageOptions: {
       globals: {

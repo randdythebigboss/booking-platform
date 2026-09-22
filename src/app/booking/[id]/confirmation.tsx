@@ -281,7 +281,7 @@ export default function ConfirmationScreen() {
 
           {payment.status === 'paid' && (
             <Text variant="caption" tone="success">
-              {t('payments.paidThanks')}
+              {payment.simulationEnabled ? t('payments.demoCompleted') : t('payments.paidThanks')}
             </Text>
           )}
 
@@ -307,8 +307,11 @@ export default function ConfirmationScreen() {
               never exist. */}
           {payment.simulationEnabled && (
             <>
-              <Text variant="caption" tone="muted">
-                {t('payments.simulationNotice')}
+              {/* Unmistakable, and said before the button rather than after:
+                  nobody should press Pay without knowing which kind of money
+                  this is. */}
+              <Text variant="label" tone="accent">
+                {t('payments.demoNotice')}
               </Text>
 
               {(payment.status === 'pending' || payment.status === 'requires_action') && (

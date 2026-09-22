@@ -1,3 +1,5 @@
+import { isNetworkFailure } from './network';
+
 /**
  * Failure modes of `public.book_appointment`, mapped to something a customer
  * can act on. Anything unrecognised becomes `UNKNOWN` rather than leaking a
@@ -28,6 +30,9 @@ export const BOOKING_ERROR_CODES = [
   'NO_PAYMENT_DUE',
   'PAYMENT_NOT_RETRYABLE',
   'APPOINTMENT_NOT_PAYABLE',
+  'PAYMENT_NOT_AVAILABLE',
+  // Phase 10. Not the server's answer: the request never reached it.
+  'OFFLINE',
   'UNKNOWN',
 ] as const;
 
@@ -72,6 +77,11 @@ function errorMessage(value: unknown): string | undefined {
  */
 export function toBookingError(error: unknown): BookingError {
   if (error instanceof BookingError) return error;
+
+  // Checked first: a request that never arrived has no code to match, and
+  // "something went wrong" is the wrong thing to tell somebody whose train
+  // just went into a tunnel.
+  if (isNetworkFailure(error)) return new BookingError('OFFLINE');
 
   const raw = errorMessage(error);
   const match = BOOKING_ERROR_CODES.find((code) => code !== 'UNKNOWN' && raw === code);

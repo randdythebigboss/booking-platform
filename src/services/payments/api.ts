@@ -54,6 +54,32 @@ function toSummary(raw: unknown): GuestPaymentSummary {
   };
 }
 
+export interface PaymentCapabilities {
+  /** Whether anything at all can take a payment here. */
+  available: boolean;
+  /** Whether what would take it is the demonstration provider. */
+  demo: boolean;
+}
+
+/**
+ * What this deployment can do about money.
+ *
+ * Asked of the server rather than read from a build flag, for the same reason
+ * the simulator is server-side: a flag baked into a bundle is a flag somebody
+ * forgets to change, and the thing it would be wrong about is whether a
+ * customer is told their money is real.
+ */
+export async function fetchPaymentCapabilities(): Promise<PaymentCapabilities> {
+  const { data, error } = await getSupabase().rpc('payment_capabilities');
+
+  // A deployment we cannot ask is a deployment that cannot take money: the
+  // safe answer is "no payments", never "assume it works".
+  if (error) return { available: false, demo: false };
+
+  const result = (data ?? {}) as Record<string, unknown>;
+  return { available: result.available === true, demo: result.demo === true };
+}
+
 export async function fetchPaymentByToken(
   appointmentId: string,
   accessToken: string,

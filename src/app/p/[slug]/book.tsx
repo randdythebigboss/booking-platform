@@ -6,6 +6,7 @@ import { useLocale } from '@/components/providers';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { OfflineNotice } from '@/components/offline-notice';
 import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
 import { isoDateIn, type Slot } from '@/features/availability';
 import {
@@ -24,9 +25,11 @@ import {
 import { useBookingErrorText } from '@/i18n/use-error-text';
 import { useFormat } from '@/i18n/use-format';
 import { useIssueText } from '@/i18n/use-issue-text';
+import { useAsyncData } from '@/hooks/use-async-data';
 import { fetchAvailableSlots } from '@/services/availability';
 import { bookAppointment } from '@/services/booking';
 import { fetchPublicBusiness, type PublicBusiness } from '@/services/catalog';
+import { fetchPaymentCapabilities } from '@/services/payments';
 import { radius, spacing, useTheme } from '@/theme';
 
 type PageState =
@@ -41,6 +44,11 @@ export default function BookScreen() {
   const { palette } = useTheme();
   const { t } = useTranslation();
   const { locale } = useLocale();
+  // What this deployment can do about money. A service that asks to be paid is
+  // not offered when nothing can take the payment -- the alternative is a
+  // customer reaching a "Pay now" button with nothing behind it.
+  const capabilities = useAsyncData(() => fetchPaymentCapabilities(), []);
+  const payable = capabilities.data?.available !== false;
   const format = useFormat();
   const issueText = useIssueText();
   const errorText = useBookingErrorText();
@@ -233,16 +241,23 @@ export default function BookScreen() {
         </Card>
       )}
 
+      <OfflineNotice />
+
       <Card>
         <Text variant="heading">{t('booking.selectService')}</Text>
         <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
           {business.services.map((entry) => {
             const chosen = entry.id === selection.serviceId;
+            const unavailable = entry.paymentRequirement !== 'none' && !payable;
             return (
               <Pressable
                 key={entry.id}
                 accessibilityRole="radio"
-                accessibilityState={{ selected: chosen }}
+                accessibilityState={{ selected: chosen, disabled: unavailable }}
+                accessibilityLabel={
+                  unavailable ? `${entry.name} — ${t('payments.unavailableService')}` : entry.name
+                }
+                disabled={unavailable}
                 onPress={() => setSelection((current) => selectService(current, entry.id))}
                 style={{
                   padding: spacing.md,
@@ -251,6 +266,7 @@ export default function BookScreen() {
                   borderColor: chosen ? palette.accent : palette.border,
                   backgroundColor: chosen ? palette.surfaceMuted : 'transparent',
                   gap: spacing.xs,
+                  opacity: unavailable ? 0.55 : 1,
                 }}
               >
                 <Text variant="label" tone={chosen ? 'accent' : 'default'}>
@@ -260,6 +276,11 @@ export default function BookScreen() {
                   {format.duration(entry.durationMinutes)} {'·'}{' '}
                   {format.money(entry.price, entry.currency)}
                 </Text>
+                {unavailable && (
+                  <Text variant="caption" tone="danger">
+                    {t('payments.unavailableService')}
+                  </Text>
+                )}
               </Pressable>
             );
           })}
@@ -425,6 +446,11 @@ export default function BookScreen() {
                   <Text variant="caption" tone="muted">
                     {t('payments.remaining')}:{' '}
                     {format.money(service.amountDueLater, service.currency)}
+                  </Text>
+                )}
+                {capabilities.data?.demo && (
+                  <Text variant="label" tone="accent">
+                    {t('payments.demoNotice')}
                   </Text>
                 )}
               </>

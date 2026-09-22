@@ -5,6 +5,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { useRequiredWorkspace } from '@/components/providers';
 import { Button, Card, Feedback, Field, Screen, Select, Text, ToggleRow } from '@/components/ui';
 import { PAYMENT_REQUIREMENTS, type PaymentRequirement } from '@/features/payments';
+import { fetchPaymentCapabilities } from '@/services/payments';
 import {
   parseNumericInput,
   validateService,
@@ -67,6 +68,11 @@ export default function ServicesScreen() {
   const { business } = useRequiredWorkspace();
   const { t } = useTranslation();
   const tk = useDynamicT();
+  // A service may only ask to be paid where something can take the payment.
+  // The database refuses the booking either way; this stops a professional
+  // configuring a service that would strand their own customers.
+  const capabilities = useAsyncData(() => fetchPaymentCapabilities(), []);
+  const canAskForMoney = capabilities.data?.available === true;
   const format = useFormat();
   const issueText = useIssueText();
   const errorText = useWorkspaceErrorText();
@@ -178,17 +184,23 @@ export default function ServicesScreen() {
           />
           {/* What a customer has to pay before this is booked. Three answers,
               and the deposit box only exists for the one that needs it. */}
-          <Select
-            label={t('payments.title')}
-            value={draft.paymentRequirement}
-            options={PAYMENT_REQUIREMENTS.map((requirement) => ({
-              value: requirement,
-              label: tk(`payments.requirement.${requirement}`),
-            }))}
-            onChange={(paymentRequirement) =>
-              setDraft({ ...draft, paymentRequirement: paymentRequirement as PaymentRequirement })
-            }
-          />
+          {canAskForMoney ? (
+            <Select
+              label={t('payments.title')}
+              value={draft.paymentRequirement}
+              options={PAYMENT_REQUIREMENTS.map((requirement) => ({
+                value: requirement,
+                label: tk(`payments.requirement.${requirement}`),
+              }))}
+              onChange={(paymentRequirement) =>
+                setDraft({ ...draft, paymentRequirement: paymentRequirement as PaymentRequirement })
+              }
+            />
+          ) : (
+            <Text variant="caption" tone="muted">
+              {t('payments.policyLocked')}
+            </Text>
+          )}
 
           {draft.paymentRequirement === 'deposit' && (
             <Field
@@ -238,6 +250,9 @@ export default function ServicesScreen() {
             <Text variant="label" tone="accent">
               {format.duration(service.durationMinutes)} {'·'}{' '}
               {format.money(service.price, service.currency)}
+              {service.paymentRequirement !== 'none' && !canAskForMoney
+                ? ` · ${t('payments.unavailableService')}`
+                : ''}
             </Text>
             {!service.isActive && (
               <Text variant="caption" tone="muted">
