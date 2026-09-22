@@ -243,11 +243,17 @@ do $$
 declare
   v_count integer;
 begin
-  -- Estudio Demo is published; Stranger Studio, created earlier in this suite,
-  -- is not.
-  select count(*) into v_count from public.businesses;
-  if v_count <> 1 then
-    raise exception 'FAIL: anon sees % businesses, expected only the published one', v_count;
+  -- The property is not "how many" but "which": everything an anonymous
+  -- visitor can reach is published, and the published catalogue is reachable.
+  -- Counting rows instead would pass only on a database nobody has used, and
+  -- this suite is also run against a real development project.
+  select count(*) into v_count from public.businesses where not is_published;
+  if v_count <> 0 then
+    raise exception 'FAIL: anon sees % unpublished business(es)', v_count;
+  end if;
+
+  if not exists (select 1 from public.businesses where slug = 'demo-studio') then
+    raise exception 'FAIL: anon cannot see a published business';
   end if;
 
   select count(*) into v_count from public.businesses where slug = 'stranger-studio';
