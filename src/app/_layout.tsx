@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router';
+import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -34,6 +35,16 @@ export default function RootLayout() {
         <LocaleProvider>
           <WorkspaceProvider>
           <StatusBar style={isDark ? 'light' : 'dark'} />
+          {/* The document title: the browser tab, the bookmark, the history
+              entry, and the first thing a screen reader announces on every
+              page. Without it the export ships `<title></title>` on every
+              route -- an accessibility failure, and a row of blank tabs.
+
+              `Stack`'s `title` option does not reach it here, because no
+              screen shows a header for that option to belong to. This does. */}
+          <Head>
+            <title>Booking Platform</title>
+          </Head>
           <Stack
             screenOptions={{
               headerShown: false,

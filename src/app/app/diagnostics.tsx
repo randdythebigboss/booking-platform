@@ -1,4 +1,3 @@
-import Constants from 'expo-constants';
 import { useTranslation } from 'react-i18next';
 import { Platform, View } from 'react-native';
 
@@ -7,6 +6,7 @@ import { Card, Screen, Text } from '@/components/ui';
 import { useOnline } from '@/hooks/use-online';
 import { environmentName } from '@/lib/env';
 import { lastErrorCode } from '@/lib/last-error';
+import { releaseVersion } from '@/lib/release';
 import { spacing } from '@/theme';
 
 /**
@@ -35,7 +35,7 @@ export default function DiagnosticsScreen() {
   const failure = lastErrorCode();
 
   const rows: [string, string][] = [
-    [t('diagnostics.version'), String(Constants.expoConfig?.version ?? 'unknown')],
+    [t('diagnostics.version'), releaseVersion()],
     [t('diagnostics.platform'), `${Platform.OS}${Platform.OS === 'web' ? ' (web)' : ''}`],
     [t('diagnostics.environment'), environmentName()],
     [t('diagnostics.connection'), online ? t('diagnostics.online') : t('diagnostics.offline')],

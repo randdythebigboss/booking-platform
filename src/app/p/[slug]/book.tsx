@@ -219,7 +219,8 @@ export default function BookScreen() {
                 <Pressable
                   key={pro.id}
                   accessibilityRole="radio"
-                  accessibilityState={{ selected: chosen }}
+                  accessibilityState={{ selected: chosen, checked: chosen }}
+                  aria-checked={chosen}
                   onPress={() => {
                     setProfessionalId(pro.id);
                     setSelection((current) => ({ ...current, slotStartsAt: null }));
@@ -253,7 +254,8 @@ export default function BookScreen() {
               <Pressable
                 key={entry.id}
                 accessibilityRole="radio"
-                accessibilityState={{ selected: chosen, disabled: unavailable }}
+                accessibilityState={{ selected: chosen, checked: chosen, disabled: unavailable }}
+                aria-checked={chosen}
                 accessibilityLabel={
                   unavailable ? `${entry.name} — ${t('payments.unavailableService')}` : entry.name
                 }
@@ -285,6 +287,16 @@ export default function BookScreen() {
             );
           })}
         </View>
+
+        {/* Saying "cannot be booked online" and stopping there tells somebody
+            they cannot have the thing without telling them what to do about
+            it. This is the sentence that does, and it appears once rather
+            than under every greyed-out service. */}
+        {business.services.some((entry) => entry.paymentRequirement !== 'none') && !payable && (
+          <Text variant="caption" tone="muted" style={{ marginTop: spacing.sm }}>
+            {t('payments.unavailableExplainer')}
+          </Text>
+        )}
       </Card>
 
       {reached('date') && (
@@ -339,7 +351,8 @@ export default function BookScreen() {
                 <Pressable
                   key={iso}
                   accessibilityRole="radio"
-                  accessibilityState={{ selected: chosen }}
+                  accessibilityState={{ selected: chosen, checked: chosen }}
+                  aria-checked={chosen}
                   onPress={() => setSelection((current) => selectSlot(current, iso))}
                   style={{
                     minWidth: 92,

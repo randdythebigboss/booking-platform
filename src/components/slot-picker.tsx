@@ -124,7 +124,8 @@ export function SlotPicker({
             <Pressable
               key={iso}
               accessibilityRole="radio"
-              accessibilityState={{ selected: chosen }}
+              accessibilityState={{ selected: chosen, checked: chosen }}
+              aria-checked={chosen}
               onPress={() => onSelect(iso)}
               style={{
                 minWidth: 92,

@@ -69,7 +69,9 @@ describe('the web manifest', () => {
   it('has everything a browser needs before it offers to install', () => {
     expect(manifest.name).toBeTruthy();
     expect(manifest.short_name).toBeTruthy();
-    expect(manifest.start_url).toBe('/');
+    // Relative, so the same file works at a domain root and under a subpath.
+    expect(manifest.start_url).toBe('./');
+    expect(manifest.scope).toBe('./');
     expect(manifest.display).toBe('standalone');
     expect(manifest.theme_color).toMatch(/^#[0-9a-fA-F]{6}$/);
     expect(manifest.background_color).toMatch(/^#[0-9a-fA-F]{6}$/);
@@ -87,7 +89,7 @@ describe('the web manifest', () => {
 
   it('points at icons that exist', () => {
     for (const icon of manifest.icons as Icon[]) {
-      expect(existsSync(`public${icon.src}`), icon.src).toBe(true);
+      expect(existsSync(`public/${icon.src}`), icon.src).toBe(true);
     }
   });
 
@@ -100,7 +102,7 @@ describe('the web manifest', () => {
    */
   it('has no transparency in any icon it declares', () => {
     for (const icon of manifest.icons as Icon[]) {
-      expect(hasAlpha(`public${icon.src}`), `${icon.src} must be opaque`).toBe(false);
+      expect(hasAlpha(`public/${icon.src}`), `${icon.src} must be opaque`).toBe(false);
     }
   });
 
@@ -110,13 +112,13 @@ describe('the web manifest', () => {
     // A literally drawn icon that leaves a margin looks shrunken next to every
     // other icon on the home screen.
     for (const icon of icons.filter((i) => i.purpose === 'any')) {
-      expect(coverage(`public${icon.src}`), `${icon.src} should fill its frame`).toBeGreaterThan(0.9);
+      expect(coverage(`public/${icon.src}`), `${icon.src} should fill its frame`).toBeGreaterThan(0.9);
     }
 
     // A maskable icon is cropped to a circle or a squircle, so anything
     // outside the middle 80% can be cut off.
     for (const icon of icons.filter((i) => i.purpose === 'maskable')) {
-      expect(coverage(`public${icon.src}`), `${icon.src} should stay inside the safe zone`).toBeLessThan(0.8);
+      expect(coverage(`public/${icon.src}`), `${icon.src} should stay inside the safe zone`).toBeLessThan(0.8);
     }
   });
 

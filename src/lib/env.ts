@@ -26,6 +26,22 @@ export interface AppEnv {
  */
 const SUPABASE_URL_SHAPE = /^https:\/\/[a-z0-9-]+\.supabase\.(co|in)$/;
 
+/**
+ * The one other shape that is allowed: a stack on this machine.
+ *
+ * `supabase start` serves on `http://127.0.0.1:54321`, and the shim in
+ * `tools/local-postgres` on another loopback port. Both are plain HTTP, which
+ * is exactly what the check above exists to reject -- so they are admitted by
+ * name rather than by relaxing the rule. A host that is not loopback still
+ * has to be a real Supabase project over TLS.
+ */
+const LOCAL_URL_SHAPE = /^http:\/\/(127\.0\.0\.1|localhost)(:\d{2,5})?$/;
+
+/** True for a URL that points at this machine rather than at a project. */
+export function isLocalSupabaseUrl(url: string): boolean {
+  return LOCAL_URL_SHAPE.test(url);
+}
+
 /** Both key formats Supabase issues. Neither is a secret; see docs/SECURITY.md. */
 const PUBLISHABLE_KEY_SHAPE =
   /^(sb_publishable_[A-Za-z0-9_-]{10,}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})$/;
@@ -83,10 +99,11 @@ export function getEnv(): AppEnv {
     throw new MissingEnvError(missing);
   }
 
-  if (!SUPABASE_URL_SHAPE.test(supabaseUrl as string)) {
+  const url = supabaseUrl as string;
+  if (!SUPABASE_URL_SHAPE.test(url) && !isLocalSupabaseUrl(url)) {
     throw new InvalidEnvError(
       'EXPO_PUBLIC_SUPABASE_URL',
-      'it should look like https://<project>.supabase.co',
+      'it should look like https://<project>.supabase.co, or a loopback address for a local stack',
     );
   }
 
@@ -115,9 +132,12 @@ export function environmentName(): string {
   const url = rawSupabaseUrl();
   if (!url) return 'unconfigured';
 
+  // Loopback first: the project-reference pattern below cannot match one, so
+  // testing for it afterwards never fired.
+  if (isLocalSupabaseUrl(url)) return 'local';
+
   const match = url.match(/^https:\/\/([a-z0-9-]+)\.supabase\./);
   if (!match) return 'unknown';
-  if (url.includes('127.0.0.1') || url.includes('localhost')) return 'local';
   return match[1] ?? 'unknown';
 }
 

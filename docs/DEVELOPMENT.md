@@ -185,6 +185,62 @@ mapping, the payment state machine, and environment handling.
 Add a test to `tests/availability/slots.test.ts` for every scheduling rule you
 touch. That file is the executable specification of what "available" means.
 
+
+## End-to-end tests
+
+Playwright, in a real browser, against a **built** application and a **real**
+database. It does not replace the unit tests or the SQL suites -- those prove
+the domain logic and the authorization, and they prove it better. What only a
+browser can show is that the bundle, the router, PostgREST and the screens
+agree with each other.
+
+Three things have to be running: a database with the fixtures, an API in front
+of it, and the built application. `tools/e2e/run.sh` does the last two and the
+reset; bringing up the database is yours, because there are two reasonable
+ways and neither should be second-class.
+
+**With Docker**, the Supabase CLI is the faithful environment and the one CI
+uses:
+
+```bash
+supabase start
+supabase db reset
+E2E_DB_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres" E2E_SUPABASE_URL="http://127.0.0.1:54321" E2E_SUPABASE_ANON_KEY="<from: supabase status>"   ./tools/e2e/run.sh
+```
+
+**Without Docker**, the PostgreSQL + PostgREST + shim stack described above
+serves the same purpose, with the caveat that the shim is not GoTrue:
+
+```bash
+E2E_DB_URL="postgresql://postgres@127.0.0.1:55432/booking_e2e" E2E_SUPABASE_URL="http://127.0.0.1:4301" E2E_SUPABASE_ANON_KEY="<the anon JWT you signed>" PSQL=/path/to/psql   ./tools/e2e/run.sh
+```
+
+To iterate on one spec against a build that is already serving:
+
+```bash
+E2E_BASE_URL=http://127.0.0.1:4321 npx playwright test e2e/payments.spec.ts
+```
+
+### What to know before writing one
+
+* **Every test starts from the fixtures.** `e2e/support/test.ts` resets the
+  database before each one, automatically. It is not caution: the seeded
+  professional works 09:00 to 18:00, and a suite that books a dozen
+  appointments into the same day eventually meets "no hay horas disponibles"
+  and starts failing in whatever order it happened to run in.
+* **Address the page the way a person does** -- by role and accessible name,
+  never by CSS structure. A `div > div:nth-child(3)` selector passes happily
+  while the label is missing, and `e2e/accessibility.spec.ts` exists to notice
+  missing labels.
+* **Reach for the database only for what a browser cannot do**: flipping the
+  server-side payment-simulation switch, and reading back a fact no screen
+  shows. `e2e/support/db.ts` is the whole seam.
+* **SQL goes through a file, not an argument.** The demo data is Spanish, and
+  on Windows an accented character in `psql -c` is mangled into an invalid
+  byte sequence before psql ever sees it.
+* Tag a test `@mobile` to also run it at 375px.
+* Never print a guest token.
+
 ## Commits
 
 Small and descriptive. Conventional-commit prefixes: `feat`, `fix`, `docs`,
@@ -195,10 +251,18 @@ Never commit `.env`, `.env.local`, a service-role key, or any credential. See
 
 ## CI
 
-Every pull request runs install, lint, typecheck, tests and an Expo web
-export. A second job applies every migration to a real Postgres via the
-Supabase CLI, loads the seed, and runs both SQL suites in `supabase/tests`.
-That job is what proves the SQL is valid.
+Three jobs, and none of them needs a credential:
+
+* **Lint, types, tests, Expo export** -- plus the packaging checks that the
+  built output really carries a manifest, a service worker and its icons.
+* **Migrations, seed and database guarantees** -- every migration applied to a
+  real Postgres from nothing via the Supabase CLI, then every SQL suite in
+  `supabase/tests`. This is what proves the SQL is valid.
+* **End-to-end in a browser** -- a local Supabase stack, the deterministic
+  fixtures, a build pointed at them, and Playwright. On a failure it uploads
+  the traces and screenshots as an artifact.
+
+Nothing in CI talks to the shared cloud project, so a fork can run all of it.
 
 Nothing deploys automatically.
 

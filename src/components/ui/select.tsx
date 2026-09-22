@@ -53,7 +53,8 @@ export function Select<T extends string>({
             <Pressable
               key={option.value}
               accessibilityRole="radio"
-              accessibilityState={{ selected }}
+              accessibilityState={{ selected, checked: selected }}
+              aria-checked={selected}
               onPress={() => onChange(option.value)}
               style={({ pressed }) => ({
                 paddingVertical: spacing.md,

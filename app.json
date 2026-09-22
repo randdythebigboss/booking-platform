@@ -2,7 +2,7 @@
   "expo": {
     "name": "Booking Platform",
     "slug": "booking-platform",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "bookingplatform",
@@ -55,6 +55,9 @@
     },
     "description": "Toma citas con un solo enlace. Tu calendario, tus servicios, tus clientes.",
     "primaryColor": "#208AEF",
-    "backgroundColor": "#ffffff"
+    "backgroundColor": "#ffffff",
+    "extra": {
+      "release": "0.1.0-beta.1"
+    }
   }
 }

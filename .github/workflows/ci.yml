@@ -132,3 +132,67 @@ jobs:
       - name: Stop Supabase
         if: always()
         run: supabase stop --no-backup
+
+  # =========================================================================
+  # The browser. Everything above proves the pieces; this proves the built
+  # application, the router, PostgREST and the screens agree with each other.
+  #
+  # Hermetic on purpose: a local Supabase stack, the deterministic fixtures and
+  # a build pointed at them. No cloud project, no secret, nothing that a fork
+  # or a pull request from outside cannot run.
+  # =========================================================================
+  e2e:
+    name: End-to-end in a browser
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Install
+        run: npm ci
+
+      - name: Install the browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Start Supabase
+        run: supabase start
+
+      # The keys a local stack issues are fixed and public; `supabase status`
+      # is simply where they are written down. Nothing here is a secret and
+      # nothing here reaches a real project. The values arrive quoted, and a
+      # quote that survives into GITHUB_ENV becomes part of the URL.
+      - name: Collect the local stack's configuration
+        run: |
+          supabase status --output env \
+            | sed -E 's/^([A-Z_]+)="?(.*[^"])"?$/SB_\1=\2/' \
+            >> "$GITHUB_ENV"
+
+      - name: Apply migrations and the seed
+        run: supabase db reset
+
+      - name: Run the suite
+        env:
+          E2E_DB_URL: ${{ env.LOCAL_DB_URL }}
+          E2E_SUPABASE_URL: ${{ env.SB_API_URL }}
+          E2E_SUPABASE_ANON_KEY: ${{ env.SB_ANON_KEY }}
+        run: bash tools/e2e/run.sh
+
+      - name: Keep the evidence when it fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: e2e/.results/
+          retention-days: 7
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup

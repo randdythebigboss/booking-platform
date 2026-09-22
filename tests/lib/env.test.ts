@@ -113,4 +113,48 @@ describe('environmentName', () => {
   it('says so when nothing is configured', () => {
     expect(environmentName()).toBe('unconfigured');
   });
+
+  /**
+   * This branch used to be unreachable. The project-reference pattern it sat
+   * behind only matches `*.supabase.co`, so a loopback URL fell through to
+   * 'unknown' and the diagnostics screen never once said 'local'.
+   */
+  it('recognises a stack running on this machine', () => {
+    for (const url of ['http://127.0.0.1:54321', 'http://localhost:4301', 'http://127.0.0.1']) {
+      process.env.EXPO_PUBLIC_SUPABASE_URL = url;
+      expect(environmentName(), url).toBe('local');
+    }
+  });
+});
+
+describe('a stack running on this machine', () => {
+  const KEY = 'sb_publishable_abcdefghijklmnop';
+
+  it('is accepted, so the end-to-end suite needs no cloud project', () => {
+    process.env.EXPO_PUBLIC_SUPABASE_URL = 'http://127.0.0.1:54321';
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = KEY;
+
+    expect(getEnv().supabaseUrl).toBe('http://127.0.0.1:54321');
+  });
+
+  it('is the only exception: any other host still has to be a project over TLS', () => {
+    for (const url of [
+      'http://example.com',
+      'http://192.168.1.10:54321',
+      'http://127.0.0.1.evil.test',
+      'https://127.0.0.1:54321',
+      'http://127.0.0.1:54321/rest',
+    ]) {
+      process.env.EXPO_PUBLIC_SUPABASE_URL = url;
+      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = KEY;
+      expect(() => getEnv(), url).toThrow(InvalidEnvError);
+    }
+  });
+
+  it('never becomes a way to smuggle a plain-HTTP production URL in', () => {
+    process.env.EXPO_PUBLIC_SUPABASE_URL = 'http://myproject.supabase.co';
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = KEY;
+
+    expect(() => getEnv()).toThrow(InvalidEnvError);
+  });
 });

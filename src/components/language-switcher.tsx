@@ -43,7 +43,8 @@ export function LanguageSwitcher({ showLabel = true }: LanguageSwitcherProps) {
             <Pressable
               key={option}
               accessibilityRole="radio"
-              accessibilityState={{ selected: chosen }}
+              accessibilityState={{ selected: chosen, checked: chosen }}
+              aria-checked={chosen}
               accessibilityLabel={LOCALE_NAMES[option]}
               onPress={() => setLocale(option)}
               style={{

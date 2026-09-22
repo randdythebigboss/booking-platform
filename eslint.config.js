@@ -5,7 +5,18 @@ module.exports = [
   ...expoConfig,
   prettierConfig,
   {
-    ignores: ['dist/*', '.expo/*', 'node_modules/*', 'coverage/*', 'supabase/.temp/*'],
+    ignores: [
+      'dist/*',
+      'dist-e2e/*',
+      '.expo/*',
+      'node_modules/*',
+      'coverage/*',
+      'supabase/.temp/*',
+      // Playwright's own output: traces, screenshots and the page snapshots
+      // it writes next to a failure.
+      'e2e/.results/*',
+      'playwright-report/*',
+    ],
   },
   {
     rules: {

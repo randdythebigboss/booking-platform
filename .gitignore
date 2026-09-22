@@ -53,3 +53,8 @@ coverage/
 # supabase cli
 supabase/.temp/
 supabase/.branches/
+
+# playwright
+e2e/.results/
+playwright-report/
+dist-e2e/

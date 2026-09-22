@@ -49,6 +49,20 @@ window.history.replaceState(null,'',l.pathname+(q?'?'+q:'')+h);
 }catch(e){}})();`;
 
 /**
+ * Where this deployment lives under its domain.
+ *
+ * Empty for a site served from the root, which is the normal case. A host that
+ * only offers a subpath -- GitHub Pages project sites are the common one --
+ * needs `experiments.baseUrl` in app.json, and Expo then rewrites the paths it
+ * emits itself. It does not rewrite the ones written by hand below, and a
+ * manifest link pointing at the wrong origin fails silently: the application
+ * runs perfectly and simply never offers to install.
+ *
+ * Inlined at build time, so it has to be a static property access.
+ */
+const BASE = process.env.EXPO_BASE_URL ?? '';
+
+/**
  * Registers the service worker, quietly.
  *
  * Wrapped and deferred: nothing about installability is worth delaying the
@@ -59,7 +73,7 @@ window.history.replaceState(null,'',l.pathname+(q?'?'+q:'')+h);
 const REGISTER_SERVICE_WORKER = `(function(){try{
 if(!('serviceWorker' in navigator))return;
 window.addEventListener('load',function(){
-navigator.serviceWorker.register('/sw.js').catch(function(){});
+navigator.serviceWorker.register('${BASE}/sw.js',{scope:'${BASE}/'}).catch(function(){});
 });
 }catch(e){}})();`;
 
@@ -83,13 +97,13 @@ export default function Root({ children }: PropsWithChildren) {
         {/* Installable as a web application: the manifest, the colour the
             browser paints its chrome, and the bits iOS reads instead. None of
             this changes how the application behaves in a tab. */}
-        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="manifest" href={`${BASE}/manifest.webmanifest`} />
         <meta name="theme-color" content="#208AEF" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Booking" />
-        <link rel="apple-touch-icon" href="/icons/icon-512.png" />
+        <link rel="apple-touch-icon" href={`${BASE}/icons/icon-512.png`} />
         <meta
           name="description"
           content="Toma citas con un solo enlace. Tu calendario, tus servicios, tus clientes."

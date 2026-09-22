@@ -31,16 +31,28 @@ export function useGuestToken(): string | null | '' {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location) {
-      const upgraded = upgradeLegacyTokenUrl(window.location.href);
-      if (upgraded && window.history?.replaceState) {
-        window.history.replaceState(null, '', upgraded);
-      }
-      setToken(tokenFromUrl(window.location.href) ?? params.token ?? '');
-      return;
+      const read = () => {
+        const upgraded = upgradeLegacyTokenUrl(window.location.href);
+        if (upgraded && window.history?.replaceState) {
+          window.history.replaceState(null, '', upgraded);
+        }
+        setToken(tokenFromUrl(window.location.href) ?? params.token ?? '');
+      };
+
+      read();
+
+      // Pasting the real link while already on this page changes only the
+      // fragment, so the browser does not reload and the router does not
+      // re-render. Without this, somebody who lands here without their token,
+      // reads "open your personal link" and does exactly that, watches nothing
+      // happen.
+      window.addEventListener('hashchange', read);
+      return () => window.removeEventListener('hashchange', read);
     }
 
     // Native: the deep link is the only place the fragment survives.
     setToken(tokenFromUrl(nativeUrl) ?? params.token ?? '');
+    return undefined;
   }, [nativeUrl, params.token]);
 
   return token;
