@@ -110,10 +110,20 @@ export async function deleteBlockedTime(id: string): Promise<void> {
 // Date exceptions: changes to what the schedule SAYS for one date.
 // ---------------------------------------------------------------------------
 
+/**
+ * What an exception IS, which is one of three things, not two.
+ *
+ * The draft a professional fills in offers two choices, because creating a
+ * timed closure is what Blocks are for. Reading is a different matter: the
+ * database holds all three shapes, and a row that closes 12:00-14:00 must not
+ * be shown as if it closed the whole day.
+ */
+export type DateExceptionKind = ExceptionKind | 'closed-period';
+
 export interface DateExceptionRow {
   id: string;
   date: IsoDate;
-  kind: ExceptionKind;
+  kind: DateExceptionKind;
   startTime: ClockTime | null;
   endTime: ClockTime | null;
   reason: string | null;
@@ -137,9 +147,16 @@ export async function fetchDateExceptions(
   return (data ?? []).map((row: Record<string, any>) => ({
     id: String(row.id),
     date: String(row.exception_date),
-    // An untimed "unavailable" row is a closed day; anything else is a
-    // replacement of that date's hours.
-    kind: row.exception_type === 'available' ? 'custom-hours' : 'closed',
+    // Three shapes, told apart by the type AND whether it carries times:
+    //   available + times     replaces that date's hours
+    //   unavailable + times   closes part of the day
+    //   unavailable, no times closes the whole day
+    kind:
+      row.exception_type === 'available'
+        ? 'custom-hours'
+        : row.start_time
+          ? 'closed-period'
+          : 'closed',
     startTime: row.start_time ? String(row.start_time).slice(0, 5) : null,
     endTime: row.end_time ? String(row.end_time).slice(0, 5) : null,
     reason: row.reason ?? null,

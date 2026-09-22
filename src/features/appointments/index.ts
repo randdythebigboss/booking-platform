@@ -13,7 +13,6 @@ export {
 export {
   APPOINTMENT_ACTOR_TYPES,
   APPOINTMENT_EVENT_TYPES,
-  actorLabelKey,
   describeEvent,
   rescheduleCount,
   sortEvents,

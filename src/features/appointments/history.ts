@@ -20,17 +20,17 @@ export interface AppointmentEvent {
   reason: string | null;
 }
 
-/** The key naming who acted, in the words a professional would use. */
-export function actorLabelKey(actor: AppointmentActorType): string {
-  return `history.actor_${actor}`;
-}
-
 /**
  * What happened, as a translation key plus the values its sentence needs.
  *
- * The line is assembled by the dictionary, not here: Spanish and English put
- * the actor, the old time and the new time in different places, and a domain
- * module concatenating them would force one language's word order on both.
+ * **The actor is part of the key, not a value.** Interpolating it reads fine
+ * in English -- "You booked", "The customer booked", one verb form for both --
+ * and is wrong in Spanish, where the verb agrees with the person: "Reservaste"
+ * against "El cliente reservó". A language whose grammar depends on who acted
+ * has to be allowed to write the whole sentence, so each actor gets its own
+ * key and each language fills it in naturally.
+ *
+ * Found in a browser, in Spanish, reading "Tú reservó esta cita".
  */
 export interface EventDescription {
   key: string;
@@ -42,17 +42,16 @@ export function describeEvent(
   formatTime: (at: Date) => string,
   translate: (key: string) => string,
 ): EventDescription {
-  const actor = translate(actorLabelKey(event.actor));
+  const actor = event.actor;
 
   switch (event.type) {
     case 'created':
-      return { key: 'history.created', values: { actor } };
+      return { key: `history.created_${actor}`, values: {} };
 
     case 'rescheduled':
       return {
-        key: 'history.rescheduled',
+        key: `history.rescheduled_${actor}`,
         values: {
-          actor,
           from: event.previousStartsAt
             ? formatTime(event.previousStartsAt)
             : translate('history.unknownFrom'),
@@ -61,16 +60,16 @@ export function describeEvent(
       };
 
     case 'status_changed': {
-      if (!event.newStatus) return { key: 'history.statusChangedPlain', values: { actor } };
-      if (event.newStatus === 'cancelled') return { key: 'history.cancelled', values: { actor } };
+      if (!event.newStatus) return { key: `history.statusChangedPlain_${actor}`, values: {} };
+      if (event.newStatus === 'cancelled') return { key: `history.cancelled_${actor}`, values: {} };
       return {
-        key: 'history.statusChanged',
-        values: { actor, status: translate(statusLabelKey(event.newStatus)).toLowerCase() },
+        key: `history.statusChanged_${actor}`,
+        values: { status: translate(statusLabelKey(event.newStatus)).toLowerCase() },
       };
     }
 
     default:
-      return { key: 'history.statusChangedPlain', values: { actor } };
+      return { key: `history.statusChangedPlain_${actor}`, values: {} };
   }
 }
 

@@ -186,13 +186,18 @@ export default function DateExceptionsScreen() {
         {(exceptions.data ?? []).map((exception) => (
           <Card key={exception.id}>
             <Text variant="label">{exception.date}</Text>
-            <Text variant="body" tone={exception.kind === 'closed' ? 'danger' : 'accent'}>
-              {exception.kind === 'closed'
-                ? t('exceptions.closedAllDay')
-                : t('exceptions.openFromTo', {
-                    start: exception.startTime ?? '',
-                    end: exception.endTime ?? '',
-                  })}
+            <Text variant="body" tone={exception.kind === 'custom-hours' ? 'accent' : 'danger'}>
+              {exception.kind === 'closed' && t('exceptions.closedAllDay')}
+              {exception.kind === 'closed-period' &&
+                t('exceptions.closedFromTo', {
+                  start: exception.startTime ?? '',
+                  end: exception.endTime ?? '',
+                })}
+              {exception.kind === 'custom-hours' &&
+                t('exceptions.openFromTo', {
+                  start: exception.startTime ?? '',
+                  end: exception.endTime ?? '',
+                })}
             </Text>
             {exception.reason && (
               <Text variant="caption" tone="muted">

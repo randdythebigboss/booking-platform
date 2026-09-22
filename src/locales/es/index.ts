@@ -207,14 +207,32 @@ export const es = {
     heading: 'Historial',
     empty: 'Todavía no hay nada registrado.',
     immutable: 'Este registro no lo puede editar ni borrar nadie.',
-    actor_professional: 'Tú',
-    actor_guest: 'El cliente',
-    actor_system: 'El sistema',
-    created: '{{actor}} reservó esta cita',
-    rescheduled: '{{actor}} la movió de {{from}} a {{to}}',
-    cancelled: '{{actor}} la canceló',
-    statusChanged: '{{actor}} la marcó como {{status}}',
-    statusChangedPlain: '{{actor}} cambió el estado',
+
+    // The actor is part of the key because the verb agrees with the person.
+    // "Reservaste" and "El cliente reservó" are not one sentence with a
+    // swappable subject.
+    created_professional: 'Reservaste esta cita',
+    created_guest: 'El cliente reservó esta cita',
+    created_system: 'El sistema registró esta cita',
+
+    rescheduled_professional: 'La moviste de {{from}} a {{to}}',
+    rescheduled_guest: 'El cliente la movió de {{from}} a {{to}}',
+    rescheduled_system: 'El sistema la movió de {{from}} a {{to}}',
+
+    cancelled_professional: 'La cancelaste',
+    cancelled_guest: 'El cliente la canceló',
+    cancelled_system: 'El sistema la canceló',
+
+    // The status adjectives agree with "cita", which is feminine: completada,
+    // cancelada, confirmada.
+    statusChanged_professional: 'La marcaste como {{status}}',
+    statusChanged_guest: 'El cliente la marcó como {{status}}',
+    statusChanged_system: 'El sistema la marcó como {{status}}',
+
+    statusChangedPlain_professional: 'Cambiaste el estado',
+    statusChangedPlain_guest: 'El cliente cambió el estado',
+    statusChangedPlain_system: 'El sistema cambió el estado',
+
     unknownFrom: 'una hora anterior',
     unknownTo: 'una hora nueva',
   },
@@ -323,6 +341,7 @@ export const es = {
   },
 
   exceptions: {
+    closedFromTo: 'Cerrado de {{start}} a {{end}}',
     openFromTo: 'Abierto de {{start}} a {{end}}',
     noneApplyWeekly: 'No hay excepciones. Tu horario semanal se aplica a todas las fechas.',
     holidayExample: 'Día festivo',

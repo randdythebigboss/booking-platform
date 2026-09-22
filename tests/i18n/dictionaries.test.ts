@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   APPOINTMENT_ACTOR_TYPES,
   APPOINTMENT_EVENT_TYPES,
-  actorLabelKey,
   statusLabelKey,
 } from '@/features/appointments';
 import { WEEKDAY_KEYS } from '@/features/availability/schedule';
@@ -104,14 +103,14 @@ describe('keys the app builds at runtime', () => {
     for (const status of APPOINTMENT_STATUSES) both(`appointments.action_${status}`);
   });
 
-  it('has a name for every actor and every event type', () => {
-    for (const actor of APPOINTMENT_ACTOR_TYPES) both(actorLabelKey(actor));
-    for (const type of APPOINTMENT_EVENT_TYPES) {
-      // Every event renders through one of these three lines.
-      both('history.created');
-      both('history.rescheduled');
-      both(type === 'status_changed' ? 'history.statusChanged' : 'history.created');
+  it('has a sentence for every event type crossed with every actor', () => {
+    // The actor is part of the key, so the matrix is what has to exist. A
+    // missing cell would render as a raw key to whoever hit that combination.
+    const shapes = ['created', 'rescheduled', 'cancelled', 'statusChanged', 'statusChangedPlain'];
+    for (const shape of shapes) {
+      for (const actor of APPOINTMENT_ACTOR_TYPES) both(`history.${shape}_${actor}`);
     }
+    expect(APPOINTMENT_EVENT_TYPES.length).toBe(3);
   });
 
   it('has a name for all seven weekdays', () => {

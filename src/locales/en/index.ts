@@ -201,14 +201,27 @@ export const en: Translations = {
     heading: 'History',
     empty: 'Nothing recorded yet.',
     immutable: 'This log cannot be edited or deleted, by anyone.',
-    actor_professional: 'You',
-    actor_guest: 'The customer',
-    actor_system: 'The system',
-    created: '{{actor}} booked this appointment',
-    rescheduled: '{{actor}} moved it from {{from}} to {{to}}',
-    cancelled: '{{actor}} cancelled it',
-    statusChanged: '{{actor}} marked it {{status}}',
-    statusChangedPlain: '{{actor}} changed the status',
+
+    created_professional: 'You booked this appointment',
+    created_guest: 'The customer booked this appointment',
+    created_system: 'The system recorded this appointment',
+
+    rescheduled_professional: 'You moved it from {{from}} to {{to}}',
+    rescheduled_guest: 'The customer moved it from {{from}} to {{to}}',
+    rescheduled_system: 'The system moved it from {{from}} to {{to}}',
+
+    cancelled_professional: 'You cancelled it',
+    cancelled_guest: 'The customer cancelled it',
+    cancelled_system: 'The system cancelled it',
+
+    statusChanged_professional: 'You marked it {{status}}',
+    statusChanged_guest: 'The customer marked it {{status}}',
+    statusChanged_system: 'The system marked it {{status}}',
+
+    statusChangedPlain_professional: 'You changed the status',
+    statusChangedPlain_guest: 'The customer changed the status',
+    statusChangedPlain_system: 'The system changed the status',
+
     unknownFrom: 'an earlier time',
     unknownTo: 'a new time',
   },
@@ -317,6 +330,7 @@ export const en: Translations = {
   },
 
   exceptions: {
+    closedFromTo: 'Closed {{start}} to {{end}}',
     openFromTo: 'Open {{start}} to {{end}}',
     noneApplyWeekly: 'No exceptions. Your weekly schedule applies to every date.',
     holidayExample: 'Holiday',

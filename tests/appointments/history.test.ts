@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   APPOINTMENT_ACTOR_TYPES,
   APPOINTMENT_EVENT_TYPES,
-  actorLabelKey,
   describeEvent,
   rescheduleCount,
   sortEvents,
@@ -33,10 +32,14 @@ const clock = (at: Date) => at.toISOString().slice(11, 16);
 /** A translator that answers with the key, so assertions are about keys. */
 const echo = (key: string) => key;
 
-describe('actorLabelKey', () => {
-  it('names a key for every actor the database can produce', () => {
+describe('who acted is part of the key', () => {
+  it('gives every actor its own sentence, because Spanish conjugates', () => {
+    // 'You booked' and 'The customer booked' share a verb in English and do
+    // not in Spanish -- 'Reservaste' against 'El cliente reservó'. Putting the
+    // actor in the key is what lets each language write its own sentence.
     for (const actor of APPOINTMENT_ACTOR_TYPES) {
-      expect(actorLabelKey(actor)).toBe(`history.actor_${actor}`);
+      const described = describeEvent(event({ type: 'created', actor }), clock, echo);
+      expect(described.key).toBe(`history.created_${actor}`);
     }
   });
 });
@@ -45,8 +48,7 @@ describe('describeEvent', () => {
   it('names who booked it, without deciding the word order', () => {
     const described = describeEvent(event({ type: 'created', actor: 'guest' }), clock, echo);
 
-    expect(described.key).toBe('history.created');
-    expect(described.values.actor).toBe('history.actor_guest');
+    expect(described.key).toBe('history.created_guest');
   });
 
   it('hands the sentence both ends of a move, and assembles neither', () => {
@@ -64,7 +66,7 @@ describe('describeEvent', () => {
       echo,
     );
 
-    expect(described.key).toBe('history.rescheduled');
+    expect(described.key).toBe('history.rescheduled_guest');
     expect(described.values.from).toBe('14:00');
     expect(described.values.to).toBe('17:30');
   });
@@ -76,7 +78,7 @@ describe('describeEvent', () => {
       echo,
     );
 
-    expect(described.key).toBe('history.cancelled');
+    expect(described.key).toBe('history.cancelled_professional');
   });
 
   it('uses the status key for every other status change', () => {
@@ -86,7 +88,7 @@ describe('describeEvent', () => {
       echo,
     );
 
-    expect(described.key).toBe('history.statusChanged');
+    expect(described.key).toBe('history.statusChanged_professional');
     expect(described.values.status).toBe('appointments.status_no_show');
   });
 

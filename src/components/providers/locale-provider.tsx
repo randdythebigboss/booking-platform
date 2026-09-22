@@ -91,6 +91,13 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   function apply(next: Locale) {
     setLocaleState(next);
     if (i18n.language !== next) void i18n.changeLanguage(next);
+
+    // Keep the document in step on web. The static export ships lang="es",
+    // and leaving it there while the interface reads English tells a screen
+    // reader to pronounce English words with Spanish phonetics.
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = next;
+    }
   }
 
   const setLocale = useCallback(
