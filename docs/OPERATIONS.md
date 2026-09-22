@@ -48,6 +48,22 @@ knowing before doing it again:
   functions to `anon` and `authenticated`. Any migration that replaces a
   function restates its classification immediately afterwards, and
   `supabase/tests/function_grants.sql` fails the build if one is forgotten.
+* **PostgREST caches the schema.** After a migration that adds or replaces a
+  function or a column, run
+
+  ```sql
+  notify pgrst, 'reload schema';
+  ```
+
+  Without it the database is correct and the API is not: calls fail, or an
+  overload resolves to the signature that used to exist. `supabase db reset`
+  and the local stack restart PostgREST for you; a migration applied to a
+  running cloud project does not.
+* **Reproduce a function from the live definition, never from a migration.**
+  A function is rewritten by several migrations over its life, and the one
+  that is easiest to find is rarely the newest. Copying an old body silently
+  removes everything added since -- which happened once here, dropping three
+  fields the guest confirmation page needs, with every SQL suite still green.
 
 ## Development data
 
