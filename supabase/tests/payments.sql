@@ -890,4 +890,102 @@ $$;
 
 rollback;
 
+---------------------------------------------------------------------------
+-- 10. The races the design has to survive.
+---------------------------------------------------------------------------
+begin;
+
+do $$
+declare
+  c_pro constant uuid := 'f1110000-0000-4000-8000-0000000000b1';
+  c_tz constant text := 'America/Santo_Domingo';
+  v_date date := ((now() at time zone c_tz)::date + 7);
+  v_booking jsonb;
+  v_appointment public.appointments;
+  v_payment public.payments;
+begin
+  ---------------------------------------------------------------------------
+  raise notice '24. money arriving after a cancellation does not un-cancel it';
+  ---------------------------------------------------------------------------
+  -- The one that cannot be prevented: a customer presses Cancel while their
+  -- bank is already approving the charge. Both are real, so both are recorded,
+  -- and the shop decides about the refund (ADR 0023).
+  v_booking := public.book_appointment(
+    c_pro, 'f1110000-0000-4000-8000-0000000000c1',
+    (v_date::timestamp + time '09:00') at time zone c_tz,
+    'Carrera Cliente', '+1 809 555 7010', 'carrera@example.test', null, 'es'
+  );
+
+  select a.* into v_appointment
+  from public.appointments a where a.id = (v_booking ->> 'appointmentId')::uuid;
+
+  perform public.cancel_appointment_by_token(
+    v_appointment.id, v_appointment.access_token, 'Cambié de idea'
+  );
+
+  select p.* into v_payment
+  from public.payments p where p.appointment_id = v_appointment.id;
+
+  -- The callback lands a moment later.
+  v_payment := public.apply_payment_outcome(
+    v_payment.id, 'paid', 'mockref_late', null, 'race:late-callback'
+  );
+
+  if v_payment.status <> 'paid' then
+    raise exception 'FAIL: a late callback was lost (%), and the money is real', v_payment.status;
+  end if;
+
+  select a.* into v_appointment
+  from public.appointments a where a.id = v_appointment.id;
+
+  if v_appointment.status <> 'cancelled' then
+    raise exception 'FAIL: a payment un-cancelled an appointment (now %)', v_appointment.status;
+  end if;
+
+  ---------------------------------------------------------------------------
+  raise notice '25. and the slot it gave up is genuinely free';
+  ---------------------------------------------------------------------------
+  if not exists (
+    select 1 from public.get_available_slots(
+      c_pro, 'f1110000-0000-4000-8000-0000000000c1', v_date
+    ) s where s.starts_at = (v_date::timestamp + time '09:00') at time zone c_tz
+  ) then
+    raise exception 'FAIL: a cancelled appointment is still holding its slot';
+  end if;
+
+  ---------------------------------------------------------------------------
+  raise notice '26. two people cannot both pay for one slot';
+  ---------------------------------------------------------------------------
+  -- The first one holds it; the second is refused at the constraint, before
+  -- any money is involved at all.
+  declare
+    v_second boolean := false;
+  begin
+    perform public.book_appointment(
+      c_pro, 'f1110000-0000-4000-8000-0000000000c1',
+      (v_date::timestamp + time '11:00') at time zone c_tz,
+      'Primera Cliente', '+1 809 555 7011', 'primera@example.test', null, 'es'
+    );
+
+    begin
+      perform public.book_appointment(
+        c_pro, 'f1110000-0000-4000-8000-0000000000c1',
+        (v_date::timestamp + time '11:00') at time zone c_tz,
+        'Segunda Cliente', '+1 809 555 7012', 'segunda@example.test', null, 'es'
+      );
+    exception
+      when sqlstate '23P01' then v_second := true;
+    end;
+
+    if not v_second then
+      raise exception 'FAIL: two customers are paying for the same slot';
+    end if;
+  end;
+
+  raise notice '24-26 hold';
+end;
+$$;
+
+rollback;
+
 \echo 'Payments hold.'

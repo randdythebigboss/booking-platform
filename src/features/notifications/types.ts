@@ -7,10 +7,16 @@
  */
 
 export const NOTIFICATION_KINDS = [
+  // For the professional: somebody booked.
+  'booking_created',
   'booking_confirmed',
   'booking_rescheduled',
   'booking_cancelled',
   'booking_reminder',
+  // For the customer: what happened to their money.
+  'payment_received',
+  'payment_failed',
+  'payment_refunded',
 ] as const;
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
 
@@ -32,6 +38,12 @@ export const TEMPLATE_KEYS = [
   'booking.rescheduled',
   'booking.cancelled',
   'booking.reminder',
+  'payment.received',
+  'payment.failed',
+  'payment.refunded',
+  'professional.booking_created',
+  'professional.booking_rescheduled',
+  'professional.booking_cancelled',
 ] as const;
 export type TemplateKey = (typeof TEMPLATE_KEYS)[number];
 
@@ -53,6 +65,9 @@ export interface NotificationPayload {
   endsAt: string;
   /** The business's timezone, which is the one the appointment happens in. */
   timezone: string;
+  /** Exact decimal, present only when the booking involved money. */
+  amount?: string | null;
+  currency?: string | null;
 }
 
 /** One row of the outbox, as a dispatcher sees it. */

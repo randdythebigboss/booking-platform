@@ -514,6 +514,10 @@ export const en: Translations = {
     developmentDelivery:
       'Nothing leaves here yet: in development a mock provider delivers them.',
     kind: {
+      booking_created: 'New booking',
+      payment_received: 'Payment received',
+      payment_failed: 'Payment declined',
+      payment_refunded: 'Payment refunded',
       booking_confirmed: 'Booking confirmation',
       booking_rescheduled: 'Time changed',
       booking_cancelled: 'Cancellation',
@@ -545,8 +549,8 @@ export const en: Translations = {
     payAgain: 'Try another card',
     holdExplainer:
       'We are holding your time while you pay. If the payment is not completed, the time is released.',
-    holdUntil: 'Your time is held until {{time}}.',
-    paidThanks: 'Payment received. Your appointment is confirmed.',
+    holdUntil: 'Your time is held until {{time}}',
+    paidThanks: 'Payment received. Thank you.',
     declined: 'The payment did not go through. You can try again.',
     simulationNotice: 'Development mode: no payment is real.',
     simulateSuccess: 'Simulate a successful payment',

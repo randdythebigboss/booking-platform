@@ -525,6 +525,10 @@ export const es = {
     developmentDelivery:
       'Todavía no sale nada de aquí: en desarrollo los entrega un proveedor simulado.',
     kind: {
+      booking_created: 'Reserva nueva',
+      payment_received: 'Pago recibido',
+      payment_failed: 'Pago rechazado',
+      payment_refunded: 'Pago reembolsado',
       booking_confirmed: 'Confirmación de la reserva',
       booking_rescheduled: 'Cambio de hora',
       booking_cancelled: 'Cancelación',
@@ -556,8 +560,8 @@ export const es = {
     payAgain: 'Intentar con otra tarjeta',
     holdExplainer:
       'Guardamos tu hora mientras pagas. Si no completas el pago, la hora vuelve a quedar libre.',
-    holdUntil: 'Tu hora está reservada hasta las {{time}}.',
-    paidThanks: 'Pago recibido. Tu cita está confirmada.',
+    holdUntil: 'Tu hora está reservada hasta las {{time}}',
+    paidThanks: 'Pago recibido. Gracias.',
     declined: 'El pago no se completó. Puedes intentar de nuevo.',
     simulationNotice: 'Modo de desarrollo: ningún pago es real.',
     simulateSuccess: 'Simular pago aprobado',

@@ -1,4 +1,4 @@
-import { formatDateIn, formatTimeIn } from '@/lib/format';
+import { formatDateIn, formatMoney, formatTimeIn } from '@/lib/format';
 import { INTL_LOCALES, resolveLocale, type Locale } from '@/locales';
 
 import type { NotificationMessage, NotificationPayload, TemplateKey } from './types';
@@ -38,6 +38,12 @@ function when(context: TemplateContext): string {
     context.timezone,
     intl,
   )}`;
+}
+
+/** What was paid, when anything was. Formatted, never added up. */
+function howMuch(context: TemplateContext): string {
+  if (!context.amount || !context.currency) return '';
+  return formatMoney(context.amount, context.currency, INTL_LOCALES[context.locale]);
 }
 
 /** The service and the person, when the booking recorded them. */
@@ -107,6 +113,78 @@ const es: Record<TemplateKey, Template> = {
       .filter((line) => line !== null)
       .join('\n'),
   }),
+'payment.received': (context) => ({
+    subject: `Recibimos tu pago para ${context.businessName}`,
+    body: [
+      `Hola ${context.customerName}:`,
+      '',
+      `Recibimos tu pago de ${howMuch(context)}.`,
+      '',
+      what(context, ' con ') ? `Servicio: ${what(context, ' con ')}` : null,
+      `Cuándo: ${when(context)} (${context.timezone})`,
+      '',
+      'Guarda este correo como comprobante.',
+    ]
+      .filter((line) => line !== null)
+      .join('\n'),
+  }),
+
+  'payment.failed': (context) => ({
+    subject: `No pudimos procesar tu pago para ${context.businessName}`,
+    body: [
+      `Hola ${context.customerName}:`,
+      '',
+      'El pago no se completó, así que tu cita todavía no está pagada.',
+      '',
+      `Cuándo: ${when(context)} (${context.timezone})`,
+      '',
+      'Puedes intentarlo de nuevo desde tu enlace de reserva.',
+    ].join('\n'),
+  }),
+
+  'payment.refunded': (context) => ({
+    subject: `Te devolvimos tu pago de ${context.businessName}`,
+    body: [
+      `Hola ${context.customerName}:`,
+      '',
+      `Reembolsamos ${howMuch(context)}.`,
+      '',
+      'Según tu banco, puede tardar unos días en aparecer.',
+    ].join('\n'),
+  }),
+
+  'professional.booking_created': (context) => ({
+    subject: `Reserva nueva: ${context.customerName}`,
+    body: [
+      `${context.customerName} reservó una cita.`,
+      '',
+      what(context, ' con ') ? `Servicio: ${what(context, ' con ')}` : null,
+      `Cuándo: ${when(context)} (${context.timezone})`,
+    ]
+      .filter((line) => line !== null)
+      .join('\n'),
+  }),
+
+  'professional.booking_rescheduled': (context) => ({
+    subject: `${context.customerName} cambió su cita de hora`,
+    body: [
+      `${context.customerName} movió su cita.`,
+      '',
+      what(context, ' con ') ? `Servicio: ${what(context, ' con ')}` : null,
+      `Nueva hora: ${when(context)} (${context.timezone})`,
+    ]
+      .filter((line) => line !== null)
+      .join('\n'),
+  }),
+
+  'professional.booking_cancelled': (context) => ({
+    subject: `${context.customerName} canceló su cita`,
+    body: [
+      `${context.customerName} canceló la cita del ${when(context)}.`,
+      '',
+      'Esa hora vuelve a estar disponible.',
+    ].join('\n'),
+  }),
 };
 
 const en: Record<TemplateKey, Template> = {
@@ -167,6 +245,78 @@ const en: Record<TemplateKey, Template> = {
     ]
       .filter((line) => line !== null)
       .join('\n'),
+  }),
+'payment.received': (context) => ({
+    subject: `We received your payment for ${context.businessName}`,
+    body: [
+      `Hello ${context.customerName},`,
+      '',
+      `We received your payment of ${howMuch(context)}.`,
+      '',
+      what(context, ' with ') ? `Service: ${what(context, ' with ')}` : null,
+      `When: ${when(context)} (${context.timezone})`,
+      '',
+      'Keep this email as your receipt.',
+    ]
+      .filter((line) => line !== null)
+      .join('\n'),
+  }),
+
+  'payment.failed': (context) => ({
+    subject: `We could not process your payment for ${context.businessName}`,
+    body: [
+      `Hello ${context.customerName},`,
+      '',
+      'The payment did not go through, so your appointment is not paid for yet.',
+      '',
+      `When: ${when(context)} (${context.timezone})`,
+      '',
+      'You can try again from your booking link.',
+    ].join('\n'),
+  }),
+
+  'payment.refunded': (context) => ({
+    subject: `Your payment from ${context.businessName} has been refunded`,
+    body: [
+      `Hello ${context.customerName},`,
+      '',
+      `We have refunded ${howMuch(context)}.`,
+      '',
+      'Depending on your bank, it may take a few days to appear.',
+    ].join('\n'),
+  }),
+
+  'professional.booking_created': (context) => ({
+    subject: `New booking: ${context.customerName}`,
+    body: [
+      `${context.customerName} booked an appointment.`,
+      '',
+      what(context, ' with ') ? `Service: ${what(context, ' with ')}` : null,
+      `When: ${when(context)} (${context.timezone})`,
+    ]
+      .filter((line) => line !== null)
+      .join('\n'),
+  }),
+
+  'professional.booking_rescheduled': (context) => ({
+    subject: `${context.customerName} moved their appointment`,
+    body: [
+      `${context.customerName} moved their appointment.`,
+      '',
+      what(context, ' with ') ? `Service: ${what(context, ' with ')}` : null,
+      `New time: ${when(context)} (${context.timezone})`,
+    ]
+      .filter((line) => line !== null)
+      .join('\n'),
+  }),
+
+  'professional.booking_cancelled': (context) => ({
+    subject: `${context.customerName} cancelled their appointment`,
+    body: [
+      `${context.customerName} cancelled the ${when(context)} appointment.`,
+      '',
+      'That time is available again.',
+    ].join('\n'),
   }),
 };
 
