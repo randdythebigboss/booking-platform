@@ -171,8 +171,46 @@ windows and issue trackers.
 5. If a guest lost their link, it cannot be recovered from a log, by design.
    The professional can cancel or move the appointment for them.
 
+## Payments, in development
+
+No money moves. The provider is the mock, and the database refuses a simulated
+outcome unless `platform_settings.payment_simulation_enabled` is true -- which
+`supabase/seed.sql` sets and which **a production deployment must leave
+false**. The simulate controls on the confirmation page are drawn from the same
+switch, so there is one thing to get right rather than two.
+
+```sql
+-- What is owed, what was paid, and what happened to it.
+select p.status, p.amount, p.currency, p.requirement, p.failure_code, p.paid_at
+from public.payments p
+where p.appointment_id = '...'
+order by p.created_at desc;
+
+-- The provider's side of the story.
+select e.occurred_at, e.event_type, e.previous_status, e.new_status, e.failure_code
+from public.payment_events e
+where e.payment_id = '...'
+order by e.occurred_at;
+
+-- Slots being held right now.
+select a.id, a.starts_at, a.hold_expires_at
+from public.appointments a
+where a.hold_expires_at > now();
+```
+
+Refunding is a professional's action in the interface, never automatic, and
+never implied by a cancellation
+([ADR 0023](DECISIONS/0023-cancelling-is-not-refunding.md)).
+
+**Retention is an open decision.** Nothing deletes a payment, a payment event,
+a notification or a recipient address, ever. Accounting and dispute windows
+argue for keeping payment records considerably longer than message records,
+and no period has been chosen for either. This is a pre-production privacy and
+accounting gate, not an oversight.
+
 ## What does not exist yet, deliberately
 
-No paid messaging provider, no payments, no production environment, no store
+No paid messaging provider, no real payment provider, no production
+environment, no store
 listing, no uptime monitoring, no alerting, no log aggregation. Each is a
 decision to take when there is something to protect, not before.

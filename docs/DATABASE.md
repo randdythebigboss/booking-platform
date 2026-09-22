@@ -20,7 +20,9 @@ hand in a dashboard.
 | `customers`               | A customer within one business. May be a guest.                                    |
 | `appointments`            | The booking itself.                                                                |
 | `appointment_items`       | What was booked, snapshotted.                                                      |
-| `payments`                | Provider-agnostic payment records.                                                 |
+| `payments`                | What was owed, what was paid, and by which provider. One row per attempt.           |
+| `payment_events`          | Append-only history of a payment. Written by a trigger, editable by nobody.         |
+| `platform_settings`       | One row of deployment switches. No client role may read it at all.                  |
 | `appointment_events`      | Append-only history of an appointment. Written by a trigger, editable by nobody.   |
 | `notifications`           | The outbox: what has to be said to a customer, and what happened when it was.      |
 
@@ -177,6 +179,39 @@ reads no longer moves when that record is edited. See
 booking was made in, and every message queued for it is written in that
 language whatever anybody switches to later.
 
+## Money
+
+**Every amount is exact `numeric`, and every calculation happens in SQL.**
+Nothing in TypeScript adds, subtracts or compares money: a deposit's remainder
+is a generated column (`services.amount_due_later`), and the client formats
+what it is handed with `Intl.NumberFormat` and the currency -- which is also
+the only thing that knows how many fractional digits a currency has.
+
+A `payment` freezes four things when it is created: the amount, the currency,
+what was being asked for, and which provider was asked. It does not copy the
+service, the customer or the professional, because the rows it points at are
+already immutable snapshots. A trigger refuses any `UPDATE` that would change
+those four, and refuses any status move the state machine does not allow:
+
+```
+pending ──────────> requires_action ──> paid ──> refunded
+   │                      │              ▲
+   ├──> authorized ───────┼──────────────┘
+   ├──> failed  (terminal -- a retry is a new row, so attempts are countable)
+   └──> cancelled (terminal)
+```
+
+A service asks for `none`, a `deposit` or the `full` price; a deposit must be
+more than nothing and no more than the price, and exists only where one is
+asked for. A booking that owes money is created as a **hold** -- see
+[ADR 0022](DECISIONS/0022-the-appointment-is-the-hold.md) -- and cancelling an
+appointment never touches its payment, which is
+[ADR 0023](DECISIONS/0023-cancelling-is-not-refunding.md).
+
+Simulated payments are gated by `platform_settings.payment_simulation_enabled`,
+which is **false** unless a deployment turns it on. The development seed turns
+it on; production must not.
+
 ## The outbox
 
 `notifications` is a durable queue, filled by a deferred trigger on
@@ -279,7 +314,7 @@ schedule, a block, an exception and one existing appointment.
 
 ## Executable guarantees
 
-Nine SQL suites run against a database built from nothing, in CI and via
+Ten SQL suites run against a database built from nothing, in CI and via
 `tools/local-postgres/run-validation.sh`:
 
 | File                                         | Proves                                                                                                             |
@@ -292,6 +327,7 @@ Nine SQL suites run against a database built from nothing, in CI and via
 | `supabase/tests/appointment_lifecycle.sql`   | Rescheduling, manual booking, the reschedule race, history integrity and privacy, DST                             |
 | `supabase/tests/customer_identity.sql`       | Who counts as the same customer, and the tenant boundary that is never crossed to decide                          |
 | `supabase/tests/notification_outbox.sql`     | What booking queues and what it refuses to queue twice, reminders following their appointment, claiming and retrying, who may read or drain the outbox |
+| `supabase/tests/payments.sql`                | What a service may ask for, that the amount is never the caller's, holds and their expiry, idempotent outcomes, refunds, and who may touch money |
 | `supabase/tests/function_grants.sql`         | Every function is classified, RLS covers every table                                                               |
 
 The Phase 1 functions run as `SECURITY INVOKER`, so Row Level Security still

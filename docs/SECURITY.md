@@ -246,6 +246,40 @@ responses echo the request, and the request is the message. The dispatcher's
 log redacts addresses to `l***@example.test` and `***0144`, and never prints a
 subject or a body.
 
+## Money
+
+**A client never names a price.** There is no amount argument on any function
+a browser may call: `book_appointment` computes what is owed from the service.
+Passing one is not refused, it is *impossible* -- PostgREST answers `PGRST202`,
+because no such function exists.
+
+**A client never says something was paid.** `apply_payment_outcome` is the only
+door an outcome comes through, and it is revoked from `anon` and
+`authenticated` along with `create_payment_for_appointment`,
+`expire_payment_holds` and `payment_simulation_enabled`. It is idempotent on
+the provider's key, so a callback delivered twice settles once.
+
+**`anon` has no privilege on `payments`, `payment_events` or
+`platform_settings` at all.** Not "sees no rows": the question is refused. A
+guest sees their own payment through `get_payment_by_token`, which is scoped
+by the booking link, and nothing else.
+
+**A professional may read their own business's payments and write none of
+them.** `INSERT`, `UPDATE` and `DELETE` are revoked as well as unpolicied, so
+an attempt is an error rather than a silent no-op.
+
+**Simulated payments are a deployment switch, not a build flag.**
+`platform_settings.payment_simulation_enabled` is false unless something turns
+it on, the development seed is the only thing that does, and the same switch
+decides whether the simulate controls are drawn at all. Where real money is
+possible a customer being able to say "it worked" is a way to book without
+paying.
+
+**No card data exists anywhere in this product.** No PAN, no CVV, no token
+that could stand in for one. What a provider returns is a reference and a
+status, and a provider's own credentials are not in the schema: the extension
+point for them is deliberately unbuilt.
+
 ## Input handling
 
 `book_appointment` treats its arguments as hostile. It re-derives the end time
@@ -264,5 +298,7 @@ Phase 6 in [PRODUCT.md](PRODUCT.md) covers the pre-launch security work:
 - [ ] Rate limiting on `book_appointment`
 - [ ] Review `get_availability_context` for enumeration abuse
 - [ ] Decide on retention and deletion for customer personal data, including
-      how long a sent notification and its recipient are kept
+      how long a sent notification and its recipient are kept, and how long a
+      payment record must be kept for accounting and disputes -- these two
+      answers are likely to differ, and neither has been chosen
 - [ ] Confirm no `EXPO_PUBLIC_` variable holds anything sensitive
