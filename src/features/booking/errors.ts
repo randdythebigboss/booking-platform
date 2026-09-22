@@ -19,6 +19,15 @@ export const BOOKING_ERROR_CODES = [
   'APPOINTMENT_NOT_CANCELLABLE',
   'APPOINTMENT_ALREADY_STARTED',
   'APPOINTMENT_NOT_RESCHEDULABLE',
+  // Phase 9. Money has its own ways of going wrong, and a customer can act on
+  // every one of these: try another card, pick another time, come back later.
+  'CARD_DECLINED',
+  'PAYMENT_HOLD_EXPIRED',
+  'PAYMENT_PROVIDER_UNAVAILABLE',
+  'PAYMENT_SIMULATION_DISABLED',
+  'NO_PAYMENT_DUE',
+  'PAYMENT_NOT_RETRYABLE',
+  'APPOINTMENT_NOT_PAYABLE',
   'UNKNOWN',
 ] as const;
 

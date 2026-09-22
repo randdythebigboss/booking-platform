@@ -8,6 +8,24 @@ module.exports = [
     ignores: ['dist/*', '.expo/*', 'node_modules/*', 'coverage/*', 'supabase/.temp/*'],
   },
   {
+    rules: {
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      eqeqeq: ['error', 'always', { null: 'ignore' }],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/supabase.admin*'],
+              message:
+                'The service-role client must never be imported from application code. See docs/SECURITY.md.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['tools/**/*.js', 'tools/**/*.ts'],
     languageOptions: {
       globals: {
@@ -25,24 +43,6 @@ module.exports = [
       // exists to keep stray logging out of the *application*, where it would
       // ship to a device and, sooner or later, print somebody's data.
       'no-console': 'off',
-    },
-  },
-  {
-    rules: {
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      eqeqeq: ['error', 'always', { null: 'ignore' }],
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['**/supabase.admin*'],
-              message:
-                'The service-role client must never be imported from application code. See docs/SECURITY.md.',
-            },
-          ],
-        },
-      ],
     },
   },
 ];

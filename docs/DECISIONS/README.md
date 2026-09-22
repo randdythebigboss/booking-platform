@@ -26,3 +26,5 @@ decision changes, a new record supersedes the old one.
 | [0019](0019-the-guest-token-rides-in-the-fragment.md)    | The guest token rides in the URL fragment                        |
 | [0020](0020-notifications-leave-through-an-outbox.md)     | Notifications leave through an outbox                            |
 | [0021](0021-an-appointment-remembers-who-booked-it.md)   | An appointment remembers who booked it                           |
+| [0022](0022-the-appointment-is-the-hold.md)               | The appointment is the hold                                      |
+| [0023](0023-cancelling-is-not-refunding.md)              | Cancelling is not refunding                                      |

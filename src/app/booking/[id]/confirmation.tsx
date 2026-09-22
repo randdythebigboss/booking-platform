@@ -17,6 +17,12 @@ import {
   fetchAppointmentByToken,
   rescheduleAppointmentByToken,
 } from '@/services/booking';
+import {
+  fetchPaymentByToken,
+  retryPayment,
+  simulatePayment,
+  type GuestPaymentSummary,
+} from '@/services/payments';
 import { spacing } from '@/theme';
 
 type State =
@@ -44,6 +50,13 @@ export default function ConfirmationScreen() {
   const [cancelling, setCancelling] = useState(false);
   const [nonce, setNonce] = useState(0);
 
+  // The money, read separately from the appointment: a booking that owes
+  // nothing is the common case, and it should not pay for a second query
+  // being slow.
+  const [payment, setPayment] = useState<GuestPaymentSummary | null>(null);
+  const [paying, setPaying] = useState(false);
+  const [payFailure, setPayFailure] = useState<string | null>(null);
+
   const [moving, setMoving] = useState(false);
   const [moveDate, setMoveDate] = useState<string | null>(null);
   const [moveSlot, setMoveSlot] = useState<string | null>(null);
@@ -62,6 +75,16 @@ export default function ConfirmationScreen() {
 
     let cancelled = false;
     setState({ kind: 'loading' });
+
+    fetchPaymentByToken(id, token)
+      .then((summary) => {
+        if (!cancelled) setPayment(summary);
+      })
+      .catch(() => {
+        // A booking is readable whether or not its payment is. Failing to load
+        // the money must not take the appointment down with it.
+        if (!cancelled) setPayment(null);
+      });
 
     fetchAppointmentByToken(id, token)
       .then((appointment) => {
@@ -136,6 +159,43 @@ export default function ConfirmationScreen() {
   // somebody with "you are booked" for an appointment that already closed.
   const closed = appointment.status === 'completed' || appointment.status === 'no_show';
 
+  /**
+   * Puts a simulated outcome through, and re-reads what the server decided.
+   *
+   * The key is derived from the payment and the scenario, so a double-pressed
+   * button is one outcome rather than two.
+   */
+  async function pay(scenario: 'success' | 'decline') {
+    if (!id || !token || !payment?.paymentId) return;
+
+    setPaying(true);
+    setPayFailure(null);
+    try {
+      await simulatePayment(id, token, scenario, `ui:${payment.paymentId}:${scenario}`);
+      setNonce((value) => value + 1);
+    } catch (cause) {
+      setPayFailure(errorText(cause));
+    } finally {
+      setPaying(false);
+    }
+  }
+
+  /** After a decline: a new attempt, for the same amount. */
+  async function tryAgain() {
+    if (!id || !token) return;
+
+    setPaying(true);
+    setPayFailure(null);
+    try {
+      await retryPayment(id, token);
+      setNonce((value) => value + 1);
+    } catch (cause) {
+      setPayFailure(errorText(cause));
+    } finally {
+      setPaying(false);
+    }
+  }
+
   async function move() {
     if (!moveSlot) {
       setMoveFailure(t('confirmation.chooseNewTimeFirst'));
@@ -199,6 +259,88 @@ export default function ConfirmationScreen() {
           {t('confirmation.bookedFor', { name: appointment.customerName })}
         </Text>
       </Card>
+
+      {payment?.required && payment.status && (
+        <Card>
+          <Text variant="heading">{t('payments.title')}</Text>
+
+          <Text variant="label" tone={payment.status === 'paid' ? 'success' : 'muted'}>
+            {tk(`payments.status.${payment.status}`)}
+          </Text>
+
+          <Text variant="body">
+            {t('payments.dueNow')}: {format.money(payment.amount ?? '0', payment.currency ?? '')}
+          </Text>
+
+          {payment.remaining && Number(payment.remaining) > 0 && (
+            <Text variant="caption" tone="muted">
+              {t('payments.remaining')}:{' '}
+              {format.money(payment.remaining, payment.currency ?? '')}
+            </Text>
+          )}
+
+          {payment.status === 'paid' && (
+            <Text variant="caption" tone="success">
+              {t('payments.paidThanks')}
+            </Text>
+          )}
+
+          {payment.status === 'failed' && (
+            <Text variant="caption" tone="danger">
+              {t('payments.declined')}
+            </Text>
+          )}
+
+          {payment.holdExpiresAt && payment.status !== 'paid' && (
+            <Text variant="caption" tone="muted">
+              {t('payments.holdUntil', {
+                time: format.time(payment.holdExpiresAt, appointment.timezone),
+              })}
+            </Text>
+          )}
+
+          {payFailure && <Feedback tone="danger" message={payFailure} />}
+
+          {/* Development only, and the server says so: the same switch that
+              decides whether a simulated outcome is accepted decides whether
+              these are drawn. A production deployment leaves it off and these
+              never exist. */}
+          {payment.simulationEnabled && (
+            <>
+              <Text variant="caption" tone="muted">
+                {t('payments.simulationNotice')}
+              </Text>
+
+              {(payment.status === 'pending' || payment.status === 'requires_action') && (
+                <>
+                  <Button
+                    label={
+                      payment.requirement === 'deposit'
+                        ? t('payments.payDeposit', {
+                            amount: format.money(payment.amount ?? '0', payment.currency ?? ''),
+                          })
+                        : t('payments.payFull', {
+                            amount: format.money(payment.amount ?? '0', payment.currency ?? ''),
+                          })
+                    }
+                    loading={paying}
+                    onPress={() => pay('success')}
+                  />
+                  <Button
+                    variant="ghost"
+                    label={t('payments.simulateDecline')}
+                    onPress={() => pay('decline')}
+                  />
+                </>
+              )}
+
+              {payment.status === 'failed' && (
+                <Button label={t('payments.payAgain')} loading={paying} onPress={tryAgain} />
+              )}
+            </>
+          )}
+        </Card>
+      )}
 
       {(appointment.businessAddress || appointment.businessPhone) && (
         <Card>

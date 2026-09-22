@@ -1,3 +1,4 @@
+import type { PaymentRequirement } from '@/features/payments';
 import { getSupabase } from '@/lib/supabase';
 
 /** The public-facing shape of a business booking page. */
@@ -28,6 +29,13 @@ export interface PublicService {
   description: string | null;
   durationMinutes: number;
   price: number;
+  /** What has to be paid before this is booked, and how much of it. */
+  paymentRequirement: PaymentRequirement;
+  /** The exact decimal the database holds, or null when nothing is asked. */
+  depositAmount: string | null;
+  /** Both computed in SQL. Nothing here subtracts one from the other. */
+  amountDueNow: string;
+  amountDueLater: string;
   currency: string;
 }
 
@@ -42,7 +50,8 @@ export async function fetchPublicBusiness(slug: string): Promise<PublicBusiness 
     .select(
       `id, name, slug, description, timezone, phone, address, logo_url, currency,
        professional_profiles ( id, display_name, bio, avatar_url, sort_order ),
-       services ( id, name, description, duration_minutes, price, currency, sort_order )`,
+       services ( id, name, description, duration_minutes, price, currency, sort_order,
+                  payment_requirement, deposit_amount, amount_due_now, amount_due_later )`,
     )
     .eq('slug', slug)
     .maybeSingle();
@@ -78,6 +87,10 @@ export async function fetchPublicBusiness(slug: string): Promise<PublicBusiness 
         description: s.description,
         durationMinutes: s.duration_minutes,
         price: Number(s.price),
+        paymentRequirement: (s.payment_requirement ?? 'none') as PaymentRequirement,
+        depositAmount: s.deposit_amount == null ? null : String(s.deposit_amount),
+        amountDueNow: String(s.amount_due_now ?? '0'),
+        amountDueLater: String(s.amount_due_later ?? s.price),
         currency: s.currency,
       })),
   };

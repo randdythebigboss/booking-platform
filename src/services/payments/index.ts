@@ -1,5 +1,4 @@
-import { MockPaymentProvider } from './mock';
-import type { PaymentProvider } from './types';
+import { MockPaymentProvider, type PaymentProvider } from '@/features/payments';
 
 let provider: PaymentProvider = new MockPaymentProvider();
 
@@ -13,5 +12,12 @@ export function setPaymentProvider(next: PaymentProvider): void {
   provider = next;
 }
 
-export { MockPaymentProvider } from './mock';
-export * from './types';
+export {
+  fetchAppointmentPayments,
+  fetchPaymentByToken,
+  refundPayment,
+  retryPayment,
+  simulatePayment,
+  type GuestPaymentSummary,
+  type ProfessionalPayment,
+} from './api';

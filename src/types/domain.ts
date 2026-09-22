@@ -38,6 +38,9 @@ export type AvailabilityExceptionType = (typeof AVAILABILITY_EXCEPTION_TYPES)[nu
 
 export const PAYMENT_STATUSES = [
   'pending',
+  // The provider has it and the customer is not finished: a 3-D Secure
+  // challenge, a bank app, a redirect that has not come back.
+  'requires_action',
   'authorized',
   'paid',
   'failed',

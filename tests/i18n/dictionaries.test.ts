@@ -7,6 +7,7 @@ import {
 } from '@/features/appointments';
 import { WEEKDAY_KEYS } from '@/features/availability/schedule';
 import { BOOKING_ERROR_CODES, guestStatusKey } from '@/features/booking';
+import { PAYMENT_REQUIREMENTS } from '@/features/payments';
 import {
   NOTIFICATION_CHANNELS,
   NOTIFICATION_KINDS,
@@ -14,7 +15,7 @@ import {
 } from '@/features/notifications';
 import { WORKSPACE_ERROR_CODES } from '@/features/workspace';
 import { SUPPORTED_LOCALES, en, es, resources } from '@/locales';
-import { APPOINTMENT_STATUSES, type Weekday } from '@/types/domain';
+import { APPOINTMENT_STATUSES, PAYMENT_STATUSES, type Weekday } from '@/types/domain';
 
 /**
  * The dictionaries must not drift.
@@ -128,6 +129,11 @@ describe('keys the app builds at runtime', () => {
     for (const kind of NOTIFICATION_KINDS) both(`notifications.kind.${kind}`);
     for (const channel of NOTIFICATION_CHANNELS) both(`notifications.channel.${channel}`);
     for (const status of NOTIFICATION_STATUSES) both(`notifications.status.${status}`);
+  });
+
+  it('has a label for every payment state and requirement', () => {
+    for (const status of PAYMENT_STATUSES) both(`payments.status.${status}`);
+    for (const requirement of PAYMENT_REQUIREMENTS) both(`payments.requirement.${requirement}`);
   });
 
   it('has a message for every error code the backend can produce', () => {

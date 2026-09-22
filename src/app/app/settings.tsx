@@ -24,6 +24,14 @@ interface Errors {
   displayName?: ValidationIssue;
 }
 
+/**
+ * How long before an appointment its reminder goes out.
+ *
+ * Off, or one of four lead times. Not a free number: a reminder is a promise
+ * to a customer, and four answers cover every shop anybody has described.
+ */
+const REMINDER_CHOICES = [0, 60, 120, 1440, 2880] as const;
+
 export default function SettingsScreen() {
   const { business, professional } = useRequiredWorkspace();
   const workspace = useWorkspace();
@@ -49,6 +57,7 @@ export default function SettingsScreen() {
   const [minimumNotice, setMinimumNotice] = useState(String(business.minimumNoticeMinutes));
   const [horizon, setHorizon] = useState(String(business.bookingHorizonDays));
   const [autoConfirm, setAutoConfirm] = useState(business.autoConfirmBookings);
+  const [reminderLead, setReminderLead] = useState(String(business.reminderLeadMinutes));
   const [isPublished, setIsPublished] = useState(business.isPublished);
 
   const [displayName, setDisplayName] = useState(professional?.displayName ?? '');
@@ -114,6 +123,7 @@ export default function SettingsScreen() {
         minimumNoticeMinutes: values.minimumNotice as number,
         bookingHorizonDays: values.horizon as number,
         autoConfirmBookings: autoConfirm,
+        reminderLeadMinutes: Number(reminderLead),
         isPublished,
       });
 
@@ -225,6 +235,20 @@ export default function SettingsScreen() {
           description={t('settings.autoConfirmOff')}
           value={autoConfirm}
           onChange={setAutoConfirm}
+        />
+
+        {/* A short list rather than a number field: "how long before" is a
+            choice between a handful of sensible answers, and a box that accepts
+            37 minutes invites somebody to type 37 minutes. */}
+        <Select
+          label={t('settings.reminderLeadLabel')}
+          value={reminderLead}
+          options={REMINDER_CHOICES.map((minutes) => ({
+            value: String(minutes),
+            label: t(`settings.reminderLead_${minutes}` as never),
+          }))}
+          onChange={setReminderLead}
+          hint={t('settings.reminderLeadHint')}
         />
 
         {professional && (

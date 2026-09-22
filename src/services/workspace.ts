@@ -16,6 +16,8 @@ export interface WorkspaceBusiness {
   minimumNoticeMinutes: number;
   bookingHorizonDays: number;
   autoConfirmBookings: boolean;
+  /** How long before an appointment its reminder goes out. 0 sends none. */
+  reminderLeadMinutes: number;
   isPublished: boolean;
 }
 
@@ -35,7 +37,7 @@ export interface Workspace {
 const BUSINESS_COLUMNS =
   'id, name, slug, description, timezone, phone, email, address, currency,' +
   ' slot_interval_minutes, minimum_notice_minutes, booking_horizon_days,' +
-  ' auto_confirm_bookings, is_published';
+  ' auto_confirm_bookings, reminder_lead_minutes, is_published';
 
 function toBusiness(row: Record<string, unknown>): WorkspaceBusiness {
   return {
@@ -52,6 +54,7 @@ function toBusiness(row: Record<string, unknown>): WorkspaceBusiness {
     minimumNoticeMinutes: Number(row.minimum_notice_minutes),
     bookingHorizonDays: Number(row.booking_horizon_days),
     autoConfirmBookings: Boolean(row.auto_confirm_bookings),
+    reminderLeadMinutes: Number(row.reminder_lead_minutes ?? 1440),
     isPublished: Boolean(row.is_published),
   };
 }
@@ -144,6 +147,7 @@ export type BusinessPatch = Partial<{
   minimumNoticeMinutes: number;
   bookingHorizonDays: number;
   autoConfirmBookings: boolean;
+  reminderLeadMinutes: number;
   isPublished: boolean;
 }>;
 
@@ -159,6 +163,7 @@ const BUSINESS_COLUMN_NAMES: Record<keyof BusinessPatch, string> = {
   minimumNoticeMinutes: 'minimum_notice_minutes',
   bookingHorizonDays: 'booking_horizon_days',
   autoConfirmBookings: 'auto_confirm_bookings',
+  reminderLeadMinutes: 'reminder_lead_minutes',
   isPublished: 'is_published',
 };
 

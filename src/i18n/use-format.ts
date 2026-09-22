@@ -16,7 +16,8 @@ export interface Formatters {
   time: (instant: Date, timezone: string) => string;
   date: (instant: Date, timezone: string) => string;
   dateTime: (instant: Date, timezone: string) => string;
-  money: (amount: number, currency: string) => string;
+  /** An exact decimal from the database, or a number. Never arithmetic. */
+  money: (amount: string | number, currency: string) => string;
   duration: (minutes: number) => string;
 }
 

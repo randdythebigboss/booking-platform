@@ -26,6 +26,7 @@ import {
   setAppointmentStatus,
 } from '@/services/appointments';
 import { fetchAppointmentNotifications } from '@/services/notifications';
+import { fetchAppointmentPayments, refundPayment } from '@/services/payments';
 import { spacing } from '@/theme';
 import type { AppointmentStatus } from '@/types/domain';
 
@@ -55,6 +56,16 @@ export default function AppointmentDetailScreen() {
     [id],
   );
 
+  // Money, read through Row Level Security like everything else here. A
+  // professional sees their own business's payments and nobody else's.
+  const payments = useAsyncData(
+    () => (id ? fetchAppointmentPayments(id) : Promise.resolve([])),
+    [id],
+  );
+
+  const [refundReason, setRefundReason] = useState('');
+  const [refunding, setRefunding] = useState(false);
+
   const [reason, setReason] = useState('');
   const [pending, setPending] = useState<AppointmentStatus | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
@@ -73,6 +84,28 @@ export default function AppointmentDetailScreen() {
     appointment.reload();
     history.reload();
     notifications.reload();
+    payments.reload();
+  }
+
+  /**
+   * Giving the money back.
+   *
+   * Deliberately its own button, nowhere near Cancel: cancelling an
+   * appointment and refunding a payment are different decisions, and a
+   * business may well make one without the other. See ADR 0023.
+   */
+  async function refund(paymentId: string) {
+    setRefunding(true);
+    setFailure(null);
+    try {
+      await refundPayment(paymentId, refundReason.trim() || undefined);
+      setRefundReason('');
+      refresh();
+    } catch (cause) {
+      setFailure(errorText(cause));
+    } finally {
+      setRefunding(false);
+    }
   }
 
   async function apply(next: AppointmentStatus) {
@@ -167,6 +200,7 @@ export default function AppointmentDetailScreen() {
   const serviceId = row.items[0]?.serviceId ?? null;
   const events = history.data ?? [];
   const queued = notifications.data ?? [];
+  const charges = payments.data ?? [];
   const moved = rescheduleCount(events);
 
   return (
@@ -363,6 +397,72 @@ export default function AppointmentDetailScreen() {
         {row.status === 'confirmed' && actions.length === 1 && (
           <Text variant="caption" tone="muted">
             {t('appointments.afterStartHint')}
+          </Text>
+        )}
+      </Card>
+
+      <Card>
+        <Text variant="heading">{t('payments.title')}</Text>
+        {payments.loading && <ActivityIndicator />}
+
+        {charges.length === 0 && !payments.loading && (
+          <Text variant="body" tone="muted">
+            {t('payments.notRequired')}
+          </Text>
+        )}
+
+        <View style={{ gap: spacing.sm }}>
+          {charges.map((charge) => (
+            <View key={charge.id} style={{ gap: 2 }}>
+              <Text variant="body">
+                {format.money(charge.amount, charge.currency)} {'·'}{' '}
+                {tk(`payments.requirement.${charge.requirement}`)}
+              </Text>
+              <Text
+                variant="caption"
+                tone={
+                  charge.status === 'paid'
+                    ? 'success'
+                    : charge.status === 'failed'
+                      ? 'danger'
+                      : 'muted'
+                }
+              >
+                {tk(`payments.status.${charge.status}`)}
+                {charge.paidAt
+                  ? ` · ${t('payments.paidAt', {
+                      when: format.dateTime(charge.paidAt, timezone),
+                    })}`
+                  : ''}
+                {charge.refundedAt
+                  ? ` · ${t('payments.refunded', {
+                      when: format.dateTime(charge.refundedAt, timezone),
+                    })}`
+                  : ''}
+              </Text>
+
+              {charge.status === 'paid' && (
+                <>
+                  <Field
+                    label={t('payments.refundReason')}
+                    value={refundReason}
+                    onChangeText={setRefundReason}
+                  />
+                  <Button
+                    variant="secondary"
+                    label={t('payments.refund')}
+                    loading={refunding}
+                    onPress={() => refund(charge.id)}
+                  />
+                </>
+              )}
+            </View>
+          ))}
+        </View>
+
+        {charges.some((charge) => charge.status === 'paid') && (
+          <Text variant="caption" tone="muted">
+            {t('payments.refundExplainer')}
           </Text>
         )}
       </Card>

@@ -1,6 +1,8 @@
 import { toWorkspaceError } from '@/features/workspace';
 import { getSupabase } from '@/lib/supabase';
 
+import type { PaymentRequirement } from '@/features/payments';
+
 export interface AdminService {
   id: string;
   name: string;
@@ -9,6 +11,9 @@ export interface AdminService {
   bufferBeforeMinutes: number;
   bufferAfterMinutes: number;
   price: number;
+  paymentRequirement: PaymentRequirement;
+  /** Exact decimal from the database, or null when nothing is asked for. */
+  depositAmount: string | null;
   currency: string;
   isActive: boolean;
 }
@@ -18,7 +23,8 @@ export async function fetchServices(businessId: string): Promise<AdminService[]>
     .from('services')
     .select(
       'id, name, description, duration_minutes, buffer_before_minutes,' +
-        ' buffer_after_minutes, price, currency, is_active, sort_order',
+        ' buffer_after_minutes, price, currency, is_active, sort_order,' +
+        ' payment_requirement, deposit_amount',
     )
     .eq('business_id', businessId)
     .order('sort_order', { ascending: true })
@@ -34,6 +40,8 @@ export async function fetchServices(businessId: string): Promise<AdminService[]>
     bufferBeforeMinutes: Number(row.buffer_before_minutes),
     bufferAfterMinutes: Number(row.buffer_after_minutes),
     price: Number(row.price),
+    paymentRequirement: (row.payment_requirement ?? 'none') as PaymentRequirement,
+    depositAmount: row.deposit_amount == null ? null : String(row.deposit_amount),
     currency: String(row.currency),
     isActive: Boolean(row.is_active),
   }));
@@ -49,6 +57,9 @@ export interface SaveServiceInput {
   bufferAfterMinutes: number;
   price: number;
   isActive: boolean;
+  paymentRequirement?: PaymentRequirement;
+  /** Only meaningful when the requirement is a deposit. */
+  depositAmount?: number | null;
 }
 
 /**
@@ -61,6 +72,8 @@ export async function saveService(input: SaveServiceInput): Promise<string> {
     p_name: input.name,
     p_duration_minutes: input.durationMinutes,
     p_price: input.price,
+    p_payment_requirement: input.paymentRequirement ?? 'none',
+    p_deposit_amount: input.depositAmount ?? null,
     p_service_id: input.serviceId ?? null,
     p_description: input.description ?? null,
     p_buffer_before_minutes: input.bufferBeforeMinutes,

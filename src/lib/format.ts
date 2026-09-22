@@ -15,12 +15,39 @@
  * so a screen cannot forget to pass one.
  */
 
-export function formatMoney(amount: number, currency: string, locale: string): string {
+/**
+ * Money, in one place.
+ *
+ * The database is the authority on every amount, and it keeps them as exact
+ * `numeric`. They arrive here as the decimal string PostgreSQL wrote -- never
+ * summed, compared or rounded on the way -- and this is the only function that
+ * turns one into something a person reads.
+ *
+ * Two consequences worth stating out loud:
+ *
+ *   * **No arithmetic happens in TypeScript.** What a deposit leaves owing is
+ *     computed in SQL, where it is exact. A float can hold 0.1 + 0.2 and this
+ *     product will never ask it to.
+ *   * **Nothing here knows how many decimals a currency has.** Intl does, per
+ *     currency: DOP and USD get two, JPY gets none, KWD gets three. Hardcoding
+ *     two would be right until the first business that is not in this region.
+ */
+export function formatMoney(
+  amount: string | number,
+  currency: string,
+  locale: string,
+): string {
+  // Parsed once, for display only. Any amount this product will see is far
+  // inside the range a double represents exactly, and nothing downstream does
+  // arithmetic with it.
+  const value = typeof amount === 'string' ? Number(amount) : amount;
+  if (!Number.isFinite(value)) return `${amount} ${currency}`;
+
   try {
-    return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(amount);
+    return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(value);
   } catch {
     // An unknown currency code should not crash a booking page.
-    return `${amount.toFixed(2)} ${currency}`;
+    return `${value.toFixed(2)} ${currency}`;
   }
 }
 

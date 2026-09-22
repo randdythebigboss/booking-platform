@@ -123,3 +123,33 @@ describe('formatDateTimeIn', () => {
     expect(formatDateTimeIn(instant, 'UTC', ES)).toMatch(/28/);
   });
 });
+
+describe('money that came from the database', () => {
+  it('formats an exact decimal string without touching it', () => {
+    // What PostgreSQL wrote, not a number somebody parsed on the way.
+    expect(formatMoney('1200.00', 'DOP', 'es-DO')).toContain('1,200.00');
+    expect(formatMoney('1200.00', 'DOP', 'en-US')).toContain('1,200.00');
+  });
+
+  it('asks Intl how many decimals a currency has, rather than assuming two', () => {
+    // Yen has none and Dinar has three. A product that hardcodes two is right
+    // until the first business outside this region.
+    expect(formatMoney('1200', 'JPY', 'en-US')).not.toContain('.00');
+    expect(formatMoney('1200.000', 'KWD', 'en-US')).toContain('1,200.000');
+  });
+
+  it('says something rather than crashing on an amount it cannot read', () => {
+    expect(formatMoney('not a number', 'DOP', 'es-DO')).toContain('DOP');
+  });
+
+  it('puts the currency where the language puts it', () => {
+    const spanish = formatMoney('800.00', 'DOP', 'es-DO');
+    const english = formatMoney('800.00', 'DOP', 'en-US');
+
+    expect(spanish).toContain('800.00');
+    expect(english).toContain('800.00');
+    // Not the same string: the two locales disagree about the symbol and the
+    // spacing, which is the entire reason this goes through Intl.
+    expect(spanish).not.toBe(english);
+  });
+});

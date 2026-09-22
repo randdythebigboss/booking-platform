@@ -409,8 +409,27 @@ export default function BookScreen() {
                 : ''}
             </Text>
             {service && (
-              <Text variant="body">{format.money(service.price, service.currency)}</Text>
+              <Text variant="body">
+                {t('payments.servicePrice')}: {format.money(service.price, service.currency)}
+              </Text>
             )}
+
+            {/* What is due now, and what is not. A deposit that does not say
+                what is left to pay is a surprise waiting at the counter. */}
+            {service && service.paymentRequirement !== 'none' && (
+              <>
+                <Text variant="body" tone="accent">
+                  {t('payments.dueNow')}: {format.money(service.amountDueNow, service.currency)}
+                </Text>
+                {service.paymentRequirement === 'deposit' && (
+                  <Text variant="caption" tone="muted">
+                    {t('payments.remaining')}:{' '}
+                    {format.money(service.amountDueLater, service.currency)}
+                  </Text>
+                )}
+              </>
+            )}
+
             <Text variant="caption" tone="muted">
               {t('booking.bookingFor', {
                 name: selection.customer.fullName,
@@ -418,7 +437,9 @@ export default function BookScreen() {
               })}
             </Text>
             <Text variant="caption" tone="muted">
-              {t('booking.nothingCharged')}
+              {service && service.paymentRequirement !== 'none'
+                ? t('payments.holdExplainer')
+                : t('booking.nothingCharged')}
             </Text>
           </View>
         )}

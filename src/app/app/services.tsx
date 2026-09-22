@@ -3,13 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
-import { Button, Card, Feedback, Field, Screen, Text, ToggleRow } from '@/components/ui';
+import { Button, Card, Feedback, Field, Screen, Select, Text, ToggleRow } from '@/components/ui';
+import { PAYMENT_REQUIREMENTS, type PaymentRequirement } from '@/features/payments';
 import {
   parseNumericInput,
   validateService,
   type ServiceErrors,
 } from '@/features/services/validation';
 import { useWorkspaceErrorText } from '@/i18n/use-error-text';
+import { useDynamicT } from '@/i18n/use-dynamic-t';
 import { useFormat } from '@/i18n/use-format';
 import { useIssueText } from '@/i18n/use-issue-text';
 import { useAsyncData } from '@/hooks/use-async-data';
@@ -30,6 +32,8 @@ interface Draft {
   bufferBefore: string;
   bufferAfter: string;
   isActive: boolean;
+  paymentRequirement: PaymentRequirement;
+  deposit: string;
 }
 
 const EMPTY_DRAFT: Draft = {
@@ -40,6 +44,8 @@ const EMPTY_DRAFT: Draft = {
   bufferBefore: '0',
   bufferAfter: '0',
   isActive: true,
+  paymentRequirement: 'none',
+  deposit: '',
 };
 
 function toDraft(service: AdminService): Draft {
@@ -52,12 +58,15 @@ function toDraft(service: AdminService): Draft {
     bufferBefore: String(service.bufferBeforeMinutes),
     bufferAfter: String(service.bufferAfterMinutes),
     isActive: service.isActive,
+    paymentRequirement: service.paymentRequirement,
+    deposit: service.depositAmount ?? '',
   };
 }
 
 export default function ServicesScreen() {
   const { business } = useRequiredWorkspace();
   const { t } = useTranslation();
+  const tk = useDynamicT();
   const format = useFormat();
   const issueText = useIssueText();
   const errorText = useWorkspaceErrorText();
@@ -102,6 +111,10 @@ export default function ServicesScreen() {
         bufferBeforeMinutes: parsed.bufferBeforeMinutes,
         bufferAfterMinutes: parsed.bufferAfterMinutes,
         isActive: draft.isActive,
+        paymentRequirement: draft.paymentRequirement,
+        // Only meaningful for a deposit, and the database says so too.
+        depositAmount:
+          draft.paymentRequirement === 'deposit' ? parseNumericInput(draft.deposit) : null,
       });
       setDraft(null);
       services.reload();
@@ -163,6 +176,30 @@ export default function ServicesScreen() {
             error={issueText(errors.bufferAfterMinutes)}
             hint={t('services.bufferAfterHint')}
           />
+          {/* What a customer has to pay before this is booked. Three answers,
+              and the deposit box only exists for the one that needs it. */}
+          <Select
+            label={t('payments.title')}
+            value={draft.paymentRequirement}
+            options={PAYMENT_REQUIREMENTS.map((requirement) => ({
+              value: requirement,
+              label: tk(`payments.requirement.${requirement}`),
+            }))}
+            onChange={(paymentRequirement) =>
+              setDraft({ ...draft, paymentRequirement: paymentRequirement as PaymentRequirement })
+            }
+          />
+
+          {draft.paymentRequirement === 'deposit' && (
+            <Field
+              label={t('services.depositIn', { currency: business.currency })}
+              value={draft.deposit}
+              onChangeText={(deposit) => setDraft({ ...draft, deposit })}
+              keyboardType="decimal-pad"
+              hint={t('services.depositHint')}
+            />
+          )}
+
           <ToggleRow
             label={t('services.offered')}
             description={t('services.offeredHint')}
