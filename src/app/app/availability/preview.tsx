@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
 import { Button, Card, Feedback, Field, Screen, Select, Text } from '@/components/ui';
 import { addDays, isoDateIn } from '@/features/availability';
 import { useAsyncData } from '@/hooks/use-async-data';
-import { formatDateIn, formatDuration, formatTimeIn } from '@/lib/format';
+import { useFormat } from '@/i18n/use-format';
 import { fetchAvailableSlots } from '@/services/availability';
 import { fetchServices } from '@/services/service-admin';
 import { spacing } from '@/theme';
@@ -19,6 +20,8 @@ import { spacing } from '@/theme';
  */
 export default function SchedulePreviewScreen() {
   const { business, professional } = useRequiredWorkspace();
+  const { t } = useTranslation();
+  const format = useFormat();
   const timezone = business.timezone;
   const professionalId = professional?.id ?? null;
 
@@ -40,10 +43,10 @@ export default function SchedulePreviewScreen() {
 
   if (!professionalId) {
     return (
-      <Screen title="Schedule preview">
+      <Screen title={t('preview.title')}>
         <Card>
           <Text variant="body" tone="muted">
-            Your account is not set up as a bookable professional in this business yet.
+            {t('preview.notBookable')}
           </Text>
         </Card>
       </Screen>
@@ -51,51 +54,48 @@ export default function SchedulePreviewScreen() {
   }
 
   return (
-    <Screen
-      title="Schedule preview"
-      subtitle="The exact times the booking system would offer for this service and date."
-    >
+    <Screen title={t('preview.title')} subtitle={t('preview.subtitle')}>
       {services.loading && <ActivityIndicator />}
       {services.error && <Feedback tone="danger" message={services.error} />}
 
       {activeServices.length === 0 && !services.loading && (
         <Card>
           <Text variant="body" tone="muted">
-            No active services yet, so there is nothing to offer.
+            {t('preview.noActiveServices')}
           </Text>
         </Card>
       )}
 
       {activeServices.length > 0 && (
         <Select
-          label="Service"
+          label={t('preview.service')}
           value={selectedId ?? ''}
           options={activeServices.map((service) => ({
             value: service.id,
-            label: `${service.name} · ${formatDuration(service.durationMinutes)}`,
+            label: `${service.name} · ${format.duration(service.durationMinutes)}`,
           }))}
           onChange={setServiceId}
         />
       )}
 
       <Field
-        label="Date"
+        label={t('preview.date')}
         value={date}
         onChangeText={setDate}
         placeholder="2026-09-28"
         autoCapitalize="none"
-        hint={`Shown in ${timezone.replace(/_/g, ' ')}.`}
+        hint={t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
       />
 
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>
         <Button
-          label="Previous day"
+          label={t('common.previousDay')}
           variant="secondary"
           style={{ flex: 1 }}
           onPress={() => setDate(addDays(date, -1))}
         />
         <Button
-          label="Next day"
+          label={t('common.nextDay')}
           variant="secondary"
           style={{ flex: 1 }}
           onPress={() => setDate(addDays(date, 1))}
@@ -103,10 +103,10 @@ export default function SchedulePreviewScreen() {
       </View>
 
       <Card>
-        <Text variant="heading">{formatDateIn(new Date(`${date}T12:00:00Z`), timezone)}</Text>
+        <Text variant="heading">{format.date(new Date(`${date}T12:00:00Z`), timezone)}</Text>
         {selected && (
           <Text variant="caption" tone="muted">
-            {selected.name} {'·'} {formatDuration(selected.durationMinutes)}
+            {selected.name} {'·'} {format.duration(selected.durationMinutes)}
           </Text>
         )}
 
@@ -114,16 +114,13 @@ export default function SchedulePreviewScreen() {
         {slots.error && <Feedback tone="danger" message={slots.error} />}
 
         {!slots.loading && (slots.data ?? []).length === 0 && (
-          <Feedback
-            tone="muted"
-            message="No times available. Check the weekly schedule, exceptions and blocks for this date."
-          />
+          <Feedback tone="muted" message={t('preview.checkSchedule')} />
         )}
 
         {(slots.data ?? []).length > 0 && (
           <>
             <Text variant="label" tone="success">
-              {(slots.data ?? []).length} available
+              {t('preview.offered', { count: (slots.data ?? []).length })}
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
               {(slots.data ?? []).map((slot) => (
@@ -132,7 +129,7 @@ export default function SchedulePreviewScreen() {
                   style={{ paddingVertical: spacing.xs, paddingHorizontal: spacing.sm }}
                 >
                   <Text variant="body" tone="accent">
-                    {formatTimeIn(slot.startsAt, timezone)}
+                    {format.time(slot.startsAt, timezone)}
                   </Text>
                 </View>
               ))}
@@ -143,8 +140,7 @@ export default function SchedulePreviewScreen() {
 
       <Card>
         <Text variant="caption" tone="muted">
-          These slots are calculated by the database, not by this screen. If they look wrong, the
-          booking page would be wrong in exactly the same way.
+          {t('preview.authoritative')}
         </Text>
       </Card>
     </Screen>

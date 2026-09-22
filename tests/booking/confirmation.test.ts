@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   MalformedConfirmationError,
-  describeStatus,
+  guestStatusKey,
   parseGuestAppointment,
 } from '@/features/booking';
 
@@ -85,10 +85,9 @@ describe('parseGuestAppointment', () => {
   });
 });
 
-describe('describeStatus', () => {
-  it('gives a customer words, not a database enum', () => {
-    expect(describeStatus('confirmed')).toBe('Confirmed');
-    expect(describeStatus('pending')).toMatch(/Waiting/);
-    expect(describeStatus('no_show')).toBe('Missed');
+describe('guestStatusKey', () => {
+  it('names a key, never a word, so a guest can read it in either language', () => {
+    expect(guestStatusKey('confirmed')).toBe('confirmation.status_confirmed');
+    expect(guestStatusKey('no_show')).toBe('confirmation.status_no_show');
   });
 });

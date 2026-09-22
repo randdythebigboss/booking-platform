@@ -4,7 +4,7 @@ export {
   availableActions,
   canTransition,
   isTerminal,
-  statusLabel,
+  statusLabelKey,
   statusTone,
   type AppointmentAction,
   type StatusTone,
@@ -13,11 +13,12 @@ export {
 export {
   APPOINTMENT_ACTOR_TYPES,
   APPOINTMENT_EVENT_TYPES,
-  actorLabel,
+  actorLabelKey,
   describeEvent,
   rescheduleCount,
   sortEvents,
   type AppointmentActorType,
   type AppointmentEvent,
   type AppointmentEventType,
+  type EventDescription,
 } from './history';

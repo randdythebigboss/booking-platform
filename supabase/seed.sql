@@ -59,9 +59,9 @@ insert into public.businesses (
 values (
   '22222222-2222-4222-8222-222222222222',
   '11111111-1111-4111-8111-111111111111',
-  'Demo Studio',
+  'Estudio Demo',
   'demo-studio',
-  'A demo business used to exercise the booking flow end to end.',
+  'Un negocio de demostración para recorrer la reserva de principio a fin.',
   'America/Santo_Domingo',
   '+1 809 555 0100',
   'hola@demostudio.test',
@@ -86,7 +86,7 @@ values (
   '22222222-2222-4222-8222-222222222222',
   '11111111-1111-4111-8111-111111111111',
   'Alex Rivera',
-  'Ten years behind the chair. Fades, beards and the occasional rescue job.',
+  'Diez años detrás de la silla. Degradados, barbas y algún rescate de vez en cuando.',
   true,
   0
 )
@@ -100,11 +100,11 @@ insert into public.services (
 )
 values
   ('44444444-4444-4444-8444-000000000001', '22222222-2222-4222-8222-222222222222',
-   'Haircut', 'Wash, cut and finish.', 30, 0, 5, 800.00, 'DOP', 0),
+   'Corte de cabello', 'Lavado, corte y peinado.', 30, 0, 5, 800.00, 'DOP', 0),
   ('44444444-4444-4444-8444-000000000002', '22222222-2222-4222-8222-222222222222',
-   'Haircut + Beard', 'The full tidy-up.', 45, 0, 5, 1200.00, 'DOP', 1),
+   'Corte + barba', 'El arreglo completo.', 45, 0, 5, 1200.00, 'DOP', 1),
   ('44444444-4444-4444-8444-000000000003', '22222222-2222-4222-8222-222222222222',
-   'Premium Service', 'Cut, beard, hot towel and styling.', 60, 5, 10, 1800.00, 'DOP', 2)
+   'Servicio premium', 'Corte, barba, toalla caliente y peinado.', 60, 5, 10, 1800.00, 'DOP', 2)
 on conflict (id) do nothing;
 
 insert into public.professional_services (professional_id, service_id)
@@ -130,7 +130,7 @@ insert into public.availability_exceptions (
 values (
   '33333333-3333-4333-8333-333333333333',
   (current_date + 3),
-  'unavailable', time '12:00', time '14:00', 'Supplier meeting'
+  'unavailable', time '12:00', time '14:00', 'Reunión con proveedor'
 );
 
 insert into public.availability_exceptions (
@@ -140,7 +140,7 @@ values (
   '33333333-3333-4333-8333-333333333333',
   (current_date + 12),
   'unavailable',
-  'Personal day'
+  'Día personal'
 );
 
 -- A block created by hand, tomorrow at midday.
@@ -150,7 +150,7 @@ values (
   '33333333-3333-4333-8333-333333333333',
   ((current_date + 1)::timestamp + time '13:00') at time zone 'America/Santo_Domingo',
   ((current_date + 1)::timestamp + time '14:00') at time zone 'America/Santo_Domingo',
-  'Equipment delivery'
+  'Entrega de material'
 );
 
 -- One existing customer and booking, so the dashboard is not empty ------------
@@ -178,7 +178,7 @@ with created as (
     '55555555-5555-4555-8555-555555555555',
     ((current_date + 2)::timestamp + time '10:00') at time zone 'America/Santo_Domingo',
     ((current_date + 2)::timestamp + time '10:45') at time zone 'America/Santo_Domingo',
-    0, 5, 'confirmed', 'public_page', 'Prefers the clippers on 2.'
+    0, 5, 'confirmed', 'public_page', 'Prefiere la máquina en el 2.'
   )
   returning id
 )
@@ -189,7 +189,7 @@ insert into public.appointment_items (
 select
   created.id,
   '44444444-4444-4444-8444-000000000002',
-  'Haircut + Beard',
+  'Corte + barba',
   45,
   1200.00,
   'DOP'

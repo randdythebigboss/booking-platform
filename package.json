@@ -22,7 +22,8 @@
     "db:reset": "npx --yes supabase db reset",
     "db:diff": "npx --yes supabase db diff",
     "db:types": "npx --yes supabase gen types typescript --local > src/types/database.generated.ts",
-    "verify": "npm run lint && npm run typecheck && npm run test"
+    "verify": "npm run lint && npm run typecheck && npm run test",
+    "test:i18n": "vitest run tests/i18n"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
@@ -33,13 +34,16 @@
     "expo-constants": "~57.0.19",
     "expo-font": "~57.0.4",
     "expo-linking": "~57.0.10",
+    "expo-localization": "~57.0.2",
     "expo-router": "~57.0.22",
     "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.4",
     "expo-web-browser": "~57.0.3",
+    "i18next": "^26.4.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-i18next": "^17.0.15",
     "react-native": "0.86.3",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-reanimated": "4.5.1",

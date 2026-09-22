@@ -2,8 +2,9 @@ import { Link } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui';
-import { statusLabel, statusTone } from '@/features/appointments';
-import { formatDateIn, formatDuration, formatTimeIn } from '@/lib/format';
+import { statusLabelKey, statusTone } from '@/features/appointments';
+import { useDynamicT } from '@/i18n/use-dynamic-t';
+import { useFormat } from '@/i18n/use-format';
 import type { ProfessionalAppointment } from '@/services/appointments';
 import { radius, spacing, useTheme } from '@/theme';
 
@@ -17,13 +18,20 @@ export interface AppointmentRowProps {
 /** One appointment, readable at a glance on a phone. */
 export function AppointmentRow({ appointment, timezone, showDate = true }: AppointmentRowProps) {
   const { palette } = useTheme();
+  const tk = useDynamicT();
+  const format = useFormat();
   const service = appointment.items[0];
+
+  const time = format.time(appointment.startsAt, timezone);
+  const status = tk(statusLabelKey(appointment.status));
 
   return (
     <Link href={`/app/appointments/${appointment.id}`} asChild>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${formatTimeIn(appointment.startsAt, timezone)} ${appointment.customer.fullName}`}
+        // The status belongs in the spoken label too: sighted readers get it
+        // from the badge, and a screen reader should not have to guess.
+        accessibilityLabel={`${time} · ${appointment.customer.fullName} · ${status}`}
         style={({ pressed }) => ({
           padding: spacing.md,
           borderRadius: radius.md,
@@ -34,15 +42,15 @@ export function AppointmentRow({ appointment, timezone, showDate = true }: Appoi
         })}
       >
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm }}>
-          <Text variant="label">{formatTimeIn(appointment.startsAt, timezone)}</Text>
+          <Text variant="label">{time}</Text>
           <Text variant="caption" tone={statusTone(appointment.status)}>
-            {statusLabel(appointment.status)}
+            {status}
           </Text>
         </View>
 
         {showDate && (
           <Text variant="caption" tone="muted">
-            {formatDateIn(appointment.startsAt, timezone)}
+            {format.date(appointment.startsAt, timezone)}
           </Text>
         )}
 
@@ -50,7 +58,7 @@ export function AppointmentRow({ appointment, timezone, showDate = true }: Appoi
 
         {service && (
           <Text variant="caption" tone="muted">
-            {service.name} {'·'} {formatDuration(service.durationMinutes)}
+            {service.name} {'·'} {format.duration(service.durationMinutes)}
           </Text>
         )}
       </Pressable>

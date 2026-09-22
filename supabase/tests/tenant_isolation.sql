@@ -4,13 +4,13 @@
 --
 --   psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/tenant_isolation.sql
 --
--- Runs against the seeded Demo Studio, and creates a second, unrelated user
+-- Runs against the seeded Estudio Demo, and creates a second, unrelated user
 -- to play the stranger.
 -- ===========================================================================
 
 \set ON_ERROR_STOP on
 
--- A second account, with no connection to Demo Studio.
+-- A second account, with no connection to Estudio Demo.
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, created_at, updated_at,
@@ -76,7 +76,7 @@ set local role authenticated;
 
 do $$
 begin
-  -- Demo Studio is published, so its catalogue is meant to be readable.
+  -- Estudio Demo is published, so its catalogue is meant to be readable.
   if (select count(*) from public.businesses where slug = 'demo-studio') <> 1 then
     raise exception 'FAIL: a published business should be publicly readable';
   end if;
@@ -243,7 +243,7 @@ do $$
 declare
   v_count integer;
 begin
-  -- Demo Studio is published; Stranger Studio, created earlier in this suite,
+  -- Estudio Demo is published; Stranger Studio, created earlier in this suite,
   -- is not.
   select count(*) into v_count from public.businesses;
   if v_count <> 1 then

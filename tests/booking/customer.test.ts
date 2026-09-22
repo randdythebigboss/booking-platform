@@ -21,11 +21,11 @@ describe('validateCustomer', () => {
 
   it('requires a name', () => {
     expect(validateCustomer({ ...VALID, fullName: '  ' }).fullName).toBeDefined();
-    expect(validateCustomer({ ...VALID, fullName: 'M' }).fullName).toMatch(/full name/);
+    expect(validateCustomer({ ...VALID, fullName: 'M' }).fullName?.code).toBe('name.tooShort');
   });
 
   it('requires something that resembles a phone number', () => {
-    expect(validateCustomer({ ...VALID, phone: '' }).phone).toMatch(/Enter a phone/);
+    expect(validateCustomer({ ...VALID, phone: '' }).phone?.code).toBe('phone.required');
     expect(validateCustomer({ ...VALID, phone: 'call me' }).phone).toBeDefined();
     expect(validateCustomer({ ...VALID, phone: '12345' }).phone).toBeDefined();
   });

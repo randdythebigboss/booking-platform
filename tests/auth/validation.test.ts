@@ -14,16 +14,21 @@ describe('validateEmail', () => {
   });
 
   it('rejects empty and obviously wrong values', () => {
-    expect(validateEmail('')).toMatch(/Enter your email/);
-    expect(validateEmail('alex')).toMatch(/does not look like/);
-    expect(validateEmail('alex@example')).toMatch(/does not look like/);
-    expect(validateEmail('alex @example.com')).toMatch(/does not look like/);
+    expect(validateEmail('')?.code).toBe('email.required');
+    expect(validateEmail('alex')?.code).toBe('email.invalid');
+    expect(validateEmail('alex@example')?.code).toBe('email.invalid');
+    expect(validateEmail('alex @example.com')?.code).toBe('email.invalid');
   });
 });
 
 describe('validatePassword', () => {
   it('requires a minimum length', () => {
-    expect(validatePassword('short')).toMatch(/at least 8/);
+    const issue = validatePassword('short');
+    expect(issue?.code).toBe('password.tooShort');
+    // The constant travels with the issue rather than being written into a
+    // sentence, so both languages read the same number and only one place
+    // knows what it is.
+    expect(issue?.values).toEqual({ min: 8 });
     expect(validatePassword('longenough')).toBeUndefined();
   });
 });

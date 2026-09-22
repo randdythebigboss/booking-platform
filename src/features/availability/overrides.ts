@@ -1,3 +1,4 @@
+import { issue, type ValidationIssue } from '../validation';
 import { parseClockTime, zonedInstant } from './time';
 
 import type { ClockTime, IsoDate } from '@/types/domain';
@@ -27,22 +28,23 @@ export interface BlockDraft {
 }
 
 export interface BlockErrors {
-  date?: string;
-  startTime?: string;
-  endTime?: string;
+  date?: ValidationIssue;
+  startTime?: ValidationIssue;
+  endTime?: ValidationIssue;
 }
 
-function validateDate(date: string): string | undefined {
-  if (!ISO_DATE_PATTERN.test(date)) return 'Pick a date.';
+function validateDate(date: string): ValidationIssue | undefined {
+  if (!ISO_DATE_PATTERN.test(date)) return issue('date.invalid');
   return undefined;
 }
 
-function validateTime(value: string, label: string): string | undefined {
+/** `code` names which field it is, so the message can say so. */
+function validateTime(value: string, code: string): ValidationIssue | undefined {
   try {
     parseClockTime(value);
     return undefined;
   } catch {
-    return `Enter ${label} as HH:mm.`;
+    return issue(code);
   }
 }
 
@@ -52,14 +54,14 @@ export function validateBlock(draft: BlockDraft): BlockErrors {
   const dateError = validateDate(draft.date);
   if (dateError) errors.date = dateError;
 
-  const startError = validateTime(draft.startTime, 'the start time');
-  const endError = validateTime(draft.endTime, 'the end time');
+  const startError = validateTime(draft.startTime, 'time.invalidStart');
+  const endError = validateTime(draft.endTime, 'time.invalidEnd');
   if (startError) errors.startTime = startError;
   if (endError) errors.endTime = endError;
 
   if (!startError && !endError) {
     if (parseClockTime(draft.endTime) <= parseClockTime(draft.startTime)) {
-      errors.endTime = 'The end time has to come after the start time.';
+      errors.endTime = issue('time.endBeforeStart');
     }
   }
 
@@ -94,9 +96,9 @@ export interface ExceptionDraft {
 }
 
 export interface ExceptionErrors {
-  date?: string;
-  startTime?: string;
-  endTime?: string;
+  date?: ValidationIssue;
+  startTime?: ValidationIssue;
+  endTime?: ValidationIssue;
 }
 
 export function validateException(draft: ExceptionDraft): ExceptionErrors {
@@ -110,28 +112,35 @@ export function validateException(draft: ExceptionDraft): ExceptionErrors {
   }
 
   if (!draft.startTime || !draft.endTime) {
-    if (!draft.startTime) errors.startTime = 'Enter the opening time.';
-    if (!draft.endTime) errors.endTime = 'Enter the closing time.';
+    if (!draft.startTime) errors.startTime = issue('time.openingRequired');
+    if (!draft.endTime) errors.endTime = issue('time.closingRequired');
     return errors;
   }
 
-  const startError = validateTime(draft.startTime, 'the opening time');
-  const endError = validateTime(draft.endTime, 'the closing time');
+  const startError = validateTime(draft.startTime, 'time.invalidOpening');
+  const endError = validateTime(draft.endTime, 'time.invalidClosing');
   if (startError) errors.startTime = startError;
   if (endError) errors.endTime = endError;
 
   if (!startError && !endError) {
     if (parseClockTime(draft.endTime) <= parseClockTime(draft.startTime)) {
-      errors.endTime = 'The closing time has to come after the opening time.';
+      errors.endTime = issue('time.closingBeforeOpening');
     }
   }
 
   return errors;
 }
 
-/** One sentence a professional can read back to check they meant it. */
-export function describeException(draft: ExceptionDraft): string {
+/**
+ * The ingredients for the sentence a professional reads back to check they
+ * meant it. The sentence itself lives in the dictionaries.
+ */
+export function describeException(draft: ExceptionDraft): ValidationIssue {
   return draft.kind === 'closed'
-    ? `Closed all day on ${draft.date}.`
-    : `Open ${draft.startTime} to ${draft.endTime} on ${draft.date}, instead of the usual hours.`;
+    ? issue('exceptions.describeClosed', { date: draft.date })
+    : issue('exceptions.describeCustom', {
+        start: draft.startTime ?? '',
+        end: draft.endTime ?? '',
+        date: draft.date,
+      });
 }

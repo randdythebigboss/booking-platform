@@ -1,3 +1,5 @@
+import { issue, type ValidationIssue } from '../validation';
+
 /** Service form rules. The database enforces the same bounds. */
 
 export const MAX_DURATION_MINUTES = 1440;
@@ -11,16 +13,16 @@ export interface ServiceDraft {
 }
 
 export interface ServiceErrors {
-  name?: string;
-  durationMinutes?: string;
-  price?: string;
-  bufferBeforeMinutes?: string;
-  bufferAfterMinutes?: string;
+  name?: ValidationIssue;
+  durationMinutes?: ValidationIssue;
+  price?: ValidationIssue;
+  bufferBeforeMinutes?: ValidationIssue;
+  bufferAfterMinutes?: ValidationIssue;
 }
 
-function validateBuffer(minutes: number): string | undefined {
-  if (!Number.isInteger(minutes) || minutes < 0) return 'Use a whole number of minutes.';
-  if (minutes > MAX_DURATION_MINUTES) return 'That buffer is longer than a day.';
+function validateBuffer(minutes: number): ValidationIssue | undefined {
+  if (!Number.isInteger(minutes) || minutes < 0) return issue('buffer.invalid');
+  if (minutes > MAX_DURATION_MINUTES) return issue('buffer.tooLong');
   return undefined;
 }
 
@@ -28,17 +30,17 @@ export function validateService(draft: ServiceDraft): ServiceErrors {
   const errors: ServiceErrors = {};
 
   if (draft.name.trim().length === 0) {
-    errors.name = 'Give the service a name.';
+    errors.name = issue('service.nameRequired');
   }
 
   if (!Number.isInteger(draft.durationMinutes) || draft.durationMinutes <= 0) {
-    errors.durationMinutes = 'Enter how many minutes it takes.';
+    errors.durationMinutes = issue('service.durationRequired');
   } else if (draft.durationMinutes > MAX_DURATION_MINUTES) {
-    errors.durationMinutes = 'A service cannot be longer than a day.';
+    errors.durationMinutes = issue('service.durationTooLong');
   }
 
   if (!Number.isFinite(draft.price) || draft.price < 0) {
-    errors.price = 'Enter a price of zero or more.';
+    errors.price = issue('service.priceInvalid');
   }
 
   const before = validateBuffer(draft.bufferBeforeMinutes);

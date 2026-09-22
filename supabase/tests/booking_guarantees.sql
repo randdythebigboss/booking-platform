@@ -454,7 +454,7 @@ $$;
 -- ===========================================================================
 -- 14. The configured slot interval is enforced server-side.
 --
--- Demo Studio publishes a 15-minute grid. A request that skips the UI must
+-- Estudio Demo publishes a 15-minute grid. A request that skips the UI must
 -- not be able to land between the offered times.
 -- ===========================================================================
 

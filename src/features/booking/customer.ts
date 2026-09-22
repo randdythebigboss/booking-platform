@@ -6,6 +6,8 @@
  * stays optional and there is no account.
  */
 
+import { issue, type ValidationIssue } from '../validation';
+
 export interface CustomerDraft {
   fullName: string;
   phone: string;
@@ -13,9 +15,9 @@ export interface CustomerDraft {
 }
 
 export interface CustomerErrors {
-  fullName?: string;
-  phone?: string;
-  email?: string;
+  fullName?: ValidationIssue;
+  phone?: ValidationIssue;
+  email?: ValidationIssue;
 }
 
 export const EMPTY_CUSTOMER: CustomerDraft = { fullName: '', phone: '', email: '' };
@@ -34,21 +36,21 @@ export function validateCustomer(draft: CustomerDraft): CustomerErrors {
   const errors: CustomerErrors = {};
 
   if (draft.fullName.trim().length === 0) {
-    errors.fullName = 'Enter your name.';
+    errors.fullName = issue('name.required');
   } else if (draft.fullName.trim().length < 2) {
-    errors.fullName = 'Enter your full name.';
+    errors.fullName = issue('name.tooShort');
   }
 
   const phone = draft.phone.trim();
   if (phone.length === 0) {
-    errors.phone = 'Enter a phone number so they can reach you.';
+    errors.phone = issue('phone.required');
   } else if (!PHONE_PATTERN.test(phone) || countPhoneDigits(phone) < 7) {
-    errors.phone = 'That does not look like a phone number.';
+    errors.phone = issue('phone.invalid');
   }
 
   const email = draft.email.trim();
   if (email.length > 0 && !EMAIL_PATTERN.test(email)) {
-    errors.email = 'That does not look like an email address.';
+    errors.email = issue('email.invalid');
   }
 
   return errors;

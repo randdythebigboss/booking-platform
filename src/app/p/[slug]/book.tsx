@@ -1,7 +1,9 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
 import { isoDateIn, type Slot } from '@/features/availability';
 import {
@@ -16,7 +18,9 @@ import {
   validateCustomer,
   type BookingSelection,
 } from '@/features/booking';
-import { formatDateIn, formatDuration, formatMoney, formatTimeIn } from '@/lib/format';
+import { useBookingErrorText } from '@/i18n/use-error-text';
+import { useFormat } from '@/i18n/use-format';
+import { useIssueText } from '@/i18n/use-issue-text';
 import { fetchAvailableSlots } from '@/services/availability';
 import { bookAppointment } from '@/services/booking';
 import { fetchPublicBusiness, type PublicBusiness } from '@/services/catalog';
@@ -25,13 +29,17 @@ import { radius, spacing, useTheme } from '@/theme';
 type PageState =
   | { kind: 'loading' }
   | { kind: 'missing' }
-  | { kind: 'error'; message: string }
+  | { kind: 'error' }
   | { kind: 'ready'; business: PublicBusiness };
 
 export default function BookScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const { palette } = useTheme();
+  const { t } = useTranslation();
+  const format = useFormat();
+  const issueText = useIssueText();
+  const errorText = useBookingErrorText();
 
   const [page, setPage] = useState<PageState>({ kind: 'loading' });
   const [professionalId, setProfessionalId] = useState<string | null>(null);
@@ -66,7 +74,7 @@ export default function BookScreen() {
       })
       .catch(() => {
         if (cancelled) return;
-        setPage({ kind: 'error', message: 'We could not load this page. Please try again.' });
+        setPage({ kind: 'error' });
       });
 
     return () => {
@@ -112,20 +120,22 @@ export default function BookScreen() {
 
   if (page.kind === 'loading') {
     return (
-      <Screen title="Loading">
+      <Screen title={t('common.loading')}>
         <ActivityIndicator />
       </Screen>
     );
   }
 
   if (page.kind === 'missing') {
-    return <Screen title="Page not found" subtitle="This booking link is not available." />;
+    return (
+      <Screen title={t('publicPage.notFound')} subtitle={t('publicPage.linkNotAvailable')} />
+    );
   }
 
   if (page.kind === 'error') {
     return (
-      <Screen title="Something went wrong">
-        <Feedback tone="danger" message={page.message} />
+      <Screen title={t('common.somethingWentWrong')}>
+        <Feedback tone="danger" message={t('publicPage.couldNotLoad')} />
       </Screen>
     );
   }
@@ -169,7 +179,7 @@ export default function BookScreen() {
       router.replace(`/booking/${result.appointmentId}/confirmation?token=${result.accessToken}`);
     } catch (cause) {
       const error = toBookingError(cause);
-      setFailure(error.message);
+      setFailure(errorText(error));
 
       // Someone else may have taken it while this page sat open. Drop the
       // choice and show what is genuinely free now.
@@ -183,10 +193,10 @@ export default function BookScreen() {
   }
 
   return (
-    <Screen title={business.name} subtitle="Book an appointment. No account needed.">
+    <Screen title={business.name} subtitle={t('publicPage.bookWithUs')}>
       {business.professionals.length > 1 && (
         <Card>
-          <Text variant="label">Who would you like to see?</Text>
+          <Text variant="label">{t('booking.whoWouldYouLikeToSee')}</Text>
           <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
             {business.professionals.map((pro) => {
               const chosen = pro.id === professionalId;
@@ -217,7 +227,7 @@ export default function BookScreen() {
       )}
 
       <Card>
-        <Text variant="heading">1. Choose a service</Text>
+        <Text variant="heading">{t('booking.selectService')}</Text>
         <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
           {business.services.map((entry) => {
             const chosen = entry.id === selection.serviceId;
@@ -240,8 +250,8 @@ export default function BookScreen() {
                   {entry.name}
                 </Text>
                 <Text variant="caption" tone="muted">
-                  {formatDuration(entry.durationMinutes)} {'·'}{' '}
-                  {formatMoney(entry.price, entry.currency)}
+                  {format.duration(entry.durationMinutes)} {'·'}{' '}
+                  {format.money(entry.price, entry.currency)}
                 </Text>
               </Pressable>
             );
@@ -251,26 +261,26 @@ export default function BookScreen() {
 
       {reached('date') && (
         <Card>
-          <Text variant="heading">2. Choose a day</Text>
+          <Text variant="heading">{t('booking.chooseDate')}</Text>
           <Field
-            label="Date"
+            label={t('booking.date')}
             value={selection.date ?? ''}
             onChangeText={(value) =>
               setSelection((current) => ({ ...current, date: value, slotStartsAt: null }))
             }
             placeholder="2026-09-28"
             autoCapitalize="none"
-            hint={`Times are shown in ${timezone.replace(/_/g, ' ')}.`}
+            hint={t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
           />
           <View style={{ flexDirection: 'row', gap: spacing.sm }}>
             <Button
-              label="Previous day"
+              label={t('common.previousDay')}
               variant="secondary"
               style={{ flex: 1 }}
               onPress={() => shiftDate(-1)}
             />
             <Button
-              label="Next day"
+              label={t('common.nextDay')}
               variant="secondary"
               style={{ flex: 1 }}
               onPress={() => shiftDate(1)}
@@ -281,19 +291,16 @@ export default function BookScreen() {
 
       {reached('slot') && selection.date && (
         <Card>
-          <Text variant="heading">3. Choose a time</Text>
+          <Text variant="heading">{t('booking.chooseTime')}</Text>
           <Text variant="caption" tone="muted">
-            {formatDateIn(new Date(`${selection.date}T12:00:00Z`), timezone)}
+            {format.date(new Date(`${selection.date}T12:00:00Z`), timezone)}
           </Text>
 
           {slotsLoading && <ActivityIndicator />}
           {slotsError && <Feedback tone="danger" message={slotsError} />}
 
           {!slotsLoading && !slotsError && slots.length === 0 && (
-            <Feedback
-              tone="muted"
-              message="No times available that day. Try another date."
-            />
+            <Feedback tone="muted" message={t('booking.noTimesThatDay')} />
           )}
 
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
@@ -318,7 +325,7 @@ export default function BookScreen() {
                   }}
                 >
                   <Text variant="label" style={chosen ? { color: palette.accentText } : undefined}>
-                    {formatTimeIn(slot.startsAt, timezone)}
+                    {format.time(slot.startsAt, timezone)}
                   </Text>
                 </Pressable>
               );
@@ -329,30 +336,30 @@ export default function BookScreen() {
 
       {reached('details') && (
         <Card>
-          <Text variant="heading">4. Your details</Text>
+          <Text variant="heading">{t('booking.yourDetails')}</Text>
           <View style={{ gap: spacing.md, marginTop: spacing.xs }}>
             <Field
-              label="Full name"
+              label={t('booking.fullName')}
               value={selection.customer.fullName}
               onChangeText={(value) =>
                 setSelection((current) => updateCustomer(current, { fullName: value }))
               }
               autoCapitalize="words"
               autoComplete="name"
-              error={customerErrors.fullName}
+              error={issueText(customerErrors.fullName)}
             />
             <Field
-              label="Phone"
+              label={t('booking.phone')}
               value={selection.customer.phone}
               onChangeText={(value) =>
                 setSelection((current) => updateCustomer(current, { phone: value }))
               }
               keyboardType="phone-pad"
               autoComplete="tel"
-              error={customerErrors.phone}
+              error={issueText(customerErrors.phone)}
             />
             <Field
-              label="Email (optional)"
+              label={t('booking.email')}
               value={selection.customer.email}
               onChangeText={(value) =>
                 setSelection((current) => updateCustomer(current, { email: value }))
@@ -360,48 +367,51 @@ export default function BookScreen() {
               autoCapitalize="none"
               keyboardType="email-address"
               autoComplete="email"
-              error={customerErrors.email}
-              hint="Only if you would like a copy of the details."
+              error={issueText(customerErrors.email)}
+              hint={t('booking.emailHint')}
             />
           </View>
         </Card>
       )}
 
       <Card>
-        <Text variant="heading">5. Review and confirm</Text>
+        <Text variant="heading">{t('booking.reviewAndConfirm')}</Text>
 
         {step !== 'review' ? (
           <Text variant="body" tone="muted">
-            {step === 'service' && 'Choose a service to get started.'}
-            {step === 'date' && 'Choose the day you would like to come in.'}
-            {step === 'slot' && 'Choose one of the available times.'}
-            {step === 'details' && 'Add your name and a phone number.'}
+            {step === 'service' && t('booking.startByChoosingService')}
+            {step === 'date' && t('booking.chooseTheDay')}
+            {step === 'slot' && t('booking.chooseOneOfTheTimes')}
+            {step === 'details' && t('booking.addYourDetails')}
           </Text>
         ) : (
           <View style={{ gap: spacing.xs }}>
             <Text variant="body">
               <Text variant="label">{service?.name}</Text>
-              {service ? ` · ${formatDuration(service.durationMinutes)}` : ''}
+              {service ? ` · ${format.duration(service.durationMinutes)}` : ''}
             </Text>
             <Text variant="body" tone="muted">
               {professional?.displayName ?? business.name}
             </Text>
             <Text variant="body" tone="accent">
               {selection.slotStartsAt
-                ? `${formatDateIn(new Date(selection.slotStartsAt), timezone)} at ${formatTimeIn(
-                    new Date(selection.slotStartsAt),
-                    timezone,
-                  )}`
+                ? t('booking.at', {
+                    date: format.date(new Date(selection.slotStartsAt), timezone),
+                    time: format.time(new Date(selection.slotStartsAt), timezone),
+                  })
                 : ''}
             </Text>
             {service && (
-              <Text variant="body">{formatMoney(service.price, service.currency)}</Text>
+              <Text variant="body">{format.money(service.price, service.currency)}</Text>
             )}
             <Text variant="caption" tone="muted">
-              Booking for {selection.customer.fullName} {'·'} {selection.customer.phone}
+              {t('booking.bookingFor', {
+                name: selection.customer.fullName,
+                phone: selection.customer.phone,
+              })}
             </Text>
             <Text variant="caption" tone="muted">
-              Nothing is charged now. Payment is handled directly with the business.
+              {t('booking.nothingCharged')}
             </Text>
           </View>
         )}
@@ -409,7 +419,7 @@ export default function BookScreen() {
         {failure && <Feedback tone="danger" message={failure} />}
 
         <Button
-          label="Confirm booking"
+          label={t('booking.confirm')}
           loading={booking}
           disabled={step !== 'review'}
           onPress={() => {
@@ -421,9 +431,12 @@ export default function BookScreen() {
 
       <Card>
         <Text variant="caption" tone="muted">
-          Available times come from {business.name}&apos;s live calendar. If someone books the same
-          time first, we will tell you and show what is still free.
+          {t('booking.livePromise', { business: business.name })}
         </Text>
+      </Card>
+
+      <Card>
+        <LanguageSwitcher />
       </Card>
     </Screen>
   );

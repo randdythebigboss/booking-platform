@@ -36,7 +36,7 @@ describe('validateWeeklySchedule', () => {
     const issues = validateWeeklySchedule(overlapping);
     expect(issues).toHaveLength(1);
     expect(issues[0]?.index).toBe(1);
-    expect(issues[0]?.message).toMatch(/Monday/);
+    expect(issues[0]?.issue.code).toBe('schedule.overlap');
   });
 
   it('does not confuse the same hours on different days', () => {
@@ -49,12 +49,12 @@ describe('validateWeeklySchedule', () => {
 
   it('rejects a window that does not move forward', () => {
     const backwards: ScheduleEntry[] = [{ weekday: 3, startTime: '18:00', endTime: '09:00' }];
-    expect(validateWeeklySchedule(backwards)[0]?.message).toMatch(/after the start/);
+    expect(validateWeeklySchedule(backwards)[0]?.issue.code).toBe('schedule.endBeforeStart');
   });
 
   it('rejects a malformed time without throwing', () => {
     const malformed = [{ weekday: 3, startTime: '9h', endTime: '18:00' }] as ScheduleEntry[];
-    expect(validateWeeklySchedule(malformed)[0]?.message).toMatch(/HH:mm/);
+    expect(validateWeeklySchedule(malformed)[0]?.issue.code).toBe('time.invalidStart');
   });
 });
 

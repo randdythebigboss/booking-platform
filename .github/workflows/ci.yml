@@ -38,6 +38,13 @@ jobs:
       - name: Tests
         run: npm run test
 
+      # The dictionaries must not drift. The typecheck already refuses an
+      # English file that is missing a Spanish key -- this covers what a type
+      # cannot: blank strings, mismatched placeholders, and every key the app
+      # builds at runtime from a status, an actor or an error code.
+      - name: Translation parity
+        run: npm run test:i18n
+
       # Proves the app still bundles and that every route in src/app resolves.
       - name: Expo validation
         run: npx expo export --platform web --output-dir dist

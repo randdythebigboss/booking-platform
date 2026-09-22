@@ -1,3 +1,4 @@
+import { issue, type ValidationIssue } from '../validation';
 import { parseClockTime } from './time';
 
 import type { ClockTime, Weekday } from '@/types/domain';
@@ -12,18 +13,22 @@ export interface ScheduleEntry {
 export interface ScheduleIssue {
   /** Position in the submitted list, so the form can point at the right row. */
   index: number;
-  message: string;
+  issue: ValidationIssue;
 }
 
-export const WEEKDAY_LABELS: Record<Weekday, string> = {
-  0: 'Sunday',
-  1: 'Monday',
-  2: 'Tuesday',
-  3: 'Wednesday',
-  4: 'Thursday',
-  5: 'Friday',
-  6: 'Saturday',
-};
+/**
+ * Translation keys, not words. The weekday a date falls on is domain; what
+ * that weekday is called is presentation, and there are two languages of it.
+ */
+export const WEEKDAY_KEYS = {
+  0: 'availability.weekday_0',
+  1: 'availability.weekday_1',
+  2: 'availability.weekday_2',
+  3: 'availability.weekday_3',
+  4: 'availability.weekday_4',
+  5: 'availability.weekday_5',
+  6: 'availability.weekday_6',
+} as const satisfies Record<Weekday, string>;
 
 export const WEEKDAY_ORDER: Weekday[] = [1, 2, 3, 4, 5, 6, 0];
 
@@ -56,12 +61,12 @@ export function validateWeeklySchedule(entries: readonly ScheduleEntry[]): Sched
       start = parseClockTime(entry.startTime);
       end = parseClockTime(entry.endTime);
     } catch {
-      issues.push({ index, message: 'Use times in HH:mm format.' });
+      issues.push({ index, issue: issue('time.invalidStart') });
       return;
     }
 
     if (end <= start) {
-      issues.push({ index, message: 'The end time has to come after the start time.' });
+      issues.push({ index, issue: issue('schedule.endBeforeStart') });
       return;
     }
 
@@ -81,10 +86,7 @@ export function validateWeeklySchedule(entries: readonly ScheduleEntry[]): Sched
       const previous = sorted[i - 1]!;
       const current = sorted[i]!;
       if (current.start < previous.end) {
-        issues.push({
-          index: current.index,
-          message: `This overlaps another window on ${WEEKDAY_LABELS[current.weekday]}.`,
-        });
+        issues.push({ index: current.index, issue: issue('schedule.overlap') });
       }
     }
   }

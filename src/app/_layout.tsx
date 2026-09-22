@@ -2,7 +2,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { SessionProvider, WorkspaceProvider } from '@/components/providers';
+import { LocaleProvider, SessionProvider, WorkspaceProvider } from '@/components/providers';
+import '@/i18n';
 import { useTheme } from '@/theme';
 
 export default function RootLayout() {
@@ -11,7 +12,8 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <SessionProvider>
-        <WorkspaceProvider>
+        <LocaleProvider>
+          <WorkspaceProvider>
           <StatusBar style={isDark ? 'light' : 'dark'} />
           <Stack
             screenOptions={{
@@ -19,7 +21,8 @@ export default function RootLayout() {
               contentStyle: { backgroundColor: palette.background },
             }}
           />
-        </WorkspaceProvider>
+          </WorkspaceProvider>
+        </LocaleProvider>
       </SessionProvider>
     </SafeAreaProvider>
   );

@@ -1,14 +1,15 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
 import { SlotPicker } from '@/components/slot-picker';
 import { Button, Card, Feedback, Field, Screen, Select, Text, ToggleRow } from '@/components/ui';
 import { isoDateIn, parseClockTime, zonedInstant } from '@/features/availability';
-import { toWorkspaceError } from '@/features/workspace';
+import { useWorkspaceErrorText } from '@/i18n/use-error-text';
+import { useFormat } from '@/i18n/use-format';
 import { useAsyncData } from '@/hooks/use-async-data';
-import { formatDuration, formatMoney } from '@/lib/format';
 import { createManualAppointment } from '@/services/appointments';
 import { fetchServices } from '@/services/service-admin';
 import { spacing } from '@/theme';
@@ -25,6 +26,9 @@ import { spacing } from '@/theme';
 export default function NewAppointmentScreen() {
   const router = useRouter();
   const { business, professional } = useRequiredWorkspace();
+  const { t } = useTranslation();
+  const format = useFormat();
+  const errorText = useWorkspaceErrorText();
   const timezone = business.timezone;
 
   const services = useAsyncData(() => fetchServices(business.id), [business.id]);
@@ -48,18 +52,15 @@ export default function NewAppointmentScreen() {
 
   if (!professional) {
     return (
-      <Screen title="New appointment">
-        <Feedback
-          tone="muted"
-          message="You are not set up as someone customers book with, so there is no calendar to add to."
-        />
+      <Screen title={t('manualBooking.title')}>
+        <Feedback tone="muted" message={t('manualBooking.notBookable')} />
       </Screen>
     );
   }
 
   async function save() {
     if (!professional || !serviceId) {
-      setFailure('Choose a service first.');
+      setFailure(t('manualBooking.addServiceFirst'));
       return;
     }
 
@@ -73,7 +74,7 @@ export default function NewAppointmentScreen() {
       } else if (time.trim()) {
         startsAt = zonedInstant(date, parseClockTime(time.trim()), timezone);
       } else {
-        setFailure('Pick a time from the list, or type one.');
+        setFailure(t('reschedule.pickOrType'));
         return;
       }
 
@@ -92,8 +93,8 @@ export default function NewAppointmentScreen() {
     } catch (cause) {
       setFailure(
         cause instanceof Error && cause.name === 'InvalidTimeValueError'
-          ? 'Use a 24-hour time like 14:30.'
-          : toWorkspaceError(cause).message,
+          ? t('reschedule.badTime')
+          : errorText(cause),
       );
     } finally {
       setSaving(false);
@@ -101,26 +102,23 @@ export default function NewAppointmentScreen() {
   }
 
   return (
-    <Screen title="New appointment" subtitle="For a phone call, a walk-in or a regular.">
+    <Screen title={t('manualBooking.title')} subtitle={t('manualBooking.subtitle')}>
       <Card>
-        <Text variant="heading">1. Which service</Text>
+        <Text variant="heading">{t('manualBooking.stepService')}</Text>
         {services.loading && <ActivityIndicator />}
         {services.error && <Feedback tone="danger" message={services.error} />}
 
         {!services.loading && active.length === 0 && (
-          <Feedback tone="muted" message="Add a service first, then you can book one." />
+          <Feedback tone="muted" message={t('manualBooking.addServiceFirst')} />
         )}
 
         {active.length > 0 && (
           <Select
-            label="Service"
+            label={t('manualBooking.service')}
             value={serviceId ?? ''}
             options={active.map((service) => ({
               value: service.id,
-              label: `${service.name} · ${formatDuration(service.durationMinutes)} · ${formatMoney(
-                service.price,
-                service.currency,
-              )}`,
+              label: `${service.name} · ${format.duration(service.durationMinutes)} · ${format.money(service.price, service.currency)}`,
             }))}
             onChange={(value) => {
               setServiceId(value);
@@ -133,7 +131,7 @@ export default function NewAppointmentScreen() {
 
       {chosenService && (
         <Card>
-          <Text variant="heading">2. When</Text>
+          <Text variant="heading">{t('manualBooking.stepWhen')}</Text>
           <SlotPicker
             professionalId={professional.id}
             serviceId={chosenService.id}
@@ -151,7 +149,7 @@ export default function NewAppointmentScreen() {
           />
 
           <Field
-            label="Or type a time"
+            label={t('reschedule.orTypeATime')}
             value={time}
             onChangeText={(value) => {
               setTime(value);
@@ -159,12 +157,12 @@ export default function NewAppointmentScreen() {
             }}
             placeholder="14:30"
             autoCapitalize="none"
-            hint="You are not limited to the times your page offers customers."
+            hint={t('manualBooking.typeATimeHint')}
           />
 
           <ToggleRow
-            label="Allow a time outside my working hours"
-            description="Your public page still only offers your normal hours."
+            label={t('reschedule.allowOutsideHours')}
+            description={t('reschedule.allowOutsideHoursHint')}
             value={outsideHours}
             onChange={setOutsideHours}
           />
@@ -173,25 +171,25 @@ export default function NewAppointmentScreen() {
 
       {chosenService && (
         <Card>
-          <Text variant="heading">3. Who</Text>
+          <Text variant="heading">{t('manualBooking.stepWho')}</Text>
           <View style={{ gap: spacing.md }}>
             <Field
-              label="Name"
+              label={t('manualBooking.name')}
               value={name}
               onChangeText={setName}
-              placeholder="Maria Peralta"
+              placeholder={t('manualBooking.namePlaceholder')}
               autoCapitalize="words"
             />
             <Field
-              label="Phone"
+              label={t('manualBooking.phone')}
               value={phone}
               onChangeText={setPhone}
               placeholder="+1 809 555 0199"
               keyboardType="phone-pad"
-              hint="If this number is already in your book, it is the same customer."
+              hint={t('manualBooking.phoneHint')}
             />
             <Field
-              label="Email (optional)"
+              label={t('manualBooking.email')}
               value={email}
               onChangeText={setEmail}
               placeholder="maria@example.com"
@@ -199,10 +197,10 @@ export default function NewAppointmentScreen() {
               keyboardType="email-address"
             />
             <Field
-              label="Note (optional)"
+              label={t('manualBooking.noteOptional')}
               value={note}
               onChangeText={setNote}
-              placeholder="Called in, wants the usual"
+              placeholder={t('manualBooking.notePlaceholder')}
             />
           </View>
         </Card>
@@ -211,7 +209,7 @@ export default function NewAppointmentScreen() {
       {failure && <Feedback tone="danger" message={failure} />}
 
       {chosenService && (
-        <Button label="Add to the book" loading={saving} onPress={save} />
+        <Button label={t('manualBooking.submit')} loading={saving} onPress={save} />
       )}
     </Screen>
   );

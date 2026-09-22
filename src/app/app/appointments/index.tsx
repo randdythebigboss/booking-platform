@@ -1,39 +1,29 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { AppointmentRow } from '@/components/appointment-row';
 import { useRequiredWorkspace } from '@/components/providers';
 import { Button, Card, Feedback, Screen, Select, Text } from '@/components/ui';
+import { statusLabelKey } from '@/features/appointments';
 import { isoDateIn, zonedInstant } from '@/features/availability';
+import { useDynamicT } from '@/i18n/use-dynamic-t';
 import { useAsyncData } from '@/hooks/use-async-data';
 import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import { fetchAppointments } from '@/services/appointments';
 import { spacing } from '@/theme';
-import type { AppointmentStatus } from '@/types/domain';
+import { APPOINTMENT_STATUSES, type AppointmentStatus } from '@/types/domain';
 
 type Scope = 'today' | 'upcoming' | 'past';
 type StatusFilter = AppointmentStatus | 'all';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const SCOPES = [
-  { value: 'today' as const, label: 'Today' },
-  { value: 'upcoming' as const, label: 'Upcoming' },
-  { value: 'past' as const, label: 'Past' },
-];
-
-const STATUSES = [
-  { value: 'all' as const, label: 'Every status' },
-  { value: 'pending' as const, label: 'Pending' },
-  { value: 'confirmed' as const, label: 'Confirmed' },
-  { value: 'completed' as const, label: 'Completed' },
-  { value: 'cancelled' as const, label: 'Cancelled' },
-  { value: 'no_show' as const, label: 'No-show' },
-];
-
 export default function AppointmentsScreen() {
   const { business } = useRequiredWorkspace();
+  const { t } = useTranslation();
+  const tk = useDynamicT();
   const timezone = business.timezone;
 
   const [scope, setScope] = useState<Scope>('upcoming');
@@ -41,6 +31,19 @@ export default function AppointmentsScreen() {
 
   const today = isoDateIn(new Date(), timezone);
   const dayStart = zonedInstant(today, 0, timezone);
+
+  const scopes = [
+    { value: 'today' as const, label: t('appointments.scopeToday') },
+    { value: 'upcoming' as const, label: t('appointments.scopeUpcoming') },
+    { value: 'past' as const, label: t('appointments.scopePast') },
+  ];
+
+  // Built from the enum rather than a hand-written list, so a status added to
+  // the database cannot quietly go missing from the filter.
+  const statuses = [
+    { value: 'all' as const, label: t('appointments.everyStatus') },
+    ...APPOINTMENT_STATUSES.map((value) => ({ value, label: tk(statusLabelKey(value)) })),
+  ];
 
   const range =
     scope === 'today'
@@ -66,13 +69,25 @@ export default function AppointmentsScreen() {
   useRefreshOnFocus(appointments.reload);
 
   return (
-    <Screen title="Appointments" subtitle="Everything booked, past and future.">
+    <Screen title={t('appointments.title')} subtitle={t('appointments.subtitle')}>
       <Link href="/app/appointments/new" asChild>
-        <Button label="New appointment" />
+        <Button label={t('appointments.newAppointment')} />
       </Link>
 
-      <Select label="When" value={scope} options={SCOPES} onChange={setScope} maxHeight={150} />
-      <Select label="Status" value={status} options={STATUSES} onChange={setStatus} maxHeight={200} />
+      <Select
+        label={t('appointments.when')}
+        value={scope}
+        options={scopes}
+        onChange={setScope}
+        maxHeight={150}
+      />
+      <Select
+        label={t('appointments.status')}
+        value={status}
+        options={statuses}
+        onChange={setStatus}
+        maxHeight={200}
+      />
 
       {appointments.loading && <ActivityIndicator />}
       {appointments.error && <Feedback tone="danger" message={appointments.error} />}
@@ -80,14 +95,14 @@ export default function AppointmentsScreen() {
       {!appointments.loading && rows.length === 0 && (
         <Card>
           <Text variant="body" tone="muted">
-            Nothing here. Try another filter.
+            {t('appointments.emptyFiltered')}
           </Text>
         </Card>
       )}
 
       {rows.length > 0 && (
         <Text variant="caption" tone="muted">
-          {rows.length} appointment{rows.length === 1 ? '' : 's'}
+          {t('appointments.count', { count: rows.length })}
         </Text>
       )}
 

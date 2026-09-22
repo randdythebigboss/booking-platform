@@ -25,16 +25,18 @@ describe('validateBlock', () => {
   });
 
   it('rejects times it cannot read', () => {
-    expect(validateBlock({ ...BLOCK, startTime: 'noon' }).startTime).toMatch(/HH:mm/);
-    expect(validateBlock({ ...BLOCK, endTime: '25:00' }).endTime).toMatch(/HH:mm/);
+    expect(validateBlock({ ...BLOCK, startTime: 'noon' }).startTime?.code).toBe(
+      'time.invalidStart',
+    );
+    expect(validateBlock({ ...BLOCK, endTime: '25:00' }).endTime?.code).toBe('time.invalidEnd');
   });
 
   it('requires the block to move forward', () => {
-    expect(validateBlock({ ...BLOCK, startTime: '14:00', endTime: '14:00' }).endTime).toMatch(
-      /after the start/,
+    expect(validateBlock({ ...BLOCK, startTime: '14:00', endTime: '14:00' }).endTime?.code).toBe(
+      'time.endBeforeStart',
     );
-    expect(validateBlock({ ...BLOCK, startTime: '15:00', endTime: '14:00' }).endTime).toMatch(
-      /after the start/,
+    expect(validateBlock({ ...BLOCK, startTime: '15:00', endTime: '14:00' }).endTime?.code).toBe(
+      'time.endBeforeStart',
     );
   });
 });
@@ -85,7 +87,9 @@ describe('validateException', () => {
   });
 
   it('requires custom hours to move forward', () => {
-    expect(validateException({ ...custom, startTime: '20:00' }).endTime).toMatch(/after the/);
+    expect(validateException({ ...custom, startTime: '20:00' }).endTime?.code).toBe(
+      'time.closingBeforeOpening',
+    );
   });
 
   it('still checks the date for a closed day', () => {
@@ -94,8 +98,12 @@ describe('validateException', () => {
 });
 
 describe('describeException', () => {
-  it('says plainly which of the two things it is', () => {
-    expect(describeException({ date: '2026-09-29', kind: 'closed' })).toMatch(/Closed all day/);
+  it('names which of the two things it is, and hands over the parts', () => {
+    expect(describeException({ date: '2026-09-29', kind: 'closed' })).toEqual({
+      code: 'exceptions.describeClosed',
+      values: { date: '2026-09-29' },
+    });
+
     expect(
       describeException({
         date: '2026-09-29',
@@ -103,6 +111,9 @@ describe('describeException', () => {
         startTime: '12:00',
         endTime: '20:00',
       }),
-    ).toMatch(/instead of the usual hours/);
+    ).toEqual({
+      code: 'exceptions.describeCustom',
+      values: { start: '12:00', end: '20:00', date: '2026-09-29' },
+    });
   });
 });

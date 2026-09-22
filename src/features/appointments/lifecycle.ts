@@ -29,18 +29,11 @@ export function isTerminal(status: AppointmentStatus): boolean {
 
 export interface AppointmentAction {
   status: AppointmentStatus;
-  label: string;
+  /** Translation key. The button reads whatever language the app speaks. */
+  labelKey: string;
   /** Destructive actions get a quieter button and a confirmation. */
   destructive: boolean;
 }
-
-const ACTION_LABELS: Record<AppointmentStatus, string> = {
-  confirmed: 'Confirm',
-  completed: 'Mark completed',
-  no_show: 'Mark no-show',
-  cancelled: 'Cancel',
-  pending: 'Move back to pending',
-};
 
 /**
  * What a professional may actually do with this appointment right now.
@@ -60,27 +53,19 @@ export function availableActions(
     .filter((next) => (next === 'completed' || next === 'no_show' ? hasStarted : true))
     .map((next) => ({
       status: next,
-      label: ACTION_LABELS[next],
+      labelKey: `appointments.action_${next}`,
       destructive: next === 'cancelled' || next === 'no_show',
     }));
 }
 
-/** Words a professional reads, not a database enum. */
-export function statusLabel(status: AppointmentStatus): string {
-  switch (status) {
-    case 'pending':
-      return 'Pending';
-    case 'confirmed':
-      return 'Confirmed';
-    case 'completed':
-      return 'Completed';
-    case 'cancelled':
-      return 'Cancelled';
-    case 'no_show':
-      return 'No-show';
-    default:
-      return status;
-  }
+/**
+ * The key a status is read under, never the word itself.
+ *
+ * `no_show` is a database enum and stays one; "No-show" and "No asistió" are
+ * two renderings of it, and the domain should not have to pick.
+ */
+export function statusLabelKey(status: AppointmentStatus): string {
+  return `appointments.status_${status}`;
 }
 
 export type StatusTone = 'default' | 'muted' | 'accent' | 'danger' | 'success';

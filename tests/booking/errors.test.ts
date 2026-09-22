@@ -6,13 +6,12 @@ describe('toBookingError', () => {
   it('maps the sentinel the database raises', () => {
     const error = toBookingError({ message: 'SLOT_TAKEN', code: 'P0001' });
     expect(error.code).toBe('SLOT_TAKEN');
-    expect(error.message).toMatch(/just booked by someone else/);
+    expect(error.message).toBe('SLOT_TAKEN');
   });
 
   it('maps the refusal a guest gets when their appointment is closed', () => {
     const error = toBookingError({ message: 'APPOINTMENT_NOT_RESCHEDULABLE' });
     expect(error.code).toBe('APPOINTMENT_NOT_RESCHEDULABLE');
-    expect(error.message).not.toMatch(/APPOINTMENT/);
   });
 
   it('tells a guest whose move lost a race to pick again', () => {
@@ -30,7 +29,8 @@ describe('toBookingError', () => {
       message: 'duplicate key value violates unique constraint "customers_pkey"',
     });
     expect(error.code).toBe('UNKNOWN');
-    expect(error.message).toBe('Something went wrong. Please try again.');
+    // The message is the code, never prose, and never the database's words.
+    expect(error.message).toBe('UNKNOWN');
   });
 
   it('handles a network failure with no message at all', () => {
@@ -58,6 +58,6 @@ describe('SLOT_NOT_ALIGNED', () => {
   it('maps the sentinel the alignment gate raises', () => {
     const error = toBookingError({ message: 'SLOT_NOT_ALIGNED' });
     expect(error.code).toBe('SLOT_NOT_ALIGNED');
-    expect(error.message).toMatch(/pick one from the list/);
+    expect(error.isSlotConflict).toBe(true);
   });
 });

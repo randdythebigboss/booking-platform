@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { Button, Feedback, Field, Text } from '@/components/ui';
 import { addDays, type Slot } from '@/features/availability';
-import { formatDateIn, formatTimeIn } from '@/lib/format';
+import { useFormat } from '@/i18n/use-format';
 import { fetchAvailableSlots } from '@/services/availability';
 import { radius, spacing, useTheme } from '@/theme';
 import type { IsoDate } from '@/types/domain';
@@ -45,6 +46,8 @@ export function SlotPicker({
   reloadKey = 0,
 }: SlotPickerProps) {
   const { palette } = useTheme();
+  const { t } = useTranslation();
+  const format = useFormat();
 
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,7 +64,7 @@ export function SlotPicker({
       })
       .catch(() => {
         if (cancelled) return;
-        setFailure('We could not load the available times. Please try again.');
+        setFailure(t('reschedule.couldNotLoadTimes'));
         setSlots([]);
       })
       .finally(() => {
@@ -71,7 +74,7 @@ export function SlotPicker({
     return () => {
       cancelled = true;
     };
-  }, [professionalId, serviceId, date, reloadKey]);
+  }, [professionalId, serviceId, date, reloadKey, t]);
 
   // The time the appointment already holds is never in this list: it is
   // occupied, so the engine does not offer it. Every option here is a move.
@@ -79,23 +82,23 @@ export function SlotPicker({
   return (
     <View style={{ gap: spacing.sm }}>
       <Field
-        label="Day"
+        label={t('reschedule.day')}
         value={date}
         onChangeText={onDateChange}
         placeholder="2026-09-28"
         autoCapitalize="none"
-        hint={`Times are shown in ${timezone.replace(/_/g, ' ')}.`}
+        hint={t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
       />
 
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>
         <Button
-          label="Previous day"
+          label={t('common.previousDay')}
           variant="secondary"
           style={{ flex: 1 }}
           onPress={() => onDateChange(addDays(date, -1))}
         />
         <Button
-          label="Next day"
+          label={t('common.nextDay')}
           variant="secondary"
           style={{ flex: 1 }}
           onPress={() => onDateChange(addDays(date, 1))}
@@ -103,14 +106,14 @@ export function SlotPicker({
       </View>
 
       <Text variant="caption" tone="muted">
-        {formatDateIn(new Date(`${date}T12:00:00Z`), timezone)}
+        {format.date(new Date(`${date}T12:00:00Z`), timezone)}
       </Text>
 
       {loading && <ActivityIndicator />}
       {failure && <Feedback tone="danger" message={failure} />}
 
       {!loading && !failure && slots.length === 0 && (
-        <Feedback tone="muted" message="No times available that day. Try another date." />
+        <Feedback tone="muted" message={t('reschedule.noTimesThatDay')} />
       )}
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
@@ -135,7 +138,7 @@ export function SlotPicker({
               }}
             >
               <Text variant="label" style={chosen ? { color: palette.accentText } : undefined}>
-                {formatTimeIn(slot.startsAt, timezone)}
+                {format.time(slot.startsAt, timezone)}
               </Text>
             </Pressable>
           );

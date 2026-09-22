@@ -1,17 +1,20 @@
 import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
 import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
 import {
   DEFAULT_WEEKLY_SCHEDULE,
-  WEEKDAY_LABELS,
+  WEEKDAY_KEYS,
   WEEKDAY_ORDER,
   validateWeeklySchedule,
   type ScheduleEntry,
 } from '@/features/availability/schedule';
-import { toWorkspaceError } from '@/features/workspace';
+import { useWorkspaceErrorText } from '@/i18n/use-error-text';
+import { useDynamicT } from '@/i18n/use-dynamic-t';
+import { useIssueText } from '@/i18n/use-issue-text';
 import { useAsyncData } from '@/hooks/use-async-data';
 import { fetchWeeklySchedule, saveWeeklySchedule } from '@/services/schedule-admin';
 import { spacing } from '@/theme';
@@ -19,6 +22,10 @@ import type { Weekday } from '@/types/domain';
 
 export default function AvailabilityScreen() {
   const { professional } = useRequiredWorkspace();
+  const { t } = useTranslation();
+  const tk = useDynamicT();
+  const issueText = useIssueText();
+  const errorText = useWorkspaceErrorText();
   const professionalId = professional?.id ?? null;
 
   const loaded = useAsyncData(
@@ -37,10 +44,10 @@ export default function AvailabilityScreen() {
 
   if (!professionalId) {
     return (
-      <Screen title="Availability">
+      <Screen title={t('availability.title')}>
         <Card>
           <Text variant="body" tone="muted">
-            Your account is not set up as a bookable professional in this business yet.
+            {t('availability.notBookable')}
           </Text>
         </Card>
       </Screen>
@@ -48,7 +55,7 @@ export default function AvailabilityScreen() {
   }
 
   const issues = entries ? validateWeeklySchedule(entries) : [];
-  const issueByIndex = new Map(issues.map((issue) => [issue.index, issue.message]));
+  const issueByIndex = new Map(issues.map((entry) => [entry.index, issueText(entry.issue)]));
 
   function update(index: number, patch: Partial<ScheduleEntry>) {
     setSaved(false);
@@ -74,7 +81,7 @@ export default function AvailabilityScreen() {
     if (!entries || !professionalId) return;
 
     if (validateWeeklySchedule(entries).length > 0) {
-      setFailure('Fix the highlighted hours first.');
+      setFailure(t('availability.fixHighlighted'));
       return;
     }
 
@@ -85,7 +92,7 @@ export default function AvailabilityScreen() {
       setSaved(true);
       loaded.reload();
     } catch (cause) {
-      setFailure(toWorkspaceError(cause).message);
+      setFailure(errorText(cause));
     } finally {
       setBusy(false);
     }
@@ -93,8 +100,8 @@ export default function AvailabilityScreen() {
 
   return (
     <Screen
-      title="Availability"
-      subtitle="The hours customers may book. Times are local to your business."
+      title={t('availability.title')}
+      subtitle={t('availability.subtitle')}
     >
       {loaded.loading && !entries && <ActivityIndicator />}
       {loaded.error && <Feedback tone="danger" message={loaded.error} />}
@@ -102,10 +109,10 @@ export default function AvailabilityScreen() {
       {entries?.length === 0 && (
         <Card>
           <Text variant="body" tone="muted">
-            No working hours set, so nothing can be booked yet.
+            {t('availability.noHoursSet')}
           </Text>
           <Button
-            label="Use a standard week"
+            label={t('availability.useStandardWeek')}
             variant="secondary"
             onPress={() => setEntries([...DEFAULT_WEEKLY_SCHEDULE])}
           />
@@ -120,11 +127,11 @@ export default function AvailabilityScreen() {
 
           return (
             <Card key={weekday}>
-              <Text variant="heading">{WEEKDAY_LABELS[weekday]}</Text>
+              <Text variant="heading">{tk(WEEKDAY_KEYS[weekday])}</Text>
 
               {rows.length === 0 && (
                 <Text variant="caption" tone="muted">
-                  Closed.
+                  {t('availability.closed')}
                 </Text>
               )}
 
@@ -133,7 +140,7 @@ export default function AvailabilityScreen() {
                   <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                     <View style={{ flex: 1 }}>
                       <Field
-                        label="Opens"
+                        label={t('availability.opens')}
                         value={entry.startTime}
                         onChangeText={(startTime) => update(index, { startTime })}
                         placeholder="09:00"
@@ -142,7 +149,7 @@ export default function AvailabilityScreen() {
                     </View>
                     <View style={{ flex: 1 }}>
                       <Field
-                        label="Closes"
+                        label={t('availability.closes')}
                         value={entry.endTime}
                         onChangeText={(endTime) => update(index, { endTime })}
                         placeholder="18:00"
@@ -156,7 +163,7 @@ export default function AvailabilityScreen() {
                   )}
 
                   <Button
-                    label="Remove this window"
+                    label={t('availability.removeThisWindow')}
                     variant="ghost"
                     onPress={() => removeWindow(index)}
                   />
@@ -164,7 +171,11 @@ export default function AvailabilityScreen() {
               ))}
 
               <Button
-                label={rows.length === 0 ? 'Open this day' : 'Add another window'}
+                label={
+                  rows.length === 0
+                    ? t('availability.openThisDay')
+                    : t('availability.addAnotherWindow')
+                }
                 variant="secondary"
                 onPress={() => addWindow(weekday)}
               />
@@ -174,32 +185,37 @@ export default function AvailabilityScreen() {
       </View>
 
       {failure && <Feedback tone="danger" message={failure} />}
-      {saved && <Feedback tone="success" message="Your weekly hours are saved." />}
+      {saved && <Feedback tone="success" message={t('availability.savedWeekly')} />}
 
-      <Button label="Save weekly hours" onPress={submit} loading={busy} disabled={!entries} />
+      <Button
+        label={t('availability.saveWeekly')}
+        onPress={submit}
+        loading={busy}
+        disabled={!entries}
+      />
 
       <Card>
-        <Text variant="heading">Date-specific changes</Text>
+        <Text variant="heading">{t('availability.dateSpecific')}</Text>
         <Text variant="body" tone="muted">
-          The weekly schedule above is the norm. Everything else is an exception to it.
+          {t('availability.dateSpecificBody')}
         </Text>
         <Link href="/app/availability/exceptions" asChild>
-          <Button label="Date exceptions" variant="secondary" />
+          <Button label={t('exceptions.title')} variant="secondary" />
         </Link>
         <Text variant="caption" tone="muted">
-          Close a single date, or open it with different hours.
+          {t('availability.exceptionsHelp')}
         </Text>
         <Link href="/app/availability/blocks" asChild>
-          <Button label="Blocked time" variant="secondary" />
+          <Button label={t('blocks.title')} variant="secondary" />
         </Link>
         <Text variant="caption" tone="muted">
-          Take a period out of a day without changing the schedule itself.
+          {t('blocks.subtitle')}
         </Text>
         <Link href="/app/availability/preview" asChild>
-          <Button label="Schedule preview" variant="secondary" />
+          <Button label={t('preview.title')} variant="secondary" />
         </Link>
         <Text variant="caption" tone="muted">
-          See exactly the times the booking system would offer.
+          {t('preview.subtitle')}
         </Text>
       </Card>
     </Screen>

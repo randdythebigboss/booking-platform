@@ -24,31 +24,19 @@ export const BOOKING_ERROR_CODES = [
 
 export type BookingErrorCode = (typeof BOOKING_ERROR_CODES)[number];
 
-const BOOKING_ERROR_MESSAGES: Record<BookingErrorCode, string> = {
-  SLOT_TAKEN: 'That time was just booked by someone else. Please pick another one.',
-  SLOT_BLOCKED: 'That time is no longer available. Please pick another one.',
-  OUTSIDE_AVAILABILITY: 'That time is outside the working hours for this professional.',
-  SLOT_NOT_ALIGNED:
-    'That is not one of the times this professional offers. Please pick one from the list.',
-  TOO_SOON: 'That time is too close to now to be booked online.',
-  BEYOND_HORIZON: 'That date is further ahead than this professional accepts bookings.',
-  SERVICE_NOT_AVAILABLE: 'This service is not offered by that professional.',
-  PROFESSIONAL_NOT_BOOKABLE: 'This professional is not accepting bookings right now.',
-  BUSINESS_NOT_PUBLIC: 'This booking page is not available.',
-  CUSTOMER_NAME_REQUIRED: 'Please enter your name.',
-  CUSTOMER_PHONE_REQUIRED: 'Please enter a phone number.',
-  APPOINTMENT_NOT_FOUND: 'We could not find that appointment.',
-  APPOINTMENT_NOT_CANCELLABLE: 'This appointment can no longer be cancelled.',
-  APPOINTMENT_ALREADY_STARTED: 'This appointment has already started.',
-  APPOINTMENT_NOT_RESCHEDULABLE: 'This appointment can no longer be changed.',
-  UNKNOWN: 'Something went wrong. Please try again.',
-};
-
+/**
+ * The error a customer can act on.
+ *
+ * It carries only the code. The words live in `src/locales`, keyed by that
+ * same code, because the database raises `SLOT_TAKEN` and a guest may be
+ * reading in Spanish or English. `Error.message` is the code too, which is
+ * what a log wants and what no screen should ever render.
+ */
 export class BookingError extends Error {
   readonly code: BookingErrorCode;
 
   constructor(code: BookingErrorCode) {
-    super(BOOKING_ERROR_MESSAGES[code]);
+    super(code);
     this.name = 'BookingError';
     this.code = code;
   }

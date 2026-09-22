@@ -1,26 +1,37 @@
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { useSession } from '@/components/providers';
 import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
-import { hasErrors, validateCredentials } from '@/features/auth/validation';
-import { toWorkspaceError } from '@/features/workspace';
+import { MIN_PASSWORD_LENGTH, validateCredentials } from '@/features/auth/validation';
+import { hasIssues, issue, type ValidationIssue } from '@/features/validation';
+import { useWorkspaceErrorText } from '@/i18n/use-error-text';
+import { useIssueText } from '@/i18n/use-issue-text';
 import { signIn, signUp } from '@/services/auth';
 import { spacing } from '@/theme';
 
 type Mode = 'sign-in' | 'sign-up';
 
+interface Errors {
+  email?: ValidationIssue;
+  password?: ValidationIssue;
+  fullName?: ValidationIssue;
+}
+
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const session = useSession();
+  const issueText = useIssueText();
+  const errorText = useWorkspaceErrorText();
 
   const [mode, setMode] = useState<Mode>('sign-in');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string }>(
-    {},
-  );
+  const [errors, setErrors] = useState<Errors>({});
   const [message, setMessage] = useState<{ tone: 'danger' | 'success'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -30,12 +41,11 @@ export default function LoginScreen() {
 
   if (session.status === 'unconfigured') {
     return (
-      <Screen title="Sign in">
+      <Screen title={t('auth.signIn')}>
         <Card>
-          <Text variant="heading">Supabase is not configured</Text>
+          <Text variant="heading">{t('auth.notConfigured')}</Text>
           <Text variant="body" tone="muted">
-            Copy .env.example to .env.local, fill in your project URL and anon key, then restart the
-            dev server.
+            {t('auth.notConfiguredBody')}
           </Text>
         </Card>
       </Screen>
@@ -43,14 +53,14 @@ export default function LoginScreen() {
   }
 
   async function submit() {
-    const nextErrors: typeof errors = validateCredentials(email, password);
+    const nextErrors: Errors = validateCredentials(email, password);
     if (mode === 'sign-up' && fullName.trim().length === 0) {
-      nextErrors.fullName = 'Enter your name.';
+      nextErrors.fullName = issue('name.required');
     }
 
     setErrors(nextErrors);
     setMessage(null);
-    if (hasErrors(nextErrors)) return;
+    if (hasIssues(nextErrors)) return;
 
     setBusy(true);
     try {
@@ -60,77 +70,84 @@ export default function LoginScreen() {
       } else {
         const { needsConfirmation } = await signUp(email, password, fullName);
         if (needsConfirmation) {
-          setMessage({
-            tone: 'success',
-            text: 'Account created. Check your email to confirm it, then sign in.',
-          });
+          setMessage({ tone: 'success', text: t('auth.confirmationSent') });
           setMode('sign-in');
         }
       }
     } catch (cause) {
-      setMessage({ tone: 'danger', text: toWorkspaceError(cause).message });
+      setMessage({ tone: 'danger', text: errorText(cause) });
     } finally {
       setBusy(false);
     }
   }
 
+  const signingIn = mode === 'sign-in';
+
   return (
     <Screen
-      title={mode === 'sign-in' ? 'Sign in' : 'Create your account'}
-      subtitle="One account manages every business you work with."
+      title={signingIn ? t('auth.signInTitle') : t('auth.signUpTitle')}
+      subtitle={signingIn ? t('auth.signInSubtitle') : t('auth.signUpSubtitle')}
     >
       <View style={{ gap: spacing.md }}>
-        {mode === 'sign-up' && (
+        {!signingIn && (
           <Field
-            label="Your name"
+            label={t('auth.fullName')}
             value={fullName}
             onChangeText={setFullName}
             autoCapitalize="words"
             autoComplete="name"
-            error={errors.fullName}
+            error={issueText(errors.fullName)}
           />
         )}
 
         <Field
-          label="Email"
+          label={t('auth.email')}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="email-address"
           autoComplete="email"
-          error={errors.email}
+          error={issueText(errors.email)}
         />
 
         <Field
-          label="Password"
+          label={t('auth.password')}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
           autoCapitalize="none"
-          autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
-          error={errors.password}
-          hint={mode === 'sign-up' ? 'At least 8 characters.' : undefined}
+          autoComplete={signingIn ? 'current-password' : 'new-password'}
+          error={issueText(errors.password)}
+          hint={
+            signingIn
+              ? undefined
+              : t('validation.password.tooShort', { min: MIN_PASSWORD_LENGTH })
+          }
         />
 
         {message && <Feedback tone={message.tone} message={message.text} />}
 
         <Button
-          label={mode === 'sign-in' ? 'Sign in' : 'Create account'}
+          label={signingIn ? t('auth.signIn') : t('auth.signUp')}
           onPress={submit}
           loading={busy}
         />
 
         <Button
           variant="ghost"
-          label={mode === 'sign-in' ? 'I do not have an account yet' : 'I already have an account'}
+          label={signingIn ? t('auth.noAccount') : t('auth.haveAccount')}
           onPress={() => {
-            setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
+            setMode(signingIn ? 'sign-up' : 'sign-in');
             setErrors({});
             setMessage(null);
           }}
         />
       </View>
+
+      <Card>
+        <LanguageSwitcher />
+      </Card>
     </Screen>
   );
 }

@@ -93,20 +93,7 @@ export function parseGuestAppointment(raw: unknown): GuestAppointment {
   };
 }
 
-/** Plain words for a status, so a customer is not shown a database enum. */
-export function describeStatus(status: AppointmentStatus): string {
-  switch (status) {
-    case 'confirmed':
-      return 'Confirmed';
-    case 'pending':
-      return 'Waiting for confirmation';
-    case 'cancelled':
-      return 'Cancelled';
-    case 'completed':
-      return 'Completed';
-    case 'no_show':
-      return 'Missed';
-    default:
-      return status;
-  }
+/** The key a guest reads their status under. The words are not the domain's. */
+export function guestStatusKey(status: AppointmentStatus): string {
+  return `confirmation.status_${status}`;
 }

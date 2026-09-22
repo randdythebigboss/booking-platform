@@ -15,7 +15,7 @@ describe('toWorkspaceError', () => {
       message: 'duplicate key value violates unique constraint "businesses_slug_key"',
     });
     expect(error.code).toBe('SLUG_TAKEN');
-    expect(error.message).toMatch(/already taken/);
+    expect(error.code).toBe('SLUG_TAKEN');
   });
 
   it('recognises the timezone trigger, which raises prose', () => {
@@ -47,10 +47,13 @@ describe('toWorkspaceError', () => {
     );
   });
 
-  it('tells a professional what to do about an out-of-hours move', () => {
-    // The refusal is not the end of the road: there is an override, and the
-    // message has to point at it or the professional is simply stuck.
-    expect(toWorkspaceError({ message: 'OUTSIDE_AVAILABILITY' }).message).toMatch(/explicitly/i);
+  it('carries the code as its message, so a log is readable and a screen is not', () => {
+    // Nothing renders Error.message any more -- the interface looks the code
+    // up in whichever language it is speaking. Keeping the code there is what
+    // makes a stack trace worth reading.
+    expect(toWorkspaceError({ message: 'OUTSIDE_AVAILABILITY' }).message).toBe(
+      'OUTSIDE_AVAILABILITY',
+    );
   });
 
   it('never leaks an unrecognised database message', () => {
@@ -58,7 +61,7 @@ describe('toWorkspaceError', () => {
       message: 'relation "public.secret_table" does not exist',
     });
     expect(error.code).toBe('UNKNOWN');
-    expect(error.message).toBe('Something went wrong. Please try again.');
+    expect(error.message).toBe('UNKNOWN');
   });
 
   it('handles a failure with no message at all', () => {

@@ -1,12 +1,16 @@
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { SlotPicker } from '@/components/slot-picker';
 import { Button, Card, Feedback, Screen, Text } from '@/components/ui';
 import { isoDateIn } from '@/features/availability';
-import { describeStatus, toBookingError, type GuestAppointment } from '@/features/booking';
-import { formatDateIn, formatDuration, formatMoney, formatTimeIn } from '@/lib/format';
+import { guestStatusKey, toBookingError, type GuestAppointment } from '@/features/booking';
+import { useBookingErrorText } from '@/i18n/use-error-text';
+import { useDynamicT } from '@/i18n/use-dynamic-t';
+import { useFormat } from '@/i18n/use-format';
 import {
   cancelAppointmentByToken,
   fetchAppointmentByToken,
@@ -18,7 +22,7 @@ type State =
   | { kind: 'loading' }
   | { kind: 'no-token' }
   | { kind: 'not-found' }
-  | { kind: 'error'; message: string }
+  | { kind: 'error' }
   | { kind: 'ready'; appointment: GuestAppointment };
 
 /**
@@ -30,6 +34,10 @@ type State =
  */
 export default function ConfirmationScreen() {
   const { id, token } = useLocalSearchParams<{ id: string; token?: string }>();
+  const { t } = useTranslation();
+  const format = useFormat();
+  const tk = useDynamicT();
+  const errorText = useBookingErrorText();
   const [state, setState] = useState<State>({ kind: 'loading' });
   const [cancelling, setCancelling] = useState(false);
   const [nonce, setNonce] = useState(0);
@@ -57,11 +65,13 @@ export default function ConfirmationScreen() {
       })
       .catch((cause: unknown) => {
         if (cancelled) return;
-        const message = cause instanceof Error ? cause.message : '';
+        // The code, not the words: this has to work the same in both
+        // languages, and matching on prose would silently stop working when
+        // the interface was translated.
         setState(
-          /could not find/i.test(message)
+          toBookingError(cause).code === 'APPOINTMENT_NOT_FOUND'
             ? { kind: 'not-found' }
-            : { kind: 'error', message: 'We could not load this booking. Please try again.' },
+            : { kind: 'error' },
         );
       });
 
@@ -72,7 +82,7 @@ export default function ConfirmationScreen() {
 
   if (state.kind === 'loading') {
     return (
-      <Screen title="Your appointment">
+      <Screen title={t('confirmation.yourAppointment')}>
         <ActivityIndicator />
       </Screen>
     );
@@ -80,12 +90,14 @@ export default function ConfirmationScreen() {
 
   if (state.kind === 'no-token') {
     return (
-      <Screen title="Your appointment">
+      <Screen title={t('confirmation.yourAppointment')}>
         <Card>
           <Text variant="body" tone="muted">
-            This page needs the personal link you were given when you booked. Open that link again
-            to see your appointment.
+            {t('confirmation.needTheLink')} {t('confirmation.needTheLinkBody')}
           </Text>
+        </Card>
+        <Card>
+          <LanguageSwitcher />
         </Card>
       </Screen>
     );
@@ -93,12 +105,14 @@ export default function ConfirmationScreen() {
 
   if (state.kind === 'not-found') {
     return (
-      <Screen title="Not found">
+      <Screen title={t('common.notFound')}>
         <Card>
           <Text variant="body" tone="muted">
-            We could not find that booking. The link may be wrong, or the appointment may have been
-            removed.
+            {t('confirmation.notFoundBody')}
           </Text>
+        </Card>
+        <Card>
+          <LanguageSwitcher />
         </Card>
       </Screen>
     );
@@ -106,8 +120,8 @@ export default function ConfirmationScreen() {
 
   if (state.kind === 'error') {
     return (
-      <Screen title="Your appointment">
-        <Feedback tone="danger" message={state.message} />
+      <Screen title={t('confirmation.yourAppointment')}>
+        <Feedback tone="danger" message={t('confirmation.couldNotLoad')} />
       </Screen>
     );
   }
@@ -117,7 +131,7 @@ export default function ConfirmationScreen() {
 
   async function move() {
     if (!moveSlot) {
-      setMoveFailure('Choose a new time first.');
+      setMoveFailure(t('confirmation.chooseNewTimeFirst'));
       return;
     }
 
@@ -132,7 +146,7 @@ export default function ConfirmationScreen() {
       setNonce((value) => value + 1);
     } catch (cause) {
       const failure = toBookingError(cause);
-      setMoveFailure(failure.message);
+      setMoveFailure(errorText(failure));
       // The list was drawn before somebody else took that time. Leaving it up
       // would offer the same gone slot again, and fail again.
       if (failure.isSlotConflict) {
@@ -146,36 +160,36 @@ export default function ConfirmationScreen() {
 
   return (
     <Screen
-      title={cancelled ? 'Appointment cancelled' : 'You are booked'}
+      title={cancelled ? t('confirmation.cancelledTitle') : t('confirmation.booked')}
       subtitle={`${appointment.businessName} · ${appointment.professionalName}`}
     >
       <Card>
         <Text variant="label" tone={cancelled ? 'danger' : 'success'}>
-          {describeStatus(appointment.status)}
+          {tk(guestStatusKey(appointment.status))}
         </Text>
-        <Text variant="title">{formatTimeIn(appointment.startsAt, appointment.timezone)}</Text>
-        <Text variant="body">{formatDateIn(appointment.startsAt, appointment.timezone)}</Text>
+        <Text variant="title">{format.time(appointment.startsAt, appointment.timezone)}</Text>
+        <Text variant="body">{format.date(appointment.startsAt, appointment.timezone)}</Text>
         <Text variant="caption" tone="muted">
-          Times shown in {appointment.timezone.replace(/_/g, ' ')}.
+          {t('common.timesShownIn', { timezone: appointment.timezone.replace(/_/g, ' ') })}
         </Text>
 
         <View style={{ gap: spacing.xs, marginTop: spacing.sm }}>
           {appointment.items.map((item) => (
             <Text key={item.name} variant="body">
-              {item.name} {'·'} {formatDuration(item.durationMinutes)} {'·'}{' '}
-              {formatMoney(item.price, item.currency)}
+              {item.name} {'·'} {format.duration(item.durationMinutes)} {'·'}{' '}
+              {format.money(item.price, item.currency)}
             </Text>
           ))}
         </View>
 
         <Text variant="caption" tone="muted">
-          Booked for {appointment.customerName}
+          {t('confirmation.bookedFor', { name: appointment.customerName })}
         </Text>
       </Card>
 
       {(appointment.businessAddress || appointment.businessPhone) && (
         <Card>
-          <Text variant="heading">Where to go</Text>
+          <Text variant="heading">{t('publicPage.whereToGo')}</Text>
           {appointment.businessAddress && (
             <Text variant="body">{appointment.businessAddress}</Text>
           )}
@@ -189,16 +203,15 @@ export default function ConfirmationScreen() {
 
       {appointment.canReschedule && appointment.serviceId && (
         <Card>
-          <Text variant="heading">Need a different time?</Text>
+          <Text variant="heading">{t('confirmation.needADifferentTime')}</Text>
 
           {!moving && (
             <>
               <Text variant="body" tone="muted">
-                Pick another time and we will move this appointment. Your booking stays the same
-                otherwise, and you keep this link.
+                {t('confirmation.rescheduleIntro')}
               </Text>
               <Button
-                label="Reschedule"
+                label={t('confirmation.reschedule')}
                 variant="secondary"
                 onPress={() => {
                   setMoveDate(isoDateIn(appointment.startsAt, appointment.timezone));
@@ -229,13 +242,13 @@ export default function ConfirmationScreen() {
 
               <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                 <Button
-                  label="Move my appointment"
+                  label={t('confirmation.move')}
                   style={{ flex: 1 }}
                   loading={saving}
                   onPress={move}
                 />
                 <Button
-                  label="Keep it"
+                  label={t('confirmation.keep')}
                   variant="ghost"
                   style={{ flex: 1 }}
                   onPress={() => {
@@ -251,14 +264,17 @@ export default function ConfirmationScreen() {
 
       <Card>
         <Text variant="caption" tone="muted">
-          Keep this link to check, move or cancel your appointment. Anyone with it can manage this
-          booking, so treat it like a ticket.
+          {t('confirmation.keepThisLink')}
         </Text>
+      </Card>
+
+      <Card>
+        <LanguageSwitcher />
       </Card>
 
       {appointment.canCancel && (
         <Button
-          label="Cancel this appointment"
+          label={t('confirmation.cancel')}
           variant="ghost"
           loading={cancelling}
           onPress={async () => {
@@ -274,7 +290,7 @@ export default function ConfirmationScreen() {
       )}
 
       <Link href={`/p/${appointment.businessSlug}`} asChild>
-        <Button label="Back to the booking page" variant="secondary" />
+        <Button label={t('confirmation.backToBookingPage')} variant="secondary" />
       </Link>
     </Screen>
   );

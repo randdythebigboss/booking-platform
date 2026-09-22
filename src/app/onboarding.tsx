@@ -1,5 +1,6 @@
 import { Redirect, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { useSession, useWorkspace } from '@/components/providers';
@@ -10,19 +11,27 @@ import {
   detectTimezone,
   formatTimezoneLabel,
 } from '@/features/business/timezones';
+import { issue, type ValidationIssue } from '@/features/validation';
 import { toWorkspaceError } from '@/features/workspace';
+import { useWorkspaceErrorText } from '@/i18n/use-error-text';
+import { useIssueText } from '@/i18n/use-issue-text';
 import { createBusiness } from '@/services/workspace';
 import { spacing } from '@/theme';
-
-const TIMEZONE_OPTIONS = COMMON_TIMEZONES.map((zone) => ({
-  value: zone,
-  label: formatTimezoneLabel(zone),
-}));
 
 export default function OnboardingScreen() {
   const session = useSession();
   const workspace = useWorkspace();
   const router = useRouter();
+  const { t } = useTranslation();
+  const issueText = useIssueText();
+  const errorText = useWorkspaceErrorText();
+
+  // A timezone name is a machine identifier, not copy: "America/Santo_Domingo"
+  // reads the same in both languages and is not ours to translate.
+  const timezoneOptions = COMMON_TIMEZONES.map((zone) => ({
+    value: zone,
+    label: formatTimezoneLabel(zone),
+  }));
 
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
@@ -34,7 +43,11 @@ export default function OnboardingScreen() {
       ? detected
       : 'America/Santo_Domingo';
   });
-  const [errors, setErrors] = useState<{ name?: string; slug?: string; displayName?: string }>({});
+  const [errors, setErrors] = useState<{
+    name?: ValidationIssue;
+    slug?: ValidationIssue;
+    displayName?: ValidationIssue;
+  }>({});
   const [failure, setFailure] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -48,9 +61,9 @@ export default function OnboardingScreen() {
 
   async function submit() {
     const nextErrors: typeof errors = {};
-    if (name.trim().length === 0) nextErrors.name = 'Give your business a name.';
+    if (name.trim().length === 0) nextErrors.name = issue('business.nameRequired');
     if (displayName.trim().length === 0) {
-      nextErrors.displayName = 'Enter the name customers will see.';
+      nextErrors.displayName = issue('displayName.required');
     }
     const slugError = validateSlug(slug);
     if (slugError) nextErrors.slug = slugError;
@@ -67,9 +80,9 @@ export default function OnboardingScreen() {
     } catch (cause) {
       const error = toWorkspaceError(cause);
       if (error.code === 'SLUG_TAKEN') {
-        setErrors({ slug: error.message });
+        setErrors({ slug: issue('slug.taken') });
       } else {
-        setFailure(error.message);
+        setFailure(errorText(error));
       }
     } finally {
       setBusy(false);
@@ -78,21 +91,21 @@ export default function OnboardingScreen() {
 
   return (
     <Screen
-      title="Set up your business"
-      subtitle="This is what customers see when you share your link."
+      title={t('onboarding.title')}
+      subtitle={t('onboarding.whatCustomersSee')}
     >
       <View style={{ gap: spacing.md }}>
         <Field
-          label="Business name"
+          label={t('onboarding.businessName')}
           value={name}
           onChangeText={setName}
           autoCapitalize="words"
-          placeholder="Demo Studio"
-          error={errors.name}
+          placeholder={t('onboarding.businessNamePlaceholder')}
+          error={issueText(errors.name)}
         />
 
         <Field
-          label="Public link"
+          label={t('onboarding.publicLink')}
           value={slug}
           onChangeText={(value) => {
             setSlugTouched(true);
@@ -101,35 +114,35 @@ export default function OnboardingScreen() {
           autoCapitalize="none"
           autoCorrect={false}
           prefix="/p/"
-          error={errors.slug}
-          hint="Lowercase letters, numbers and dashes. You can change it later."
+          error={issueText(errors.slug)}
+          hint={t('onboarding.publicLinkPrefixHint')}
         />
 
         <Field
-          label="Your name as a professional"
+          label={t('onboarding.displayNameLabel')}
           value={displayName}
           onChangeText={setDisplayName}
           autoCapitalize="words"
-          placeholder="Alex Rivera"
-          error={errors.displayName}
-          hint="Customers pick this person when they book."
+          placeholder={t('onboarding.displayNamePlaceholder')}
+          error={issueText(errors.displayName)}
+          hint={t('onboarding.displayNamePicked')}
         />
 
         <Select
-          label="Timezone"
+          label={t('onboarding.timezone')}
           value={timezone}
-          options={TIMEZONE_OPTIONS}
+          options={timezoneOptions}
           onChange={setTimezone}
-          hint="Every appointment time is shown in this zone."
+          hint={t('onboarding.timezoneShown')}
         />
 
         {failure && <Feedback tone="danger" message={failure} />}
 
-        <Button label="Create business" onPress={submit} loading={busy} />
+        <Button label={t('onboarding.create')} onPress={submit} loading={busy} />
 
         <Card>
           <Text variant="caption" tone="muted">
-            Nothing is public yet. Your page goes live only when you publish it from Settings.
+            {t('onboarding.nothingPublicYet')}
           </Text>
         </Card>
       </View>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
@@ -11,7 +12,9 @@ import {
   type ExceptionErrors,
   type ExceptionKind,
 } from '@/features/availability';
-import { toWorkspaceError } from '@/features/workspace';
+import { useWorkspaceErrorText } from '@/i18n/use-error-text';
+import { useDynamicT } from '@/i18n/use-dynamic-t';
+import { useIssueText } from '@/i18n/use-issue-text';
 import { useAsyncData } from '@/hooks/use-async-data';
 import {
   createDateException,
@@ -22,13 +25,12 @@ import { spacing } from '@/theme';
 
 const HORIZON_DAYS = 180;
 
-const KIND_OPTIONS = [
-  { value: 'closed' as const, label: 'Closed all day' },
-  { value: 'custom-hours' as const, label: 'Different hours that day' },
-];
-
 export default function DateExceptionsScreen() {
   const { business, professional } = useRequiredWorkspace();
+  const { t } = useTranslation();
+  const tk = useDynamicT();
+  const issueText = useIssueText();
+  const errorText = useWorkspaceErrorText();
   const timezone = business.timezone;
   const professionalId = professional?.id ?? null;
 
@@ -53,10 +55,10 @@ export default function DateExceptionsScreen() {
 
   if (!professionalId) {
     return (
-      <Screen title="Date exceptions">
+      <Screen title={t('exceptions.title')}>
         <Card>
           <Text variant="body" tone="muted">
-            Your account is not set up as a bookable professional in this business yet.
+            {t('exceptions.notBookable')}
           </Text>
         </Card>
       </Screen>
@@ -84,7 +86,7 @@ export default function DateExceptionsScreen() {
       setSaved(true);
       exceptions.reload();
     } catch (cause) {
-      setFailure(toWorkspaceError(cause).message);
+      setFailure(errorText(cause));
     } finally {
       setBusy(false);
     }
@@ -92,72 +94,90 @@ export default function DateExceptionsScreen() {
 
   return (
     <Screen
-      title="Date exceptions"
-      subtitle="A change to what your schedule says on one specific date."
+      title={t('exceptions.title')}
+      subtitle={t('exceptions.subtitle')}
     >
       <Card>
-        <Text variant="heading">Add an exception</Text>
+        <Text variant="heading">{t('exceptions.add')}</Text>
         <Text variant="caption" tone="muted">
-          Custom hours replace that day&apos;s normal hours entirely. To take a couple of hours out
-          of an otherwise normal day, use Blocked time instead.
+          {t('exceptions.customHoursNote')}
         </Text>
 
         <View style={{ gap: spacing.md, marginTop: spacing.sm }}>
           <Field
-            label="Date"
+            label={t('exceptions.date')}
             value={date}
             onChangeText={setDate}
             placeholder="2026-09-29"
             autoCapitalize="none"
-            error={errors.date}
+            error={issueText(errors.date)}
           />
 
-          <Select label="What changes" value={kind} options={KIND_OPTIONS} onChange={setKind} />
+          <Select
+            label={t('exceptions.whatChanges')}
+            value={kind}
+            options={[
+              { value: 'closed' as const, label: t('exceptions.kindClosed') },
+              { value: 'custom-hours' as const, label: t('exceptions.kindCustom') },
+            ]}
+            onChange={setKind}
+          />
 
           {kind === 'custom-hours' && (
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>
               <View style={{ flex: 1 }}>
                 <Field
-                  label="Opens"
+                  label={t('exceptions.opensAt')}
                   value={startTime}
                   onChangeText={setStartTime}
                   placeholder="12:00"
                   autoCapitalize="none"
-                  error={errors.startTime}
+                  error={issueText(errors.startTime)}
                 />
               </View>
               <View style={{ flex: 1 }}>
                 <Field
-                  label="Closes"
+                  label={t('exceptions.closesAt')}
                   value={endTime}
                   onChangeText={setEndTime}
                   placeholder="20:00"
                   autoCapitalize="none"
-                  error={errors.endTime}
+                  error={issueText(errors.endTime)}
                 />
               </View>
             </View>
           )}
 
-          <Field label="Reason" value={reason} onChangeText={setReason} placeholder="Holiday" />
+          <Field
+            label={t('exceptions.reason')}
+            value={reason}
+            onChangeText={setReason}
+            placeholder={t('exceptions.holidayExample')}
+          />
 
-          <Feedback tone="muted" message={describeException(draft)} />
+          <Feedback
+            tone="muted"
+            message={(() => {
+              const described = describeException(draft);
+              return tk(described.code, described.values);
+            })()}
+          />
 
           {failure && <Feedback tone="danger" message={failure} />}
-          {saved && <Feedback tone="success" message="That exception is saved." />}
+          {saved && <Feedback tone="success" message={t('exceptions.saved')} />}
 
-          <Button label="Save exception" onPress={submit} loading={busy} />
+          <Button label={t('exceptions.save')} onPress={submit} loading={busy} />
         </View>
       </Card>
 
-      <Text variant="heading">Upcoming exceptions</Text>
+      <Text variant="heading">{t('exceptions.upcoming')}</Text>
 
       {exceptions.loading && <ActivityIndicator />}
       {exceptions.error && <Feedback tone="danger" message={exceptions.error} />}
       {exceptions.data?.length === 0 && (
         <Card>
           <Text variant="body" tone="muted">
-            No exceptions. Your weekly schedule applies to every date.
+            {t('exceptions.noneApplyWeekly')}
           </Text>
         </Card>
       )}
@@ -168,8 +188,11 @@ export default function DateExceptionsScreen() {
             <Text variant="label">{exception.date}</Text>
             <Text variant="body" tone={exception.kind === 'closed' ? 'danger' : 'accent'}>
               {exception.kind === 'closed'
-                ? 'Closed all day'
-                : `Open ${exception.startTime} to ${exception.endTime}`}
+                ? t('exceptions.closedAllDay')
+                : t('exceptions.openFromTo', {
+                    start: exception.startTime ?? '',
+                    end: exception.endTime ?? '',
+                  })}
             </Text>
             {exception.reason && (
               <Text variant="caption" tone="muted">
@@ -177,7 +200,7 @@ export default function DateExceptionsScreen() {
               </Text>
             )}
             <Button
-              label="Remove"
+              label={t('exceptions.remove')}
               variant="ghost"
               onPress={async () => {
                 await deleteDateException(exception.id);

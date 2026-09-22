@@ -3,12 +3,13 @@ import { describe, expect, it } from 'vitest';
 import {
   APPOINTMENT_ACTOR_TYPES,
   APPOINTMENT_EVENT_TYPES,
-  actorLabel,
+  actorLabelKey,
   describeEvent,
   rescheduleCount,
   sortEvents,
   type AppointmentEvent,
 } from '@/features/appointments';
+import { en, es } from '@/locales';
 
 const AT = (iso: string) => new Date(iso);
 
@@ -29,32 +30,30 @@ function event(partial: Partial<AppointmentEvent> & Pick<AppointmentEvent, 'type
 /** A formatter with no timezone database in it, so these stay pure. */
 const clock = (at: Date) => at.toISOString().slice(11, 16);
 
-describe('actorLabel', () => {
-  it('speaks to the professional reading the screen', () => {
-    expect(actorLabel('professional')).toBe('You');
-    expect(actorLabel('guest')).toBe('The customer');
-  });
+/** A translator that answers with the key, so assertions are about keys. */
+const echo = (key: string) => key;
 
-  it('does not reassure about an unattributed change', () => {
-    expect(actorLabel('system')).toBe('The system');
-  });
-
-  it('covers every actor the database can produce', () => {
+describe('actorLabelKey', () => {
+  it('names a key for every actor the database can produce', () => {
     for (const actor of APPOINTMENT_ACTOR_TYPES) {
-      expect(actorLabel(actor).length).toBeGreaterThan(0);
+      expect(actorLabelKey(actor)).toBe(`history.actor_${actor}`);
     }
   });
 });
 
 describe('describeEvent', () => {
-  it('names who booked it', () => {
-    expect(describeEvent(event({ type: 'created', actor: 'guest' }), clock)).toBe(
-      'The customer booked this appointment',
-    );
+  it('names who booked it, without deciding the word order', () => {
+    const described = describeEvent(event({ type: 'created', actor: 'guest' }), clock, echo);
+
+    expect(described.key).toBe('history.created');
+    expect(described.values.actor).toBe('history.actor_guest');
   });
 
-  it('says where a move came from and where it went', () => {
-    const line = describeEvent(
+  it('hands the sentence both ends of a move, and assembles neither', () => {
+    // Spanish and English place the actor and the times differently, so the
+    // dictionary composes the line. A domain module doing it with template
+    // literals would force one language's grammar on the other.
+    const described = describeEvent(
       event({
         type: 'rescheduled',
         actor: 'guest',
@@ -62,45 +61,53 @@ describe('describeEvent', () => {
         newStartsAt: AT('2026-09-24T17:30:00.000Z'),
       }),
       clock,
+      echo,
     );
-    expect(line).toBe('The customer moved it from 14:00 to 17:30');
+
+    expect(described.key).toBe('history.rescheduled');
+    expect(described.values.from).toBe('14:00');
+    expect(described.values.to).toBe('17:30');
   });
 
   it('reads a cancellation as a cancellation, not as a status', () => {
-    expect(
-      describeEvent(
-        event({
-          type: 'status_changed',
-          previousStatus: 'confirmed',
-          newStatus: 'cancelled',
-        }),
-        clock,
-      ),
-    ).toBe('You cancelled it');
+    const described = describeEvent(
+      event({ type: 'status_changed', previousStatus: 'confirmed', newStatus: 'cancelled' }),
+      clock,
+      echo,
+    );
+
+    expect(described.key).toBe('history.cancelled');
   });
 
-  it('uses the human label for every other status', () => {
-    expect(
-      describeEvent(event({ type: 'status_changed', newStatus: 'no_show' }), clock),
-    ).toBe('You marked it no-show');
-    expect(
-      describeEvent(event({ type: 'status_changed', newStatus: 'completed' }), clock),
-    ).toBe('You marked it completed');
+  it('uses the status key for every other status change', () => {
+    const described = describeEvent(
+      event({ type: 'status_changed', newStatus: 'no_show' }),
+      clock,
+      echo,
+    );
+
+    expect(described.key).toBe('history.statusChanged');
+    expect(described.values.status).toBe('appointments.status_no_show');
   });
 
-  it('never produces an empty line, whatever the event', () => {
+  it('always produces a key that both dictionaries have', () => {
     for (const type of APPOINTMENT_EVENT_TYPES) {
-      expect(describeEvent(event({ type }), clock).length).toBeGreaterThan(0);
+      const described = describeEvent(event({ type, newStatus: 'confirmed' }), clock, echo);
+      const [section, key] = described.key.split('.') as ['history', string];
+      expect(es[section]).toHaveProperty(key);
+      expect(en[section]).toHaveProperty(key);
     }
   });
 
   it('survives a reschedule event that lost one of its endpoints', () => {
-    const line = describeEvent(
+    const described = describeEvent(
       event({ type: 'rescheduled', newStartsAt: AT('2026-09-24T17:30:00.000Z') }),
       clock,
+      echo,
     );
-    expect(line).toContain('an earlier time');
-    expect(line).toContain('17:30');
+
+    expect(described.values.from).toBe('history.unknownFrom');
+    expect(described.values.to).toBe('17:30');
   });
 });
 

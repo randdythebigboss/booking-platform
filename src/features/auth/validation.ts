@@ -1,3 +1,5 @@
+import { issue, type ValidationIssue } from '../validation';
+
 /** Client-side credential checks. Supabase Auth is still the authority. */
 
 export const MIN_PASSWORD_LENGTH = 8;
@@ -9,21 +11,21 @@ export const MIN_PASSWORD_LENGTH = 8;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export interface CredentialErrors {
-  email?: string;
-  password?: string;
+  email?: ValidationIssue;
+  password?: ValidationIssue;
 }
 
-export function validateEmail(email: string): string | undefined {
+export function validateEmail(email: string): ValidationIssue | undefined {
   const trimmed = email.trim();
-  if (trimmed.length === 0) return 'Enter your email address.';
-  if (!EMAIL_PATTERN.test(trimmed)) return 'That does not look like an email address.';
+  if (trimmed.length === 0) return issue('email.required');
+  if (!EMAIL_PATTERN.test(trimmed)) return issue('email.invalid');
   return undefined;
 }
 
-export function validatePassword(password: string): string | undefined {
-  if (password.length === 0) return 'Enter a password.';
+export function validatePassword(password: string): ValidationIssue | undefined {
+  if (password.length === 0) return issue('password.required');
   if (password.length < MIN_PASSWORD_LENGTH) {
-    return `Use at least ${MIN_PASSWORD_LENGTH} characters.`;
+    return issue('password.tooShort', { min: MIN_PASSWORD_LENGTH });
   }
   return undefined;
 }
@@ -37,6 +39,4 @@ export function validateCredentials(email: string, password: string): Credential
   return errors;
 }
 
-export function hasErrors(errors: object): boolean {
-  return Object.values(errors).some(Boolean);
-}
+export { hasIssues as hasErrors } from '../validation';

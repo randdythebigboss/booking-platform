@@ -1,33 +1,41 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { useRequiredWorkspace, useWorkspace } from '@/components/providers';
 import { Button, Card, Feedback, Field, Screen, Select, Text, ToggleRow } from '@/components/ui';
 import { validateSlug } from '@/features/business/slug';
 import { COMMON_TIMEZONES, formatTimezoneLabel } from '@/features/business/timezones';
 import { parseNumericInput } from '@/features/services/validation';
-import { toWorkspaceError } from '@/features/workspace';
+import { issue, type ValidationIssue } from '@/features/validation';
+import { useWorkspaceErrorText } from '@/i18n/use-error-text';
+import { useIssueText } from '@/i18n/use-issue-text';
 import { publicBookingUrl } from '@/lib/env';
 import { updateBusiness, updateProfessional } from '@/services/workspace';
 import { spacing } from '@/theme';
 
-const TIMEZONE_OPTIONS = COMMON_TIMEZONES.map((zone) => ({
-  value: zone,
-  label: formatTimezoneLabel(zone),
-}));
-
 interface Errors {
-  name?: string;
-  slug?: string;
-  slotInterval?: string;
-  minimumNotice?: string;
-  horizon?: string;
-  displayName?: string;
+  name?: ValidationIssue;
+  slug?: ValidationIssue;
+  slotInterval?: ValidationIssue;
+  minimumNotice?: ValidationIssue;
+  horizon?: ValidationIssue;
+  displayName?: ValidationIssue;
 }
 
 export default function SettingsScreen() {
   const { business, professional } = useRequiredWorkspace();
   const workspace = useWorkspace();
+  const { t } = useTranslation();
+  const issueText = useIssueText();
+  const errorText = useWorkspaceErrorText();
+
+  // Timezone names are machine identifiers, not copy.
+  const timezoneOptions = COMMON_TIMEZONES.map((zone) => ({
+    value: zone,
+    label: formatTimezoneLabel(zone),
+  }));
 
   const [name, setName] = useState(business.name);
   const [slug, setSlug] = useState(business.slug);
@@ -60,26 +68,26 @@ export default function SettingsScreen() {
       horizon: parseNumericInput(horizon),
     };
 
-    if (name.trim().length === 0) next.name = 'Give your business a name.';
+    if (name.trim().length === 0) next.name = issue('business.nameRequired');
 
     const slugError = validateSlug(slug);
     if (slugError) next.slug = slugError;
 
     if (!Number.isInteger(values.slotInterval) || (values.slotInterval as number) < 1) {
-      next.slotInterval = 'Use a whole number of minutes, at least 1.';
+      next.slotInterval = issue('policy.slotInterval');
     }
     if (!Number.isInteger(values.minimumNotice) || (values.minimumNotice as number) < 0) {
-      next.minimumNotice = 'Use a whole number of minutes, zero or more.';
+      next.minimumNotice = issue('policy.minimumNotice');
     }
     if (
       !Number.isInteger(values.horizon) ||
       (values.horizon as number) < 0 ||
       (values.horizon as number) > 365
     ) {
-      next.horizon = 'Use a whole number of days, between 0 and 365.';
+      next.horizon = issue('policy.horizon');
     }
     if (professional && displayName.trim().length === 0) {
-      next.displayName = 'Enter the name customers will see.';
+      next.displayName = issue('displayName.required');
     }
 
     return { errors: next, values };
@@ -120,103 +128,123 @@ export default function SettingsScreen() {
       setSaved(true);
       workspace.refresh();
     } catch (cause) {
-      setFailure(toWorkspaceError(cause).message);
+      setFailure(errorText(cause));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Screen title="Settings" subtitle="Your business, your link, and the rules bookings follow.">
+    <Screen title={t('settings.title')} subtitle={t('settings.subtitle')}>
       <View style={{ gap: spacing.md }}>
-        <Text variant="heading">Business</Text>
-
-        <Field label="Name" value={name} onChangeText={setName} error={errors.name} />
+        <Text variant="heading">{t('settings.business')}</Text>
 
         <Field
-          label="Public link"
+          label={t('settings.businessName')}
+          value={name}
+          onChangeText={setName}
+          error={issueText(errors.name)}
+        />
+
+        <Field
+          label={t('settings.publicLink')}
           value={slug}
           onChangeText={setSlug}
           autoCapitalize="none"
           autoCorrect={false}
           prefix="/p/"
-          error={errors.slug}
-          hint="Changing this breaks any link you have already shared."
+          error={issueText(errors.slug)}
+          hint={t('settings.slugWarning')}
         />
 
         <Field
-          label="Description"
+          label={t('settings.description')}
           value={description}
           onChangeText={setDescription}
           multiline
-          placeholder="What you do, in a sentence."
+          placeholder={t('settings.descriptionPlaceholder')}
         />
 
-        <Field label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
         <Field
-          label="Email"
+          label={t('settings.phone')}
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
+        />
+        <Field
+          label={t('settings.email')}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
         />
-        <Field label="Address" value={address} onChangeText={setAddress} multiline />
-
-        <Select
-          label="Timezone"
-          value={timezone}
-          options={TIMEZONE_OPTIONS}
-          onChange={setTimezone}
-          hint="Existing appointments keep the exact moment they were booked for."
+        <Field
+          label={t('settings.address')}
+          value={address}
+          onChangeText={setAddress}
+          multiline
         />
 
-        <Text variant="heading">Booking rules</Text>
+        <Select
+          label={t('settings.timezone')}
+          value={timezone}
+          options={timezoneOptions}
+          onChange={setTimezone}
+          hint={t('settings.timezoneKeepsMoment')}
+        />
+
+        <Text variant="heading">{t('settings.policy')}</Text>
 
         <Field
-          label="Slot interval, in minutes"
+          label={t('settings.slotIntervalLabel')}
           value={slotInterval}
           onChangeText={setSlotInterval}
           keyboardType="number-pad"
-          error={errors.slotInterval}
-          hint="How far apart the offered start times are."
+          error={issueText(errors.slotInterval)}
+          hint={t('settings.slotIntervalHint')}
         />
         <Field
-          label="Minimum notice, in minutes"
+          label={t('settings.minimumNoticeLabel')}
           value={minimumNotice}
           onChangeText={setMinimumNotice}
           keyboardType="number-pad"
-          error={errors.minimumNotice}
-          hint="How far ahead of now the earliest bookable time is."
+          error={issueText(errors.minimumNotice)}
+          hint={t('settings.minimumNoticeHint')}
         />
         <Field
-          label="Booking horizon, in days"
+          label={t('settings.bookingHorizonLabel')}
           value={horizon}
           onChangeText={setHorizon}
           keyboardType="number-pad"
-          error={errors.horizon}
-          hint="How far into the future customers may book."
+          error={issueText(errors.horizon)}
+          hint={t('settings.bookingHorizonHint')}
         />
 
         <ToggleRow
-          label="Confirm bookings automatically"
-          description="Turn this off to review each booking before it is confirmed."
+          label={t('settings.autoConfirm')}
+          description={t('settings.autoConfirmOff')}
           value={autoConfirm}
           onChange={setAutoConfirm}
         />
 
         {professional && (
           <>
-            <Text variant="heading">Your professional profile</Text>
+            <Text variant="heading">{t('settings.yourProfile')}</Text>
             <Field
-              label="Name customers see"
+              label={t('settings.nameCustomersSee')}
               value={displayName}
               onChangeText={setDisplayName}
-              error={errors.displayName}
+              error={issueText(errors.displayName)}
             />
-            <Field label="Short bio" value={bio} onChangeText={setBio} multiline />
+            <Field
+              label={t('settings.shortBio')}
+              value={bio}
+              onChangeText={setBio}
+              multiline
+            />
             <ToggleRow
-              label="Accepting bookings"
-              description="Turn this off to stop new bookings without unpublishing the page."
+              label={t('settings.acceptingBookings')}
+              description={t('settings.acceptingBookingsHint')}
               value={isBookable}
               onChange={setIsBookable}
             />
@@ -224,22 +252,29 @@ export default function SettingsScreen() {
         )}
 
         <Card>
-          <Text variant="heading">Publishing</Text>
+          <Text variant="heading">{t('settings.publishing')}</Text>
           <Text variant="body" tone="muted" selectable>
             {publicBookingUrl(business.slug)}
           </Text>
           <ToggleRow
-            label="Published"
-            description="While this is off, the page is invisible and nobody can book."
+            label={t('settings.published')}
+            description={t('settings.publishedHidden')}
             value={isPublished}
             onChange={setIsPublished}
           />
         </Card>
 
         {failure && <Feedback tone="danger" message={failure} />}
-        {saved && <Feedback tone="success" message="Your settings are saved." />}
+        {saved && <Feedback tone="success" message={t('settings.saved')} />}
 
-        <Button label="Save settings" onPress={submit} loading={busy} />
+        <Button label={t('settings.save')} onPress={submit} loading={busy} />
+
+        <Card>
+          <LanguageSwitcher />
+          <Text variant="caption" tone="muted">
+            {t('language.hint')}
+          </Text>
+        </Card>
       </View>
     </Screen>
   );

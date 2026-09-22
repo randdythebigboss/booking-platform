@@ -37,12 +37,12 @@ describe('validateSlug', () => {
   });
 
   it('rejects the shapes the database regex would reject', () => {
-    expect(validateSlug('')).toMatch(/Choose a public link/);
-    expect(validateSlug('ab')).toMatch(/at least 3/);
-    expect(validateSlug('Demo-Studio')).toMatch(/lowercase/);
-    expect(validateSlug('demo--studio')).toMatch(/lowercase/);
-    expect(validateSlug('-demo')).toMatch(/lowercase/);
-    expect(validateSlug('demo_studio')).toMatch(/lowercase/);
-    expect(validateSlug('a'.repeat(61))).toMatch(/at most 60/);
+    expect(validateSlug('')?.code).toBe('slug.required');
+    expect(validateSlug('ab')).toEqual({ code: 'slug.tooShort', values: { min: 3 } });
+    expect(validateSlug('Demo-Studio')?.code).toBe('slug.invalid');
+    expect(validateSlug('demo--studio')?.code).toBe('slug.invalid');
+    expect(validateSlug('-demo')?.code).toBe('slug.invalid');
+    expect(validateSlug('demo_studio')?.code).toBe('slug.invalid');
+    expect(validateSlug('a'.repeat(61))).toEqual({ code: 'slug.tooLong', values: { max: 60 } });
   });
 });

@@ -1,3 +1,5 @@
+import { issue, type ValidationIssue } from '../validation';
+
 /** Public link handling: `app.example.com/p/<slug>`. */
 
 export const MIN_SLUG_LENGTH = 3;
@@ -57,12 +59,10 @@ export function isValidSlug(slug: string): boolean {
   );
 }
 
-export function validateSlug(slug: string): string | undefined {
-  if (slug.length === 0) return 'Choose a public link.';
-  if (slug.length < MIN_SLUG_LENGTH) return `Use at least ${MIN_SLUG_LENGTH} characters.`;
-  if (slug.length > MAX_SLUG_LENGTH) return `Use at most ${MAX_SLUG_LENGTH} characters.`;
-  if (!SLUG_PATTERN.test(slug)) {
-    return 'Use lowercase letters, numbers and single dashes only.';
-  }
+export function validateSlug(slug: string): ValidationIssue | undefined {
+  if (slug.length === 0) return issue('slug.required');
+  if (slug.length < MIN_SLUG_LENGTH) return issue('slug.tooShort', { min: MIN_SLUG_LENGTH });
+  if (slug.length > MAX_SLUG_LENGTH) return issue('slug.tooLong', { max: MAX_SLUG_LENGTH });
+  if (!SLUG_PATTERN.test(slug)) return issue('slug.invalid');
   return undefined;
 }

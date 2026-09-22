@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
@@ -8,9 +9,10 @@ import {
   validateService,
   type ServiceErrors,
 } from '@/features/services/validation';
-import { toWorkspaceError } from '@/features/workspace';
+import { useWorkspaceErrorText } from '@/i18n/use-error-text';
+import { useFormat } from '@/i18n/use-format';
+import { useIssueText } from '@/i18n/use-issue-text';
 import { useAsyncData } from '@/hooks/use-async-data';
-import { formatDuration, formatMoney } from '@/lib/format';
 import {
   deactivateService,
   fetchServices,
@@ -55,6 +57,10 @@ function toDraft(service: AdminService): Draft {
 
 export default function ServicesScreen() {
   const { business } = useRequiredWorkspace();
+  const { t } = useTranslation();
+  const format = useFormat();
+  const issueText = useIssueText();
+  const errorText = useWorkspaceErrorText();
   const services = useAsyncData(() => fetchServices(business.id), [business.id]);
 
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -100,7 +106,7 @@ export default function ServicesScreen() {
       setDraft(null);
       services.reload();
     } catch (cause) {
-      setFailure(toWorkspaceError(cause).message);
+      setFailure(errorText(cause));
     } finally {
       setBusy(false);
     }
@@ -109,73 +115,73 @@ export default function ServicesScreen() {
   if (draft) {
     return (
       <Screen
-        title={draft.id ? 'Edit service' : 'New service'}
-        subtitle="Duration and buffers decide which times customers can book."
+        title={draft.id ? t('services.edit') : t('services.new')}
+        subtitle={t('services.formSubtitle')}
       >
         <View style={{ gap: spacing.md }}>
           <Field
-            label="Name"
+            label={t('services.name')}
             value={draft.name}
             onChangeText={(name) => setDraft({ ...draft, name })}
-            placeholder="Haircut"
-            error={errors.name}
+            placeholder={t('services.namePlaceholder')}
+            error={issueText(errors.name)}
           />
           <Field
-            label="Description"
+            label={t('services.description')}
             value={draft.description}
             onChangeText={(description) => setDraft({ ...draft, description })}
-            placeholder="Wash, cut and finish."
+            placeholder={t('services.descriptionPlaceholder')}
             multiline
           />
           <Field
-            label="Duration in minutes"
+            label={t('services.durationMinutes')}
             value={draft.duration}
             onChangeText={(duration) => setDraft({ ...draft, duration })}
             keyboardType="number-pad"
-            error={errors.durationMinutes}
+            error={issueText(errors.durationMinutes)}
           />
           <Field
-            label={`Price in ${business.currency}`}
+            label={t('services.priceIn', { currency: business.currency })}
             value={draft.price}
             onChangeText={(price) => setDraft({ ...draft, price })}
             keyboardType="decimal-pad"
-            error={errors.price}
+            error={issueText(errors.price)}
           />
           <Field
-            label="Buffer before, in minutes"
+            label={t('services.bufferBefore')}
             value={draft.bufferBefore}
             onChangeText={(bufferBefore) => setDraft({ ...draft, bufferBefore })}
             keyboardType="number-pad"
-            error={errors.bufferBeforeMinutes}
-            hint="Setup time held before the appointment."
+            error={issueText(errors.bufferBeforeMinutes)}
+            hint={t('services.bufferBeforeHint')}
           />
           <Field
-            label="Buffer after, in minutes"
+            label={t('services.bufferAfter')}
             value={draft.bufferAfter}
             onChangeText={(bufferAfter) => setDraft({ ...draft, bufferAfter })}
             keyboardType="number-pad"
-            error={errors.bufferAfterMinutes}
-            hint="Clean-up time held after the appointment."
+            error={issueText(errors.bufferAfterMinutes)}
+            hint={t('services.bufferAfterHint')}
           />
           <ToggleRow
-            label="Offered to customers"
-            description="Turn this off to hide the service without deleting it."
+            label={t('services.offered')}
+            description={t('services.offeredHint')}
             value={draft.isActive}
             onChange={(isActive) => setDraft({ ...draft, isActive })}
           />
 
           {failure && <Feedback tone="danger" message={failure} />}
 
-          <Button label="Save service" onPress={submit} loading={busy} />
-          <Button label="Cancel" variant="ghost" onPress={() => setDraft(null)} />
+          <Button label={t('services.save')} onPress={submit} loading={busy} />
+          <Button label={t('common.cancel')} variant="ghost" onPress={() => setDraft(null)} />
         </View>
       </Screen>
     );
   }
 
   return (
-    <Screen title="Services" subtitle="What you offer, how long it takes, what it costs.">
-      <Button label="Add a service" onPress={() => edit(EMPTY_DRAFT)} />
+    <Screen title={t('services.title')} subtitle={t('services.subtitle')}>
+      <Button label={t('services.add')} onPress={() => edit(EMPTY_DRAFT)} />
 
       {services.loading && <ActivityIndicator />}
       {services.error && <Feedback tone="danger" message={services.error} />}
@@ -183,7 +189,7 @@ export default function ServicesScreen() {
       {services.data?.length === 0 && (
         <Card>
           <Text variant="body" tone="muted">
-            No services yet. Customers cannot book until there is at least one.
+            {t('services.noneYet')}
           </Text>
         </Card>
       )}
@@ -193,24 +199,24 @@ export default function ServicesScreen() {
           <Card key={service.id}>
             <Text variant="heading">{service.name}</Text>
             <Text variant="label" tone="accent">
-              {formatDuration(service.durationMinutes)} {'·'}{' '}
-              {formatMoney(service.price, service.currency)}
+              {format.duration(service.durationMinutes)} {'·'}{' '}
+              {format.money(service.price, service.currency)}
             </Text>
             {!service.isActive && (
               <Text variant="caption" tone="muted">
-                Hidden from customers.
+                {t('services.hiddenFromCustomers')}
               </Text>
             )}
             <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs }}>
               <Button
-                label="Edit"
+                label={t('services.edit')}
                 variant="secondary"
                 style={{ flex: 1 }}
                 onPress={() => edit(toDraft(service))}
               />
               {service.isActive && (
                 <Button
-                  label="Hide"
+                  label={t('services.hide')}
                   variant="ghost"
                   style={{ flex: 1 }}
                   onPress={async () => {

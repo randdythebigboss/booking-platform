@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { AppointmentRow } from '@/components/appointment-row';
@@ -7,7 +8,7 @@ import { Button, Card, Feedback, Screen, Text } from '@/components/ui';
 import { addDays, isoDateIn, zonedInstant } from '@/features/availability';
 import { useAsyncData } from '@/hooks/use-async-data';
 import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
-import { formatDateIn } from '@/lib/format';
+import { useFormat } from '@/i18n/use-format';
 import { fetchAppointments } from '@/services/appointments';
 import { spacing } from '@/theme';
 
@@ -22,6 +23,8 @@ const UPCOMING_DAYS = 14;
  */
 export default function CalendarScreen() {
   const { business } = useRequiredWorkspace();
+  const { t } = useTranslation();
+  const format = useFormat();
   const timezone = business.timezone;
 
   const today = isoDateIn(new Date(), timezone);
@@ -51,32 +54,35 @@ export default function CalendarScreen() {
   useRefreshOnFocus(upcoming.reload);
 
   return (
-    <Screen title="Calendar" subtitle={`Times are ${timezone.replace(/_/g, ' ')}.`}>
+    <Screen
+      title={t('calendar.title')}
+      subtitle={t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
+    >
       <Card>
         <Text variant="heading">
-          {formatDateIn(new Date(`${date}T12:00:00Z`), timezone)}
+          {format.date(new Date(`${date}T12:00:00Z`), timezone)}
         </Text>
         {date !== today && (
           <Text variant="caption" tone="muted">
-            Today is {formatDateIn(new Date(), timezone)}.
+            {t('calendar.todayIs', { date: format.date(new Date(), timezone) })}
           </Text>
         )}
 
         <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs }}>
           <Button
-            label="Previous"
+            label={t('common.previous')}
             variant="secondary"
             style={{ flex: 1 }}
             onPress={() => setDate(addDays(date, -1))}
           />
           <Button
-            label="Today"
+            label={t('common.today')}
             variant="secondary"
             style={{ flex: 1 }}
             onPress={() => setDate(today)}
           />
           <Button
-            label="Next"
+            label={t('common.next')}
             variant="secondary"
             style={{ flex: 1 }}
             onPress={() => setDate(addDays(date, 1))}
@@ -89,7 +95,7 @@ export default function CalendarScreen() {
       {!day.loading && (day.data ?? []).length === 0 && (
         <Card>
           <Text variant="body" tone="muted">
-            Nothing booked that day.
+            {t('calendar.nothingThatDay')}
           </Text>
         </Card>
       )}
@@ -105,12 +111,12 @@ export default function CalendarScreen() {
         ))}
       </View>
 
-      <Text variant="heading">Coming up</Text>
+      <Text variant="heading">{t('calendar.comingUp')}</Text>
       {upcoming.loading && <ActivityIndicator />}
       {!upcoming.loading && (upcoming.data ?? []).length === 0 && (
         <Card>
           <Text variant="body" tone="muted">
-            Nothing in the next {UPCOMING_DAYS} days.
+            {t('calendar.nothingComingUp')}
           </Text>
         </Card>
       )}

@@ -11,3 +11,4 @@ export {
   type WorkspaceStatus,
   type WorkspaceValue,
 } from './workspace-provider';
+export { LocaleProvider, useLocale, type LocaleValue } from './locale-provider';

@@ -1,22 +1,26 @@
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button, Card, Screen, Text } from '@/components/ui';
+import { useFormat } from '@/i18n/use-format';
 import { isConfigured } from '@/lib/env';
-import { formatDuration, formatMoney } from '@/lib/format';
 import { fetchPublicBusiness, type PublicBusiness } from '@/services/catalog';
 import { spacing } from '@/theme';
 
 type State =
   | { kind: 'unconfigured' }
   | { kind: 'loading' }
-  | { kind: 'error'; message: string }
+  | { kind: 'error' }
   | { kind: 'missing' }
   | { kind: 'ready'; business: PublicBusiness };
 
 export default function PublicBusinessScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
+  const { t } = useTranslation();
+  const format = useFormat();
   const [state, setState] = useState<State>(() =>
     isConfigured() ? { kind: 'loading' } : { kind: 'unconfigured' },
   );
@@ -32,12 +36,10 @@ export default function PublicBusinessScreen() {
         if (cancelled) return;
         setState(business ? { kind: 'ready', business } : { kind: 'missing' });
       })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        setState({
-          kind: 'error',
-          message: error instanceof Error ? error.message : 'Unknown error',
-        });
+      .catch(() => {
+        // Deliberately not the raw failure: a customer gets a sentence they
+        // can act on, never a database message.
+        if (!cancelled) setState({ kind: 'error' });
       });
 
     return () => {
@@ -47,7 +49,7 @@ export default function PublicBusinessScreen() {
 
   if (state.kind === 'loading') {
     return (
-      <Screen title="Loading">
+      <Screen title={t('common.loading')}>
         <ActivityIndicator />
       </Screen>
     );
@@ -55,12 +57,11 @@ export default function PublicBusinessScreen() {
 
   if (state.kind === 'unconfigured') {
     return (
-      <Screen title="Booking page" subtitle={`/p/${slug}`}>
+      <Screen title={t('publicPage.notFound')} subtitle={`/p/${slug}`}>
         <Card>
-          <Text variant="heading">Supabase is not configured</Text>
+          <Text variant="heading">{t('auth.notConfigured')}</Text>
           <Text variant="body" tone="muted">
-            This page reads live data. Copy .env.example to .env.local, point it at a Supabase
-            project with the migrations applied, and reload.
+            {t('publicPage.unconfiguredBody')}
           </Text>
         </Card>
       </Screen>
@@ -68,15 +69,29 @@ export default function PublicBusinessScreen() {
   }
 
   if (state.kind === 'missing') {
-    return <Screen title="Page not found" subtitle={`No published business at /p/${slug}.`} />;
+    return (
+      <Screen
+        title={t('publicPage.notFound')}
+        subtitle={t('publicPage.noPublishedBusiness', { slug })}
+      >
+        <Card>
+          <Text variant="body" tone="muted">
+            {t('publicPage.notFoundBody')}
+          </Text>
+        </Card>
+        <Card>
+          <LanguageSwitcher />
+        </Card>
+      </Screen>
+    );
   }
 
   if (state.kind === 'error') {
     return (
-      <Screen title="Something went wrong">
+      <Screen title={t('common.somethingWentWrong')}>
         <Card>
           <Text variant="body" tone="danger">
-            {state.message}
+            {t('publicPage.couldNotLoad')}
           </Text>
         </Card>
       </Screen>
@@ -101,7 +116,7 @@ export default function PublicBusinessScreen() {
 
       {business.professionals.length > 0 && (
         <>
-          <Text variant="heading">Who you will see</Text>
+          <Text variant="heading">{t('publicPage.professionals')}</Text>
           <View style={{ gap: spacing.sm }}>
             {business.professionals.map((professional) => (
               <Card key={professional.id}>
@@ -117,7 +132,7 @@ export default function PublicBusinessScreen() {
         </>
       )}
 
-      <Text variant="heading">Services</Text>
+      <Text variant="heading">{t('publicPage.services')}</Text>
       <View style={{ gap: spacing.sm }}>
         {business.services.map((service) => (
           <Card key={service.id}>
@@ -128,16 +143,20 @@ export default function PublicBusinessScreen() {
               </Text>
             )}
             <Text variant="label" tone="accent">
-              {formatDuration(service.durationMinutes)} {'·'}{' '}
-              {formatMoney(service.price, service.currency)}
+              {format.duration(service.durationMinutes)} {'·'}{' '}
+              {format.money(service.price, service.currency)}
             </Text>
           </Card>
         ))}
       </View>
 
       <Link href={`/p/${business.slug}/book`} asChild>
-        <Button label="Book an appointment" />
+        <Button label={t('publicPage.book')} />
       </Link>
+
+      <Card>
+        <LanguageSwitcher />
+      </Card>
     </Screen>
   );
 }

@@ -5,7 +5,7 @@ import {
   availableActions,
   canTransition,
   isTerminal,
-  statusLabel,
+  statusLabelKey,
   statusTone,
 } from '@/features/appointments';
 import { APPOINTMENT_STATUSES } from '@/types/domain';
@@ -90,16 +90,18 @@ describe('availableActions', () => {
     for (const status of APPOINTMENT_STATUSES) {
       for (const action of availableActions(status, PAST, NOW)) {
         expect(ALLOWED_TRANSITIONS[status]).toContain(action.status);
+        expect(action.labelKey).toBe(`appointments.action_${action.status}`);
       }
     }
   });
 });
 
-describe('statusLabel and statusTone', () => {
-  it('gives every status words and a tone', () => {
+describe('statusLabelKey and statusTone', () => {
+  it('gives every status a key and a tone', () => {
     for (const status of APPOINTMENT_STATUSES) {
-      expect(statusLabel(status)).not.toBe(status === 'no_show' ? 'no_show' : '');
-      expect(statusLabel(status).length).toBeGreaterThan(0);
+      // A key, never a word: 'no_show' is a database enum and the domain has
+      // no business deciding whether it reads 'No-show' or 'No asistió'.
+      expect(statusLabelKey(status)).toBe(`appointments.status_${status}`);
       expect(['default', 'muted', 'accent', 'danger', 'success']).toContain(statusTone(status));
     }
   });

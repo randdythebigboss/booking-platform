@@ -1,6 +1,6 @@
 import type { AppointmentStatus } from '@/types/domain';
 
-import { statusLabel } from './lifecycle';
+import { statusLabelKey } from './lifecycle';
 
 export const APPOINTMENT_EVENT_TYPES = ['created', 'status_changed', 'rescheduled'] as const;
 export type AppointmentEventType = (typeof APPOINTMENT_EVENT_TYPES)[number];
@@ -20,55 +20,57 @@ export interface AppointmentEvent {
   reason: string | null;
 }
 
-/**
- * Who did it, in the words a professional would use.
- *
- * "The system" is deliberately vague rather than reassuring: it means nobody
- * signed the change, which is worth noticing.
- */
-export function actorLabel(actor: AppointmentActorType): string {
-  switch (actor) {
-    case 'professional':
-      return 'You';
-    case 'guest':
-      return 'The customer';
-    case 'system':
-      return 'The system';
-    default:
-      return actor;
-  }
+/** The key naming who acted, in the words a professional would use. */
+export function actorLabelKey(actor: AppointmentActorType): string {
+  return `history.actor_${actor}`;
 }
 
 /**
- * One line describing what happened, without the timestamp -- the UI places
- * that itself, formatted in the business timezone.
+ * What happened, as a translation key plus the values its sentence needs.
  *
- * `formatTime` is injected rather than imported so this stays a pure function
- * of its inputs and can be tested without a timezone database.
+ * The line is assembled by the dictionary, not here: Spanish and English put
+ * the actor, the old time and the new time in different places, and a domain
+ * module concatenating them would force one language's word order on both.
  */
+export interface EventDescription {
+  key: string;
+  values: Record<string, string>;
+}
+
 export function describeEvent(
   event: AppointmentEvent,
   formatTime: (at: Date) => string,
-): string {
+  translate: (key: string) => string,
+): EventDescription {
+  const actor = translate(actorLabelKey(event.actor));
+
   switch (event.type) {
     case 'created':
-      return `${actorLabel(event.actor)} booked this appointment`;
+      return { key: 'history.created', values: { actor } };
 
-    case 'rescheduled': {
-      const from = event.previousStartsAt ? formatTime(event.previousStartsAt) : 'an earlier time';
-      const to = event.newStartsAt ? formatTime(event.newStartsAt) : 'a new time';
-      return `${actorLabel(event.actor)} moved it from ${from} to ${to}`;
-    }
+    case 'rescheduled':
+      return {
+        key: 'history.rescheduled',
+        values: {
+          actor,
+          from: event.previousStartsAt
+            ? formatTime(event.previousStartsAt)
+            : translate('history.unknownFrom'),
+          to: event.newStartsAt ? formatTime(event.newStartsAt) : translate('history.unknownTo'),
+        },
+      };
 
     case 'status_changed': {
-      if (!event.newStatus) return `${actorLabel(event.actor)} changed the status`;
-      const verb = event.newStatus === 'cancelled' ? 'cancelled it' : null;
-      if (verb) return `${actorLabel(event.actor)} ${verb}`;
-      return `${actorLabel(event.actor)} marked it ${statusLabel(event.newStatus).toLowerCase()}`;
+      if (!event.newStatus) return { key: 'history.statusChangedPlain', values: { actor } };
+      if (event.newStatus === 'cancelled') return { key: 'history.cancelled', values: { actor } };
+      return {
+        key: 'history.statusChanged',
+        values: { actor, status: translate(statusLabelKey(event.newStatus)).toLowerCase() },
+      };
     }
 
     default:
-      return 'Something changed';
+      return { key: 'history.statusChangedPlain', values: { actor } };
   }
 }
 

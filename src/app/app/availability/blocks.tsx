@@ -1,12 +1,14 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
 import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
 import { isoDateIn, toBlockRange, validateBlock, type BlockErrors } from '@/features/availability';
-import { toWorkspaceError } from '@/features/workspace';
+import { useWorkspaceErrorText } from '@/i18n/use-error-text';
+import { useFormat } from '@/i18n/use-format';
+import { useIssueText } from '@/i18n/use-issue-text';
 import { useAsyncData } from '@/hooks/use-async-data';
-import { formatDateIn, formatTimeIn } from '@/lib/format';
 import { createBlockedTime, deleteBlockedTime, fetchBlockedTimes } from '@/services/schedule-admin';
 import { spacing } from '@/theme';
 
@@ -14,6 +16,10 @@ const HORIZON_DAYS = 90;
 
 export default function BlockedTimeScreen() {
   const { business, professional } = useRequiredWorkspace();
+  const { t } = useTranslation();
+  const format = useFormat();
+  const issueText = useIssueText();
+  const errorText = useWorkspaceErrorText();
   const timezone = business.timezone;
   const professionalId = professional?.id ?? null;
 
@@ -36,10 +42,10 @@ export default function BlockedTimeScreen() {
 
   if (!professionalId) {
     return (
-      <Screen title="Blocked time">
+      <Screen title={t('blocks.title')}>
         <Card>
           <Text variant="body" tone="muted">
-            Your account is not set up as a bookable professional in this business yet.
+            {t('blocks.notBookable')}
           </Text>
         </Card>
       </Screen>
@@ -67,7 +73,7 @@ export default function BlockedTimeScreen() {
       setSaved(true);
       blocks.reload();
     } catch (cause) {
-      setFailure(toWorkspaceError(cause).message);
+      setFailure(errorText(cause));
     } finally {
       setBusy(false);
     }
@@ -75,69 +81,68 @@ export default function BlockedTimeScreen() {
 
   return (
     <Screen
-      title="Blocked time"
-      subtitle={`Time taken out of a day. Hours are ${business.timezone.split('/').pop()?.replace(/_/g, ' ')} time.`}
+      title={t('blocks.title')}
+      subtitle={t('blocks.subtitle')}
     >
       <Card>
-        <Text variant="heading">Block a period</Text>
+        <Text variant="heading">{t('blocks.add')}</Text>
         <Text variant="caption" tone="muted">
-          To close a whole day instead, use Date exceptions: that changes what your schedule says,
-          rather than carving a hole in it.
+          {t('blocks.useExceptionInstead')}
         </Text>
 
         <View style={{ gap: spacing.md, marginTop: spacing.sm }}>
           <Field
-            label="Date"
+            label={t('blocks.date')}
             value={date}
             onChangeText={setDate}
             placeholder="2026-09-28"
             autoCapitalize="none"
-            error={errors.date}
+            error={issueText(errors.date)}
           />
           <View style={{ flexDirection: 'row', gap: spacing.sm }}>
             <View style={{ flex: 1 }}>
               <Field
-                label="From"
+                label={t('blocks.startTime')}
                 value={startTime}
                 onChangeText={setStartTime}
                 placeholder="12:00"
                 autoCapitalize="none"
-                error={errors.startTime}
+                error={issueText(errors.startTime)}
               />
             </View>
             <View style={{ flex: 1 }}>
               <Field
-                label="To"
+                label={t('blocks.endTime')}
                 value={endTime}
                 onChangeText={setEndTime}
                 placeholder="14:30"
                 autoCapitalize="none"
-                error={errors.endTime}
+                error={issueText(errors.endTime)}
               />
             </View>
           </View>
           <Field
-            label="Reason"
+            label={t('blocks.reason')}
             value={reason}
             onChangeText={setReason}
-            placeholder="Personal appointment"
+            placeholder={t('blocks.reasonExample')}
           />
 
           {failure && <Feedback tone="danger" message={failure} />}
-          {saved && <Feedback tone="success" message="That period is blocked." />}
+          {saved && <Feedback tone="success" message={t('blocks.blocked')} />}
 
-          <Button label="Block this period" onPress={submit} loading={busy} />
+          <Button label={t('blocks.add')} onPress={submit} loading={busy} />
         </View>
       </Card>
 
-      <Text variant="heading">Upcoming blocks</Text>
+      <Text variant="heading">{t('blocks.upcoming')}</Text>
 
       {blocks.loading && <ActivityIndicator />}
       {blocks.error && <Feedback tone="danger" message={blocks.error} />}
       {blocks.data?.length === 0 && (
         <Card>
           <Text variant="body" tone="muted">
-            Nothing blocked in the next {HORIZON_DAYS} days.
+            {t('blocks.empty')}
           </Text>
         </Card>
       )}
@@ -145,9 +150,9 @@ export default function BlockedTimeScreen() {
       <View style={{ gap: spacing.sm }}>
         {(blocks.data ?? []).map((block) => (
           <Card key={block.id}>
-            <Text variant="label">{formatDateIn(block.startsAt, timezone)}</Text>
+            <Text variant="label">{format.date(block.startsAt, timezone)}</Text>
             <Text variant="body" tone="accent">
-              {formatTimeIn(block.startsAt, timezone)} {'–'} {formatTimeIn(block.endsAt, timezone)}
+              {format.time(block.startsAt, timezone)} {'–'} {format.time(block.endsAt, timezone)}
             </Text>
             {block.reason && (
               <Text variant="caption" tone="muted">
@@ -155,7 +160,7 @@ export default function BlockedTimeScreen() {
               </Text>
             )}
             <Button
-              label="Remove"
+              label={t('blocks.remove')}
               variant="ghost"
               onPress={async () => {
                 await deleteBlockedTime(block.id);

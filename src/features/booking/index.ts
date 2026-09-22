@@ -23,7 +23,7 @@ export {
 } from './flow';
 export {
   parseGuestAppointment,
-  describeStatus,
+  guestStatusKey,
   MalformedConfirmationError,
   type GuestAppointment,
   type GuestAppointmentItem,
