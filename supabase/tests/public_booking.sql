@@ -253,6 +253,7 @@ declare
   v_first_token uuid;
   v_second_token uuid;
   v_result jsonb;
+  v_field text;
 begin
   select array_agg(starts_at order by starts_at) into v_slots
   from public.get_available_slots(c_open_pro, c_open_service, v_date);
@@ -285,6 +286,24 @@ begin
   if (v_result ->> 'customerName') <> 'Guest Five' then
     raise exception 'FAIL: the token returned another customer';
   end if;
+
+  -- Every field the confirmation page needs, named.
+  --
+  -- The client validates the shape it is given and refuses a malformed one, so
+  -- a field quietly dropped here does not fail loudly: the database answers
+  -- 200 with a well-formed object and the guest is told their booking could
+  -- not be loaded. That happened once, when a function was reproduced from an
+  -- older migration instead of the live definition, and nothing in SQL noticed.
+  foreach v_field in array array[
+    'appointmentId', 'professionalId', 'serviceId', 'status', 'startsAt',
+    'endsAt', 'timezone', 'businessName', 'businessSlug', 'professionalName',
+    'customerName', 'items', 'canCancel', 'canReschedule'
+  ]
+  loop
+    if not (v_result ? v_field) then
+      raise exception 'FAIL: the guest read no longer returns %', v_field;
+    end if;
+  end loop;
 
   ---------------------------------------------------------------------------
   raise notice '11. an invalid token retrieves nothing';
