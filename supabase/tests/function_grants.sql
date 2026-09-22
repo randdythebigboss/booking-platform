@@ -20,10 +20,16 @@ declare
     'cancel_appointment_by_token',
     'get_appointment_by_token',
     'get_availability_context',
+    'get_payment_by_token',
     'get_available_slots',
     'is_business_public',
     'professional_business_id',
-    'reschedule_appointment_by_token'
+    'reschedule_appointment_by_token',
+    'retry_payment_by_token',
+    -- Development-only in effect: it refuses everything unless
+    -- platform_settings.payment_simulation_enabled is on, which production
+    -- must leave off. See ADR 0022.
+    'simulate_payment_by_token'
   ];
 
   -- ...and a signed-in professional, these as well.
@@ -36,7 +42,16 @@ declare
     'reschedule_appointment',
     'save_service',
     'set_appointment_status',
+    'refund_payment',
     'set_weekly_schedule'
+  ];
+
+  -- Tables that deliberately have row level security and no policy at all.
+  -- "No policy" means no client role can reach a row through PostgREST under
+  -- any circumstances, which for these is the entire point: they are read by
+  -- SECURITY DEFINER functions and by nobody else.
+  c_no_policy_on_purpose constant text[] := array[
+    'platform_settings'
   ];
 
   v_unexpected text;
@@ -117,8 +132,14 @@ begin
     if not v_row.relrowsecurity then
       raise exception 'FAIL: % has no row level security', v_row.relname;
     end if;
-    if v_row.policies = 0 then
+    if v_row.policies = 0 and not (v_row.relname = any (c_no_policy_on_purpose)) then
       raise exception 'FAIL: % has row level security but no policies, so it is unreadable', v_row.relname;
+    end if;
+
+    -- ...and the exceptions have to stay unreadable, or they are not
+    -- exceptions, they are mistakes.
+    if v_row.policies > 0 and (v_row.relname = any (c_no_policy_on_purpose)) then
+      raise exception 'FAIL: % was meant to be unreachable and now has a policy', v_row.relname;
     end if;
   end loop;
 

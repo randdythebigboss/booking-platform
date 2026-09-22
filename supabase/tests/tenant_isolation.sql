@@ -293,9 +293,23 @@ begin
   if (select count(*) from public.business_members) <> 0 then
     raise exception 'FAIL: anon can read business membership';
   end if;
-  if (select count(*) from public.payments) <> 0 then
-    raise exception 'FAIL: anon can read payments';
-  end if;
+  -- Money is stricter than the rest: anon has no privilege on the payment
+  -- tables at all, so the question is refused rather than answered emptily.
+  begin
+    if (select count(*) from public.payments) >= 0 then
+      raise exception 'FAIL: anon can read payments';
+    end if;
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  begin
+    if (select count(*) from public.payment_events) >= 0 then
+      raise exception 'FAIL: anon can read payment history';
+    end if;
+  exception
+    when insufficient_privilege then null;
+  end;
 
   raise notice 'anon sees the published catalogue and nothing else';
 end;

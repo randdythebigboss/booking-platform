@@ -161,7 +161,8 @@ begin
   ---------------------------------------------------------------------------
   select count(*) into v_count
   from public.notifications
-  where business_id = c_business and kind = 'booking_confirmed';
+  where business_id = c_business and kind = 'booking_confirmed'
+    and recipient_kind = 'customer';
 
   if v_count <> 4 then
     raise exception 'FAIL: expected 4 confirmations (one per booking with an email), got %', v_count;
@@ -187,10 +188,22 @@ begin
   end if;
 
   select count(*) into v_count
-  from public.notifications where appointment_id = v_appointment.id;
+  from public.notifications
+  where appointment_id = v_appointment.id and recipient_kind = 'customer';
 
   if v_count <> 0 then
     raise exception 'FAIL: queued % notification(s) for a customer with no address', v_count;
+  end if;
+
+  -- The shop still hears about it: the customer having no email says nothing
+  -- about whether the business has one.
+  select count(*) into v_count
+  from public.notifications
+  where appointment_id = v_appointment.id
+    and recipient_kind = 'professional' and kind = 'booking_created';
+
+  if v_count <> 1 then
+    raise exception 'FAIL: the professional was not told about a booking (% rows)', v_count;
   end if;
 
   ---------------------------------------------------------------------------

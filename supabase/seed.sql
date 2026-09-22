@@ -194,3 +194,38 @@ select
   1200.00,
   'DOP'
 from created;
+
+-- Payments, in development ----------------------------------------------------
+--
+-- The simulated checkout is what makes every payment path exercisable before a
+-- real provider exists, and it is off by default in the schema precisely so
+-- that it cannot be on where real money is possible. This is the development
+-- seed; it is the one place that turns it on.
+--
+-- **A production deployment must not load this file.**
+
+update public.platform_settings set payment_simulation_enabled = true;
+
+-- Two services that ask to be paid, added rather than imposed on the three
+-- that were already here: the SQL suites book those, and a suite should not
+-- have to know what the demo data decided about money this week.
+
+insert into public.services (
+  id, business_id, name, description, duration_minutes,
+  buffer_before_minutes, buffer_after_minutes, price, currency, sort_order,
+  payment_requirement, deposit_amount
+)
+values
+  ('44444444-4444-4444-8444-000000000004', '22222222-2222-4222-8222-222222222222',
+   'Color y tratamiento', 'Coloración completa. Se reserva con depósito.', 90,
+   0, 10, 2500.00, 'DOP', 3, 'deposit', 1000.00),
+  ('44444444-4444-4444-8444-000000000005', '22222222-2222-4222-8222-222222222222',
+   'Taller privado', 'Sesión privada de dos horas. Se paga al reservar.', 120,
+   0, 10, 3500.00, 'DOP', 4, 'full', null)
+on conflict (id) do nothing;
+
+insert into public.professional_services (professional_id, service_id)
+values
+  ('33333333-3333-4333-8333-333333333333', '44444444-4444-4444-8444-000000000004'),
+  ('33333333-3333-4333-8333-333333333333', '44444444-4444-4444-8444-000000000005')
+on conflict do nothing;
