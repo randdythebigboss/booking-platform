@@ -49,6 +49,18 @@ jobs:
       - name: Expo validation
         run: npx expo export --platform web --output-dir dist
 
+      # Phase 10: the export has to carry what a browser needs before it will
+      # offer to install the application. A missing manifest is silent -- the
+      # app works and the install prompt simply never appears.
+      - name: Packaging
+        run: |
+          test -f dist/manifest.webmanifest
+          test -f dist/sw.js
+          test -f dist/icons/icon-512.png
+          grep -q '"display": "standalone"' dist/manifest.webmanifest
+          grep -q 'rel="manifest"' dist/index.html
+          grep -q 'serviceWorker' dist/index.html
+
   database:
     name: Migrations, seed and database guarantees
     runs-on: ubuntu-latest
