@@ -98,7 +98,10 @@ returns uuid
 language sql
 stable
 as $$
-  select nullif(current_setting('request.jwt.claims', true)::jsonb ->> 'sub', '')::uuid;
+  -- nullif on the SETTING, not just on the extracted value: Supabase's own
+  -- auth.uid() tolerates an empty claims string, and casting '' to jsonb
+  -- raises. Matching it keeps local behaviour honest.
+  select nullif(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub', '')::uuid;
 $$;
 
 create or replace function auth.role()
@@ -106,5 +109,5 @@ returns text
 language sql
 stable
 as $$
-  select nullif(current_setting('request.jwt.claims', true)::jsonb ->> 'role', '')::text;
+  select nullif(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role', '')::text;
 $$;

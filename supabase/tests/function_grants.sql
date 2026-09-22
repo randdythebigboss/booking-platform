@@ -22,15 +22,18 @@ declare
     'get_availability_context',
     'get_available_slots',
     'is_business_public',
-    'professional_business_id'
+    'professional_business_id',
+    'reschedule_appointment_by_token'
   ];
 
   -- ...and a signed-in professional, these as well.
   c_professional constant text[] := array[
     'can_manage_professional',
     'create_business',
+    'create_manual_appointment',
     'is_business_manager',
     'is_business_member',
+    'reschedule_appointment',
     'save_service',
     'set_appointment_status',
     'set_weekly_schedule'
