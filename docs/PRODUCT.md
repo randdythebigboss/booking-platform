@@ -48,7 +48,10 @@ The professional can:
 5. Block specific dates and periods
 6. See their calendar and appointments
 7. Change appointment status
-8. Share a public link
+8. Move an appointment to another time
+9. Enter an appointment themselves, for a phone call or a walk-in
+10. Read the full history of any appointment
+11. Share a public link
 
 The customer can:
 
@@ -58,6 +61,7 @@ The customer can:
 4. See only genuinely available times
 5. Enter name, phone, optional email
 6. Confirm, and see a confirmation
+7. Move or cancel their own appointment from that confirmation, with no account
 
 ## Definition of done
 
@@ -111,8 +115,13 @@ slots, guest details, booking, confirmation. _Done._
 **Phase 4 - Professional calendar.** Dashboard, calendar, appointment detail,
 status updates, manual blocks, cancellation. _Done._
 
-**Phase 5 - Payment foundation.** Payment domain model, mock payment, state
-machine, provider abstraction. _Abstraction done in Phase 0._
+**Phase 5 - Appointment lifecycle.** Auditable history, professional and guest
+rescheduling, manual professional booking, cancellation consistency. _Done._
+Rescheduling is atomic and orthogonal to status: an appointment that fails to
+move still holds the time it had.
+
+**Payment foundation.** Payment domain model, mock payment, state machine,
+provider abstraction. _Abstraction done in Phase 0; no provider integrated._
 
 **Phase 6 - Production hardening.** Security audit, RLS validation,
 concurrency testing, accessibility, performance, error handling, analytics,

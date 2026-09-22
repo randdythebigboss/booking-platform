@@ -96,3 +96,25 @@ export async function cancelAppointmentByToken(
 
   if (error) throw toBookingError(error);
 }
+
+/**
+ * A guest moving their own appointment, holding only the booking link.
+ *
+ * The rules are exactly the public ones -- the grid, the notice period, the
+ * horizon -- because the guest is choosing from what the public page offered
+ * them. The move is one UPDATE: if the new time is taken, `SLOT_TAKEN` comes
+ * back and the appointment is still at the time it had.
+ */
+export async function rescheduleAppointmentByToken(
+  appointmentId: string,
+  accessToken: string,
+  startsAt: Date,
+): Promise<void> {
+  const { error } = await getSupabase().rpc('reschedule_appointment_by_token', {
+    p_appointment_id: appointmentId,
+    p_access_token: accessToken,
+    p_starts_at: startsAt.toISOString(),
+  });
+
+  if (error) throw toBookingError(error);
+}

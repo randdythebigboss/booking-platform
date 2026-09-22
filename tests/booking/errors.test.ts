@@ -9,6 +9,18 @@ describe('toBookingError', () => {
     expect(error.message).toMatch(/just booked by someone else/);
   });
 
+  it('maps the refusal a guest gets when their appointment is closed', () => {
+    const error = toBookingError({ message: 'APPOINTMENT_NOT_RESCHEDULABLE' });
+    expect(error.code).toBe('APPOINTMENT_NOT_RESCHEDULABLE');
+    expect(error.message).not.toMatch(/APPOINTMENT/);
+  });
+
+  it('tells a guest whose move lost a race to pick again', () => {
+    // The appointment is still theirs, at the time it had. The message has to
+    // say "pick another", not anything that sounds like a loss.
+    expect(toBookingError({ message: 'SLOT_TAKEN' }).isSlotConflict).toBe(true);
+  });
+
   it('tolerates the whitespace PostgREST sometimes adds', () => {
     expect(toBookingError({ message: '  TOO_SOON  ' }).code).toBe('TOO_SOON');
   });

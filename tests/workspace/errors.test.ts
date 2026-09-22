@@ -35,6 +35,24 @@ describe('toWorkspaceError', () => {
     );
   });
 
+  it('maps the sentinels the Phase 5 operations raise', () => {
+    expect(toWorkspaceError({ message: 'APPOINTMENT_NOT_RESCHEDULABLE' }).code).toBe(
+      'APPOINTMENT_NOT_RESCHEDULABLE',
+    );
+    expect(toWorkspaceError({ message: 'SLOT_TAKEN' }).code).toBe('SLOT_TAKEN');
+    expect(toWorkspaceError({ message: 'SLOT_BLOCKED' }).code).toBe('SLOT_BLOCKED');
+    expect(toWorkspaceError({ message: 'OUTSIDE_AVAILABILITY' }).code).toBe('OUTSIDE_AVAILABILITY');
+    expect(toWorkspaceError({ message: 'PROFESSIONAL_NOT_FOUND' }).code).toBe(
+      'PROFESSIONAL_NOT_FOUND',
+    );
+  });
+
+  it('tells a professional what to do about an out-of-hours move', () => {
+    // The refusal is not the end of the road: there is an override, and the
+    // message has to point at it or the professional is simply stuck.
+    expect(toWorkspaceError({ message: 'OUTSIDE_AVAILABILITY' }).message).toMatch(/explicitly/i);
+  });
+
   it('never leaks an unrecognised database message', () => {
     const error = toWorkspaceError({
       message: 'relation "public.secret_table" does not exist',

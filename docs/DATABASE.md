@@ -21,6 +21,7 @@ hand in a dashboard.
 | `appointments`            | The booking itself.                                                                |
 | `appointment_items`       | What was booked, snapshotted.                                                      |
 | `payments`                | Provider-agnostic payment records.                                                 |
+| `appointment_events`      | Append-only history of an appointment. Written by a trigger, editable by nobody.   |
 
 ## No double booking
 
@@ -80,6 +81,49 @@ Completing or marking a no-show requires the appointment to have started.
 Cancelling is terminal because it frees the time, and un-cancelling would
 make the appointment lose a race it never entered. A trigger enforces both,
 so a direct UPDATE cannot route around `set_appointment_status`.
+
+Rescheduling is **orthogonal to status**, not a transition in this graph: a
+pending appointment that moves is still pending. Moving something is the same
+commitment at a different time. Terminal appointments cannot be moved at all.
+
+## History
+
+`appointment_events` records everything that happens to an appointment:
+`created`, `status_changed` and `rescheduled`, each with an actor
+(`professional`, `guest` or `system`) and a reason.
+
+It is written by an `AFTER INSERT OR UPDATE` trigger rather than by the RPCs,
+so a direct UPDATE that RLS permits still leaves a trace. There is a SELECT
+policy for members of the business and **no write policy at all** -- the only
+writer is a `SECURITY DEFINER` trigger, so the log is append-only to every
+client, including the owner of the business. Guests cannot read it.
+
+The actor is declared through a transaction-local setting by each RPC. The
+function that sets it is internal, so a professional cannot sign their own
+action as the guest. `occurred_at` uses `clock_timestamp()`, not `now()`:
+two events written by one statement must not share an instant, or the log
+loses its order.
+
+See [ADR 0015](DECISIONS/0015-one-event-log-for-appointment-history.md).
+
+## Two rule sets
+
+The published slot grid is a promise to customers, not a constraint on the
+owner of the calendar. A professional may enter a walk-in at 13:07 and may
+work late if they say so explicitly; they may never book over a block, another
+appointment, or another tenant's calendar.
+
+| Rule | Guest | Professional |
+| --- | --- | --- |
+| Overlap, blocked time, tenant boundaries | always | **always** |
+| Working hours and exceptions | always | unless `p_override_schedule` |
+| Slot interval, minimum notice, horizon | always | never |
+
+An off-grid appointment cannot leak off-grid availability: the engine
+generates candidates from the grid and subtracts busy time, so a 13:07
+appointment removes the slots it overlaps and adds nothing.
+
+See [ADR 0016](DECISIONS/0016-the-professional-is-not-a-customer.md).
 
 ## Three ways a day can differ
 
@@ -141,6 +185,12 @@ server-side validator:
 | `create_business`             | authenticated       | Business, membership and professional profile in one transaction                      |
 | `save_service`                | authenticated       | Create or update a service, keeping it assigned to the professionals                  |
 | `set_weekly_schedule`         | authenticated       | Replace a whole week of working hours atomically                                      |
+| `set_appointment_status`       | authenticated       | Drive one appointment through the lifecycle, and nothing else                         |
+| `reschedule_appointment`       | authenticated       | Move an appointment, atomically, keeping its identity                                 |
+| `create_manual_appointment`    | authenticated       | The professional enters a booking themselves                                          |
+| `reschedule_appointment_by_token` | anon, authenticated | A guest moves their own booking                                                    |
+| `assert_professional_slot_is_free` | internal        | The shared gate both professional write paths pass through                            |
+| `declare_appointment_actor`    | internal            | Names who is acting, for the history trigger                                          |
 
 `is_slot_within_availability` is deliberately not granted to `anon`: exposing
 it would let a stranger probe a private calendar one timestamp at a time.
@@ -162,6 +212,7 @@ SLOT_NOT_ALIGNED        not on the published slot grid
 TOO_SOON                inside the minimum notice window
 BEYOND_HORIZON          further ahead than the business accepts
 SERVICE_NOT_AVAILABLE   that professional does not offer it
+APPOINTMENT_NOT_RESCHEDULABLE  closed, so it cannot be moved
 ```
 
 ## Local development
@@ -177,7 +228,7 @@ schedule, a block, an exception and one existing appointment.
 
 ## Executable guarantees
 
-Two SQL suites run against a database built from nothing, in CI and via
+Seven SQL suites run against a database built from nothing, in CI and via
 `tools/local-postgres/run-validation.sh`:
 
 | File                                         | Proves                                                                                                             |
@@ -187,6 +238,7 @@ Two SQL suites run against a database built from nothing, in CI and via
 | `supabase/tests/availability_api.sql`        | `get_available_slots` offers the right times and reveals nothing else                                              |
 | `supabase/tests/public_booking.sql`          | The guest path: discovery, booking, the race, token access, tenant isolation                                       |
 | `supabase/tests/professional_operations.sql` | The appointment lifecycle, and who may drive it                                                                    |
+| `supabase/tests/appointment_lifecycle.sql`   | Rescheduling, manual booking, the reschedule race, history integrity and privacy, DST                             |
 | `supabase/tests/function_grants.sql`         | Every function is classified, RLS covers every table                                                               |
 
 The Phase 1 functions run as `SECURITY INVOKER`, so Row Level Security still

@@ -2,10 +2,16 @@ import { Link, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
+import { SlotPicker } from '@/components/slot-picker';
 import { Button, Card, Feedback, Screen, Text } from '@/components/ui';
-import { describeStatus, type GuestAppointment } from '@/features/booking';
+import { isoDateIn } from '@/features/availability';
+import { describeStatus, toBookingError, type GuestAppointment } from '@/features/booking';
 import { formatDateIn, formatDuration, formatMoney, formatTimeIn } from '@/lib/format';
-import { cancelAppointmentByToken, fetchAppointmentByToken } from '@/services/booking';
+import {
+  cancelAppointmentByToken,
+  fetchAppointmentByToken,
+  rescheduleAppointmentByToken,
+} from '@/services/booking';
 import { spacing } from '@/theme';
 
 type State =
@@ -27,6 +33,12 @@ export default function ConfirmationScreen() {
   const [state, setState] = useState<State>({ kind: 'loading' });
   const [cancelling, setCancelling] = useState(false);
   const [nonce, setNonce] = useState(0);
+
+  const [moving, setMoving] = useState(false);
+  const [moveDate, setMoveDate] = useState<string | null>(null);
+  const [moveSlot, setMoveSlot] = useState<string | null>(null);
+  const [moveFailure, setMoveFailure] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -102,6 +114,28 @@ export default function ConfirmationScreen() {
   const { appointment } = state;
   const cancelled = appointment.status === 'cancelled';
 
+  async function move() {
+    if (!moveSlot) {
+      setMoveFailure('Choose a new time first.');
+      return;
+    }
+
+    setSaving(true);
+    setMoveFailure(null);
+    try {
+      await rescheduleAppointmentByToken(id as string, token as string, new Date(moveSlot));
+      setMoving(false);
+      setMoveSlot(null);
+      // Re-read rather than patch: if the move lost a race, the appointment is
+      // still where it was, and the page should say so.
+      setNonce((value) => value + 1);
+    } catch (cause) {
+      setMoveFailure(toBookingError(cause).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <Screen
       title={cancelled ? 'Appointment cancelled' : 'You are booked'}
@@ -145,9 +179,70 @@ export default function ConfirmationScreen() {
         </Card>
       )}
 
+      {appointment.canReschedule && appointment.serviceId && (
+        <Card>
+          <Text variant="heading">Need a different time?</Text>
+
+          {!moving && (
+            <>
+              <Text variant="body" tone="muted">
+                Pick another time and we will move this appointment. Your booking stays the same
+                otherwise, and you keep this link.
+              </Text>
+              <Button
+                label="Reschedule"
+                variant="secondary"
+                onPress={() => {
+                  setMoveDate(isoDateIn(appointment.startsAt, appointment.timezone));
+                  setMoveFailure(null);
+                  setMoving(true);
+                }}
+              />
+            </>
+          )}
+
+          {moving && moveDate && (
+            <View style={{ gap: spacing.md }}>
+              <SlotPicker
+                professionalId={appointment.professionalId}
+                serviceId={appointment.serviceId}
+                timezone={appointment.timezone}
+                date={moveDate}
+                onDateChange={(next) => {
+                  setMoveDate(next);
+                  setMoveSlot(null);
+                }}
+                selected={moveSlot}
+                onSelect={setMoveSlot}
+              />
+
+              {moveFailure && <Feedback tone="danger" message={moveFailure} />}
+
+              <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                <Button
+                  label="Move my appointment"
+                  style={{ flex: 1 }}
+                  loading={saving}
+                  onPress={move}
+                />
+                <Button
+                  label="Keep it"
+                  variant="ghost"
+                  style={{ flex: 1 }}
+                  onPress={() => {
+                    setMoving(false);
+                    setMoveFailure(null);
+                  }}
+                />
+              </View>
+            </View>
+          )}
+        </Card>
+      )}
+
       <Card>
         <Text variant="caption" tone="muted">
-          Keep this link to check or cancel your appointment. Anyone with it can manage this
+          Keep this link to check, move or cancel your appointment. Anyone with it can manage this
           booking, so treat it like a ticket.
         </Text>
       </Card>

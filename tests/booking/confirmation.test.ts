@@ -8,6 +8,8 @@ import {
 
 const RAW = {
   appointmentId: 'apt-1',
+  professionalId: 'pro-1',
+  serviceId: 'svc-1',
   status: 'confirmed',
   startsAt: '2026-09-28T13:00:00+00:00',
   endsAt: '2026-09-28T13:45:00+00:00',
@@ -20,6 +22,7 @@ const RAW = {
   customerName: 'Maria Peralta',
   items: [{ name: 'Haircut + Beard', durationMinutes: 45, price: '1200.00', currency: 'DOP' }],
   canCancel: true,
+  canReschedule: true,
 };
 
 describe('parseGuestAppointment', () => {
@@ -31,6 +34,23 @@ describe('parseGuestAppointment', () => {
     expect(appointment.timezone).toBe('America/Santo_Domingo');
     expect(appointment.items[0]?.price).toBe(1200);
     expect(appointment.canCancel).toBe(true);
+  });
+
+  it('carries what a guest needs to ask for another time', () => {
+    const appointment = parseGuestAppointment(RAW);
+
+    expect(appointment.professionalId).toBe('pro-1');
+    expect(appointment.serviceId).toBe('svc-1');
+    expect(appointment.canReschedule).toBe(true);
+  });
+
+  it('treats a missing reschedule flag as no, never as yes', () => {
+    const { canReschedule: _omitted, ...withoutFlag } = RAW;
+    expect(parseGuestAppointment(withoutFlag).canReschedule).toBe(false);
+  });
+
+  it('survives an appointment whose service has since been removed', () => {
+    expect(parseGuestAppointment({ ...RAW, serviceId: null }).serviceId).toBeNull();
   });
 
   it('tolerates a business with no phone or address', () => {

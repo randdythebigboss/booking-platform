@@ -1,3 +1,4 @@
+import type { AppointmentEvent } from '@/features/appointments';
 import { toWorkspaceError } from '@/features/workspace';
 import { getSupabase } from '@/lib/supabase';
 import type { AppointmentStatus } from '@/types/domain';
@@ -9,6 +10,7 @@ export interface AppointmentCustomer {
 }
 
 export interface AppointmentItem {
+  serviceId: string | null;
   name: string;
   durationMinutes: number;
   price: number;
@@ -32,7 +34,7 @@ const COLUMNS =
   'id, professional_id, starts_at, ends_at, status, notes, cancellation_reason,' +
   ' customers ( full_name, phone, email ),' +
   ' professional_profiles ( display_name ),' +
-  ' appointment_items ( service_name_snapshot, duration_minutes_snapshot, price_snapshot, currency_snapshot )';
+  ' appointment_items ( service_id, service_name_snapshot, duration_minutes_snapshot, price_snapshot, currency_snapshot )';
 
 function first<T>(value: T | T[] | null | undefined): T | null {
   if (Array.isArray(value)) return value[0] ?? null;
@@ -58,6 +60,7 @@ function toAppointment(row: Record<string, any>): ProfessionalAppointment {
       email: customer?.email ?? null,
     },
     items: (row.appointment_items ?? []).map((item: Record<string, any>) => ({
+      serviceId: item.service_id ? String(item.service_id) : null,
       name: String(item.service_name_snapshot),
       durationMinutes: Number(item.duration_minutes_snapshot),
       price: Number(item.price_snapshot),
@@ -136,4 +139,102 @@ export async function setAppointmentStatus(
   });
 
   if (error) throw toWorkspaceError(error);
+}
+
+/**
+ * Moves an appointment without it ever ceasing to exist.
+ *
+ * The backend does this as a single UPDATE guarded by the same exclusion
+ * constraint that prevents double booking, so either the appointment holds the
+ * new time or it still holds the old one. A lost race raises `SLOT_TAKEN` and
+ * changes nothing.
+ *
+ * `allowOutsideHours` is the professional saying they meant it. It relaxes
+ * working hours and nothing else: a block, another appointment and another
+ * tenant's calendar stay off limits.
+ */
+export async function rescheduleAppointment(params: {
+  appointmentId: string;
+  startsAt: Date;
+  reason?: string;
+  allowOutsideHours?: boolean;
+}): Promise<void> {
+  const { error } = await getSupabase().rpc('reschedule_appointment', {
+    p_appointment_id: params.appointmentId,
+    p_starts_at: params.startsAt.toISOString(),
+    p_reason: params.reason ?? null,
+    p_override_schedule: params.allowOutsideHours ?? false,
+  });
+
+  if (error) throw toWorkspaceError(error);
+}
+
+export interface ManualAppointmentInput {
+  professionalId: string;
+  serviceId: string;
+  startsAt: Date;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  notes?: string;
+  allowOutsideHours?: boolean;
+}
+
+/**
+ * The professional entering an appointment themselves: a phone call, a
+ * walk-in, a regular.
+ *
+ * Deliberately not the same function the public page calls. It arrives
+ * confirmed, it is not held to the published slot grid, and it may fall
+ * outside working hours if the professional says so -- none of which are
+ * relaxations the guest path would ever be given.
+ */
+export async function createManualAppointment(input: ManualAppointmentInput): Promise<string> {
+  const { data, error } = await getSupabase().rpc('create_manual_appointment', {
+    p_professional_id: input.professionalId,
+    p_service_id: input.serviceId,
+    p_starts_at: input.startsAt.toISOString(),
+    p_customer_name: input.customerName,
+    p_customer_phone: input.customerPhone,
+    p_customer_email: input.customerEmail ?? null,
+    p_notes: input.notes ?? null,
+    p_override_schedule: input.allowOutsideHours ?? false,
+  });
+
+  if (error) throw toWorkspaceError(error);
+  return String((data as Record<string, unknown>).appointmentId);
+}
+
+/**
+ * The appointment's history.
+ *
+ * Readable only by members of the business -- there is no policy for anyone
+ * else, and no write policy for anybody at all.
+ */
+export async function fetchAppointmentEvents(appointmentId: string): Promise<AppointmentEvent[]> {
+  const { data, error } = await getSupabase()
+    .from('appointment_events')
+    .select(
+      'id, event_type, actor_type, occurred_at, previous_status, new_status,' +
+        ' previous_starts_at, new_starts_at, reason',
+    )
+    .eq('appointment_id', appointmentId)
+    .order('occurred_at', { ascending: true });
+
+  if (error) throw toWorkspaceError(error);
+
+  return (data ?? []).map((raw) => {
+    const row = raw as Record<string, any>;
+    return {
+      id: String(row.id),
+      type: row.event_type as AppointmentEvent['type'],
+      actor: row.actor_type as AppointmentEvent['actor'],
+      occurredAt: new Date(String(row.occurred_at)),
+      previousStatus: (row.previous_status ?? null) as AppointmentStatus | null,
+      newStatus: (row.new_status ?? null) as AppointmentStatus | null,
+      previousStartsAt: row.previous_starts_at ? new Date(String(row.previous_starts_at)) : null,
+      newStartsAt: row.new_starts_at ? new Date(String(row.new_starts_at)) : null,
+      reason: row.reason ?? null,
+    };
+  });
 }

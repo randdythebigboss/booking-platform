@@ -16,6 +16,9 @@ export interface GuestAppointmentItem {
 
 export interface GuestAppointment {
   appointmentId: string;
+  /** Needed to ask for slots when the guest wants a different time. */
+  professionalId: string;
+  serviceId: string | null;
   status: AppointmentStatus;
   startsAt: Date;
   endsAt: Date;
@@ -28,6 +31,7 @@ export interface GuestAppointment {
   customerName: string;
   items: GuestAppointmentItem[];
   canCancel: boolean;
+  canReschedule: boolean;
 }
 
 export class MalformedConfirmationError extends Error {
@@ -63,6 +67,8 @@ export function parseGuestAppointment(raw: unknown): GuestAppointment {
 
   return {
     appointmentId: text(root.appointmentId, 'appointmentId'),
+    professionalId: text(root.professionalId, 'professionalId'),
+    serviceId: typeof root.serviceId === 'string' ? root.serviceId : null,
     status: text(root.status, 'status') as AppointmentStatus,
     startsAt: instant(root.startsAt, 'startsAt'),
     endsAt: instant(root.endsAt, 'endsAt'),
@@ -83,6 +89,7 @@ export function parseGuestAppointment(raw: unknown): GuestAppointment {
       };
     }),
     canCancel: root.canCancel === true,
+    canReschedule: root.canReschedule === true,
   };
 }
 

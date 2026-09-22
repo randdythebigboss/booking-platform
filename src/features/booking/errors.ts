@@ -18,6 +18,7 @@ export const BOOKING_ERROR_CODES = [
   'APPOINTMENT_NOT_FOUND',
   'APPOINTMENT_NOT_CANCELLABLE',
   'APPOINTMENT_ALREADY_STARTED',
+  'APPOINTMENT_NOT_RESCHEDULABLE',
   'UNKNOWN',
 ] as const;
 
@@ -39,6 +40,7 @@ const BOOKING_ERROR_MESSAGES: Record<BookingErrorCode, string> = {
   APPOINTMENT_NOT_FOUND: 'We could not find that appointment.',
   APPOINTMENT_NOT_CANCELLABLE: 'This appointment can no longer be cancelled.',
   APPOINTMENT_ALREADY_STARTED: 'This appointment has already started.',
+  APPOINTMENT_NOT_RESCHEDULABLE: 'This appointment can no longer be changed.',
   UNKNOWN: 'Something went wrong. Please try again.',
 };
 

@@ -19,8 +19,8 @@ Hiding a button is a courtesy to the user, never a control.
 ### What the public cannot read
 
 `availability_rules`, `availability_exceptions`, `blocked_times`, `customers`,
-`appointments`, `appointment_items` and `payments` have **no `anon` policy at
-all**. A stranger cannot query a professional's calendar, and cannot learn who
+`appointments`, `appointment_items`, `appointment_events` and `payments` have
+**no `anon` policy at all**. A stranger cannot query a professional's calendar, and cannot learn who
 their customers are.
 
 The booking page gets availability through `get_availability_context`, which
@@ -57,6 +57,44 @@ through `get_appointment_by_token` and `cancel_appointment_by_token` without
 being able to see anyone else's.
 
 That token belongs in the confirmation link. Treat it as a bearer credential.
+
+The same token is what lets a guest move their own appointment through
+`reschedule_appointment_by_token`. It is held to the public rules exactly --
+the published grid, the minimum notice, the booking horizon -- because a guest
+choosing a new time is choosing from what the public page offered them. It
+refuses a terminal appointment, one that has already started, and any
+appointment the token does not belong to; all three answer the same way an
+absent appointment does, so an id cannot be probed.
+
+A guest cannot read `appointment_events`. They can see their own
+appointment; who inside the shop touched it is not theirs to read.
+
+## History cannot be rewritten
+
+`appointment_events` has a SELECT policy for members of the business and
+**no INSERT, UPDATE or DELETE policy at all**. Its only writer is a
+`SECURITY DEFINER` trigger on `appointments`, which writes past RLS. The
+owner of a business cannot forge a row, amend one, or erase one.
+
+Attribution is not the caller's to choose either: the actor is declared
+through a transaction-local setting, and the function that sets it is
+`INTERNAL ONLY`. A professional cannot sign their own action as the guest.
+Asserted in `supabase/tests/appointment_lifecycle.sql`.
+
+## The professional write path
+
+`reschedule_appointment` and `create_manual_appointment` are
+`SECURITY DEFINER` -- they have to be, because they call the internal
+scheduling helpers that `authenticated` is deliberately not granted. That
+means RLS is not doing the authorization, so both check
+`can_manage_professional` themselves, first, and answer `PT404` when it
+fails: invisible and absent look the same.
+
+They relax the published slot grid, the minimum notice and the booking
+horizon, because those are promises to customers rather than constraints on
+the owner. They never relax overlap, blocked time, or the tenant boundary.
+Working hours sit behind an explicit flag. See
+[ADR 0016](DECISIONS/0016-the-professional-is-not-a-customer.md).
 
 ## SECURITY DEFINER hygiene
 
@@ -125,7 +163,7 @@ now belongs to exactly one group:
 | Group                      | Means                                                                                                                     |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | PUBLIC / ANON-SAFE         | A stranger may call it: the booking and availability surface, plus the two helpers the public catalogue policies evaluate |
-| AUTHENTICATED PROFESSIONAL | A signed-in member may call it: the write RPCs and the membership helpers                                                 |
+| AUTHENTICATED PROFESSIONAL | A signed-in member may call it: the write RPCs, the professional booking and reschedule operations, and the membership helpers |
 | INTERNAL ONLY              | Only other functions and triggers call it                                                                                 |
 
 `supabase/tests/function_grants.sql` asserts the classification and fails

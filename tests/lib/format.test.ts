@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatDateIn, formatDuration, formatMoney, formatTimeIn } from '@/lib/format';
+import {
+  formatDateIn,
+  formatDateTimeIn,
+  formatDuration,
+  formatMoney,
+  formatTimeIn,
+} from '@/lib/format';
 
 describe('formatDuration', () => {
   it('reads naturally on both sides of an hour', () => {
@@ -34,5 +40,19 @@ describe('formatDateIn', () => {
     const instant = new Date('2026-09-22T02:00:00.000Z');
     expect(formatDateIn(instant, 'America/Santo_Domingo')).toMatch(/21/);
     expect(formatDateIn(instant, 'Europe/Madrid')).toMatch(/22/);
+  });
+});
+
+describe('formatDateTimeIn', () => {
+  it('carries the day, because a move can cross one', () => {
+    const rendered = formatDateTimeIn(new Date('2026-09-28T14:00:00.000Z'), 'America/Santo_Domingo');
+    expect(rendered).toMatch(/28/);
+    expect(rendered).toMatch(/10/);
+  });
+
+  it('renders in the business timezone, not the device one', () => {
+    const instant = new Date('2026-09-28T02:00:00.000Z');
+    expect(formatDateTimeIn(instant, 'America/Santo_Domingo')).toMatch(/27/);
+    expect(formatDateTimeIn(instant, 'UTC')).toMatch(/28/);
   });
 });

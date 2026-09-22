@@ -19,3 +19,5 @@ decision changes, a new record supersedes the old one.
 | [0012](0012-availability-api-returns-empty.md)           | The availability API answers with silence, not with errors       |
 | [0013](0013-guest-access-by-bearer-link.md)              | A guest's appointment is reached by a bearer link                |
 | [0014](0014-appointment-lifecycle.md)                    | The appointment lifecycle is a graph, not a column               |
+| [0015](0015-one-event-log-for-appointment-history.md)    | One event log, not a status history table                        |
+| [0016](0016-the-professional-is-not-a-customer.md)       | The published grid binds customers, not the owner                |

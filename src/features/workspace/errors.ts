@@ -23,6 +23,15 @@ export const WORKSPACE_ERROR_CODES = [
   'INVALID_STATUS_TRANSITION',
   'APPOINTMENT_HAS_NOT_STARTED',
   'APPOINTMENT_NOT_FOUND',
+  'APPOINTMENT_NOT_RESCHEDULABLE',
+  'BUSINESS_NOT_ACTIVE',
+  'PROFESSIONAL_NOT_FOUND',
+  'SERVICE_NOT_AVAILABLE',
+  'CUSTOMER_NAME_REQUIRED',
+  'CUSTOMER_PHONE_REQUIRED',
+  'SLOT_TAKEN',
+  'SLOT_BLOCKED',
+  'OUTSIDE_AVAILABILITY',
   'INVALID_TIMEZONE',
   'INVALID_CREDENTIALS',
   'EMAIL_TAKEN',
@@ -50,6 +59,18 @@ const MESSAGES: Record<WorkspaceErrorCode, string> = {
   APPOINTMENT_HAS_NOT_STARTED:
     'This appointment has not started yet, so it cannot be completed or marked as a no-show.',
   APPOINTMENT_NOT_FOUND: 'We could not find that appointment.',
+  APPOINTMENT_NOT_RESCHEDULABLE:
+    'This appointment is closed, so it cannot be moved. Book a new one instead.',
+  BUSINESS_NOT_ACTIVE: 'This business is not active.',
+  PROFESSIONAL_NOT_FOUND: 'We could not find that professional in this business.',
+  SERVICE_NOT_AVAILABLE: 'That service is not one this professional offers.',
+  CUSTOMER_NAME_REQUIRED: 'Enter the customer name.',
+  CUSTOMER_PHONE_REQUIRED: 'Enter a phone number.',
+  SLOT_TAKEN: 'There is already an appointment at that time.',
+  SLOT_BLOCKED:
+    'You blocked that period. Remove the block first if you want to book over it.',
+  OUTSIDE_AVAILABILITY:
+    'That falls outside your working hours. Allow it explicitly if you meant to.',
   BLOCK_CONFLICTS_WITH_APPOINTMENT:
     'There is already an appointment in that period. Cancel it first if you really want the time back.',
   INVALID_TIMEZONE: 'That is not a timezone we recognise.',

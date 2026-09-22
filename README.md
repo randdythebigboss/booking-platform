@@ -14,10 +14,11 @@ app.example.com/p/demo-studio
 
 ## Status
 
-**Phase 1 - Professional setup.** A professional can create an account, set up
-their business, publish a booking link, manage services and set their weekly
-hours. The customer-facing booking flow arrives in Phase 3; the screens that
-wait on it say which phase fills them in.
+**Phase 5 - Appointment lifecycle.** The product is end to end: a professional
+sets up their business and hours, a customer books as a guest in under a
+minute with no account, and either side can move or cancel that appointment
+before it starts. Everything that happens to an appointment is recorded in an
+append-only log that nobody can edit.
 
 | Phase | Scope                                                                                   | State                               |
 | ----- | --------------------------------------------------------------------------------------- | ----------------------------------- |
@@ -26,9 +27,10 @@ wait on it say which phase fills them in.
 | 2     | Scheduling engine wired to the UI, exceptions, blocks                                   | Done                                |
 | 3     | Public booking page, guest booking, confirmation                                        | Done                                |
 | 4     | Professional dashboard, calendar, status changes                                        | Done                                |
-| 5     | Payment provider integration                                                            | Abstraction done, providers pending |
-| 6     | Security audit, concurrency testing, accessibility, performance                         | Pending                             |
-| 7     | Store distribution                                                                      | Pending                             |
+| 5     | Appointment history, rescheduling, manual booking                                       | Done                                |
+| 6     | Payment provider integration                                                            | Abstraction done, providers pending |
+| 7     | Security audit, concurrency testing, accessibility, performance                         | Pending                             |
+| 8     | Store distribution                                                                      | Pending                             |
 
 ## Stack
 

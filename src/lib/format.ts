@@ -33,3 +33,17 @@ export function formatDateIn(instant: Date, timezone: string, locale = 'es-DO'):
     month: 'long',
   }).format(instant);
 }
+
+/**
+ * Short date and time together, for history lines where a move may cross a
+ * day and "10:00 to 14:00" would be a lie.
+ */
+export function formatDateTimeIn(instant: Date, timezone: string, locale = 'es-DO'): string {
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: timezone,
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(instant);
+}

@@ -1,9 +1,10 @@
+import { Link } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 import { AppointmentRow } from '@/components/appointment-row';
 import { useRequiredWorkspace } from '@/components/providers';
-import { Card, Feedback, Screen, Select, Text } from '@/components/ui';
+import { Button, Card, Feedback, Screen, Select, Text } from '@/components/ui';
 import { isoDateIn, zonedInstant } from '@/features/availability';
 import { useAsyncData } from '@/hooks/use-async-data';
 import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
@@ -66,6 +67,10 @@ export default function AppointmentsScreen() {
 
   return (
     <Screen title="Appointments" subtitle="Everything booked, past and future.">
+      <Link href="/app/appointments/new" asChild>
+        <Button label="New appointment" />
+      </Link>
+
       <Select label="When" value={scope} options={SCOPES} onChange={setScope} maxHeight={150} />
       <Select label="Status" value={status} options={STATUSES} onChange={setStatus} maxHeight={200} />
 
