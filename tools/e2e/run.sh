@@ -43,7 +43,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "==> Resetting the database"
-E2E_DB_URL="$E2E_DB_URL" ./tools/e2e/reset.sh
+E2E_DB_URL="$E2E_DB_URL" bash "$REPO_ROOT/tools/e2e/reset.sh"
 
 if [ "${E2E_SKIP_BUILD:-}" != "yes" ]; then
   echo "==> Building the application against $E2E_SUPABASE_URL"
@@ -51,7 +51,7 @@ if [ "${E2E_SKIP_BUILD:-}" != "yes" ]; then
   EXPO_PUBLIC_SUPABASE_URL="$E2E_SUPABASE_URL" \
   EXPO_PUBLIC_SUPABASE_ANON_KEY="$E2E_SUPABASE_ANON_KEY" \
   EXPO_PUBLIC_SITE_URL="$BASE_URL" \
-    npx expo export --platform web --output-dir "$OUTPUT"
+    npx expo export --platform web --output-dir "$OUTPUT" --clear
 
   # The static-host fallback. Expo Router emits one HTML file per route, with
   # dynamic segments as literal `[slug]` directories that no plain file server

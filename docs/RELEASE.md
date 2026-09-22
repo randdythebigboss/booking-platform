@@ -26,9 +26,23 @@ Everything below is a command, not a judgement call.
 npm ci
 npm run verify                      # lint, typecheck, 351 unit tests
 npm run test:i18n                   # Spanish and English agree in shape
-npx expo export --platform web --output-dir dist
+npm run expo:export                 # note: --clear, see below
 npm run expo:doctor
+
+EXPECT_SUPABASE_URL=https://<project>.supabase.co ./tools/release/verify-build.sh
 ```
+
+### Why the export clears the cache
+
+`EXPO_PUBLIC_*` values are compiled into the bundle and Metro caches the
+result. Build for the end-to-end stack, then build a release without
+`--clear`, and the release quietly carries `http://127.0.0.1:4301`: an
+application that loads perfectly, installs perfectly and cannot reach
+anything. That happened here. `npm run expo:export` now passes `--clear`,
+and `tools/release/verify-build.sh` checks the result rather than trusting it.
+
+The same cache once served a stale `app.json`, which is how the diagnostics
+screen came to report a version nobody had released.
 
 Database, from nothing:
 

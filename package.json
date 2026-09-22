@@ -17,7 +17,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "expo:doctor": "npx --yes expo-doctor@latest",
-    "expo:export": "expo export --platform web --output-dir dist",
+    "expo:export": "expo export --platform web --output-dir dist --clear",
     "db:start": "npx --yes supabase start",
     "db:reset": "npx --yes supabase db reset",
     "db:diff": "npx --yes supabase db diff",
