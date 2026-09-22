@@ -14,11 +14,18 @@ app.example.com/p/demo-studio
 
 ## Status
 
-**Phase 5 - Appointment lifecycle.** The product is end to end: a professional
-sets up their business and hours, a customer books as a guest in under a
-minute with no account, and either side can move or cancel that appointment
-before it starts. Everything that happens to an appointment is recorded in an
-append-only log that nobody can edit.
+**Phase 6 - Multilingual.** The product is end to end and speaks two
+languages. A professional sets up their business and hours, a customer books
+as a guest in under a minute with no account, and either side can move or
+cancel that appointment before it starts. Everything that happens to an
+appointment is recorded in an append-only log that nobody can edit.
+
+**Spanish is the product language.** English is the second. An unsupported
+language falls back to Spanish, never to English. Dates, times, currency and
+plurals follow the reader's language; the business timezone decides which
+moment is being shown, and the two never influence each other. Business
+content -- names, services, notes -- is shown exactly as it was entered and is
+never translated.
 
 | Phase | Scope                                                                                   | State                               |
 | ----- | --------------------------------------------------------------------------------------- | ----------------------------------- |
@@ -28,9 +35,10 @@ append-only log that nobody can edit.
 | 3     | Public booking page, guest booking, confirmation                                        | Done                                |
 | 4     | Professional dashboard, calendar, status changes                                        | Done                                |
 | 5     | Appointment history, rescheduling, manual booking                                       | Done                                |
-| 6     | Payment provider integration                                                            | Abstraction done, providers pending |
-| 7     | Security audit, concurrency testing, accessibility, performance                         | Pending                             |
-| 8     | Store distribution                                                                      | Pending                             |
+| 6     | Spanish + English, locale-aware formatting, product hardening                            | Done                                |
+| 7     | Payment provider integration                                                            | Abstraction done, providers pending |
+| 8     | Security audit, concurrency testing, accessibility, performance                         | Pending                             |
+| 9     | Store distribution                                                                      | Pending                             |
 
 ## Stack
 

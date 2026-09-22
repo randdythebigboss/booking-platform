@@ -181,3 +181,31 @@ Supabase CLI, loads the seed, and runs both SQL suites in `supabase/tests`.
 That job is what proves the SQL is valid.
 
 Nothing deploys automatically.
+
+## Adding a language
+
+Spanish is the source. `src/locales/es/index.ts` is the canonical dictionary
+and everything else follows it.
+
+1. Copy `src/locales/en/index.ts` to `src/locales/<code>/index.ts` and declare
+   it `const <code>: Translations`. The typecheck will then list every key you
+   have not translated, and refuse any you invent.
+2. Add the code to `SUPPORTED_LOCALES` in `src/locales/index.ts`, and give it
+   a regional tag in `INTL_LOCALES` and a name in `LOCALE_NAMES`. Write the
+   name in the language itself -- "Português", not "Portuguese".
+3. Run `npm run test:i18n`. It checks what a type cannot: empty strings,
+   placeholders that differ between languages, every plural category, and
+   every key the app builds at runtime from a status, an actor or an error
+   code.
+
+No migration is needed. `profiles.preferred_locale` is constrained to the
+shape of a language tag, not to a list of the languages that exist today.
+
+**What is not translated, on purpose:** anything a business typed. Business
+names, service names and descriptions, notes, cancellation reasons. Also
+machine identifiers -- enum values, sentinel codes such as `SLOT_TAKEN`, and
+IANA timezone names.
+
+**Plurals** go through i18next's `_one` / `_other` suffixes, never through
+string concatenation. `t('appointments.count', { count })`, not
+`count + ' citas'`.

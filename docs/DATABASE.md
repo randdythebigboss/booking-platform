@@ -23,6 +23,18 @@ hand in a dashboard.
 | `payments`                | Provider-agnostic payment records.                                                 |
 | `appointment_events`      | Append-only history of an appointment. Written by a trigger, editable by nobody.   |
 
+`profiles.preferred_locale` holds a user's interface language. It needed no
+new policy: `profiles` was already scoped to `id = auth.uid()` for both select
+and update. The check constrains it to the *shape* of a language tag rather
+than to a list of the languages that exist today, so adding one is a
+client-only change.
+
+`customers.phone_normalized` is generated: the phone with punctuation
+removed, and a leading `+` kept. It exists so a returning customer who types
+their number differently lands on their own row. It never infers a country
+code, and it is never compared across businesses. See
+[ADR 0018](DECISIONS/0018-customer-matching-is-deliberately-timid.md).
+
 ## No double booking
 
 `appointments` carries `blocked_range`: `starts_at` and `ends_at` widened by
@@ -228,7 +240,7 @@ schedule, a block, an exception and one existing appointment.
 
 ## Executable guarantees
 
-Seven SQL suites run against a database built from nothing, in CI and via
+Eight SQL suites run against a database built from nothing, in CI and via
 `tools/local-postgres/run-validation.sh`:
 
 | File                                         | Proves                                                                                                             |
@@ -239,6 +251,7 @@ Seven SQL suites run against a database built from nothing, in CI and via
 | `supabase/tests/public_booking.sql`          | The guest path: discovery, booking, the race, token access, tenant isolation                                       |
 | `supabase/tests/professional_operations.sql` | The appointment lifecycle, and who may drive it                                                                    |
 | `supabase/tests/appointment_lifecycle.sql`   | Rescheduling, manual booking, the reschedule race, history integrity and privacy, DST                             |
+| `supabase/tests/customer_identity.sql`       | Who counts as the same customer, and the tenant boundary that is never crossed to decide                          |
 | `supabase/tests/function_grants.sql`         | Every function is classified, RLS covers every table                                                               |
 
 The Phase 1 functions run as `SECURITY INVOKER`, so Row Level Security still

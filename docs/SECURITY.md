@@ -58,6 +58,18 @@ being able to see anyone else's.
 
 That token belongs in the confirmation link. Treat it as a bearer credential.
 
+Because the whole URL is the credential, the web build sets
+`<meta name="referrer" content="same-origin">`. Browsers put the full URL in
+the `Referer` header of any outbound navigation, so a single link to a map, a
+calendar service or an image on another domain would hand the token to them.
+Nothing links off-site today; the policy is there so that the day something
+does, it is not a disclosure.
+
+What remains accepted, and is inherent to a link anybody can use without an
+account: the token is in browser history, and in any copy of the link the
+customer shares. It is scoped to one appointment, it cannot enumerate,
+and it stops working when the appointment closes.
+
 The same token is what lets a guest move their own appointment through
 `reschedule_appointment_by_token`. It is held to the public rules exactly --
 the published grid, the minimum notice, the booking horizon -- because a guest

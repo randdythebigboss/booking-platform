@@ -120,6 +120,12 @@ rescheduling, manual professional booking, cancellation consistency. _Done._
 Rescheduling is atomic and orthogonal to status: an appointment that fails to
 move still holds the time it had.
 
+**Phase 6 - Multilingual.** Spanish as the product language, English as the
+second, locale-aware dates, times, currency and plurals, and a product
+hardening pass. _Done._ Business content is never translated: a service called
+"Corte de cabello" reads the same in both languages, because it is the
+business's word and not ours.
+
 **Payment foundation.** Payment domain model, mock payment, state machine,
 provider abstraction. _Abstraction done in Phase 0; no provider integrated._
 
