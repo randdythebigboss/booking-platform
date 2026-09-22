@@ -82,13 +82,16 @@ Then, by hand, the things a checklist cannot do:
 | --- | --- |
 | Version | `0.1.0-beta.1` |
 | Branch | `phase11/release-candidate` |
+| Last code commit verified | `133042a` |
+| GitHub Actions | all three jobs green |
 | Lint, types | clean |
 | Unit tests | **351 passing**, 32 files |
 | SQL suites | **10 passing**, from an empty database, 35 migrations |
 | End-to-end | **64 passing** — 58 desktop, 6 at 375px |
 | Accessibility | **0 violations** (axe, WCAG 2.1 A + AA) across 8 screens |
 | Expo doctor | 21/21 |
-| Web export | 2.5 MB; 1.72 MB JS raw, **454 KB gzipped**, one chunk |
+| Web export | 2.5 MB; 1.72 MB JS raw, **455 KB gzipped**, one chunk |
+| Clean clone | `npm ci`, verify, export, packaging, 64 end-to-end — all pass |
 | Secret scan | clean — only the validation regex and test placeholders |
 | Tables without RLS | **0** |
 | `SECURITY DEFINER` without a pinned `search_path` | **0** |
@@ -97,6 +100,8 @@ Then, by hand, the things a checklist cannot do:
 | Payment simulation, cloud | **off** |
 | Real payment provider | **none** |
 | Real messaging provider | **none** |
+| Cloud smoke | booking, reschedule, cancel, both languages, no pay button |
+| Responsive | 320 / 375 / 430 / 768px — no horizontal overflow |
 
 ## Cutting the candidate
 
