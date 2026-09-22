@@ -11,6 +11,7 @@ import { guestStatusKey, toBookingError, type GuestAppointment } from '@/feature
 import { useBookingErrorText } from '@/i18n/use-error-text';
 import { useDynamicT } from '@/i18n/use-dynamic-t';
 import { useFormat } from '@/i18n/use-format';
+import { useGuestToken } from '@/hooks/use-guest-token';
 import {
   cancelAppointmentByToken,
   fetchAppointmentByToken,
@@ -33,7 +34,8 @@ type State =
  * appointment the token belongs to.
  */
 export default function ConfirmationScreen() {
-  const { id, token } = useLocalSearchParams<{ id: string; token?: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const token = useGuestToken();
   const { t } = useTranslation();
   const format = useFormat();
   const tk = useDynamicT();
@@ -51,7 +53,9 @@ export default function ConfirmationScreen() {
 
   useEffect(() => {
     if (!id) return;
-    if (!token) {
+    // null means the fragment has not been read yet; '' means it is absent.
+    if (token === null) return;
+    if (token === '') {
       setState({ kind: 'no-token' });
       return;
     }
@@ -128,6 +132,9 @@ export default function ConfirmationScreen() {
 
   const { appointment } = state;
   const cancelled = appointment.status === 'cancelled';
+  // Completed and no-show are over, not upcoming: the page should not greet
+  // somebody with "you are booked" for an appointment that already closed.
+  const closed = appointment.status === 'completed' || appointment.status === 'no_show';
 
   async function move() {
     if (!moveSlot) {
@@ -160,11 +167,17 @@ export default function ConfirmationScreen() {
 
   return (
     <Screen
-      title={cancelled ? t('confirmation.cancelledTitle') : t('confirmation.booked')}
+      title={
+        cancelled
+          ? t('confirmation.cancelledTitle')
+          : closed
+            ? t('confirmation.yourAppointment')
+            : t('confirmation.booked')
+      }
       subtitle={`${appointment.businessName} · ${appointment.professionalName}`}
     >
       <Card>
-        <Text variant="label" tone={cancelled ? 'danger' : 'success'}>
+        <Text variant="label" tone={cancelled ? 'danger' : closed ? 'muted' : 'success'}>
           {tk(guestStatusKey(appointment.status))}
         </Text>
         <Text variant="title">{format.time(appointment.startsAt, appointment.timezone)}</Text>

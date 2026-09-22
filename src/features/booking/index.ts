@@ -28,3 +28,9 @@ export {
   type GuestAppointment,
   type GuestAppointmentItem,
 } from './confirmation';
+export {
+  confirmationPath,
+  tokenFromFragment,
+  tokenFromUrl,
+  upgradeLegacyTokenUrl,
+} from './guest-token';

@@ -9,6 +9,7 @@ import { isoDateIn, type Slot } from '@/features/availability';
 import {
   BOOKING_STEPS,
   EMPTY_SELECTION,
+  confirmationPath,
   currentStep,
   reconcileSlot,
   selectService,
@@ -176,7 +177,7 @@ export default function BookScreen() {
         customerEmail: selection.customer.email || undefined,
       });
 
-      router.replace(`/booking/${result.appointmentId}/confirmation?token=${result.accessToken}`);
+      router.replace(confirmationPath(result.appointmentId, result.accessToken));
     } catch (cause) {
       const error = toBookingError(cause);
       setFailure(errorText(error));

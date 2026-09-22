@@ -58,12 +58,24 @@ being able to see anyone else's.
 
 That token belongs in the confirmation link. Treat it as a bearer credential.
 
-Because the whole URL is the credential, the web build sets
+It rides in the URL **fragment**, never the query string:
+
+```
+/booking/<appointment id>/confirmation#token=<access token>
+```
+
+A fragment is never sent to a server, so the token cannot reach an access log,
+a proxy or an analytics record of page URLs. See
+[ADR 0019](DECISIONS/0019-the-guest-token-rides-in-the-fragment.md). Links
+shared before that change carry `?token=`; they still open, and on web they are
+rewritten to the fragment form before the application mounts.
+
+Because the whole URL is the credential, the web build also sets
 `<meta name="referrer" content="same-origin">`. Browsers put the full URL in
 the `Referer` header of any outbound navigation, so a single link to a map, a
-calendar service or an image on another domain would hand the token to them.
-Nothing links off-site today; the policy is there so that the day something
-does, it is not a disclosure.
+calendar service or an image on another domain would hand a legacy link to
+them. Nothing links off-site today; the policy is there so that the day
+something does, it is not a disclosure.
 
 What remains accepted, and is inherent to a link anybody can use without an
 account: the token is in browser history, and in any copy of the link the
