@@ -91,8 +91,10 @@ test.describe('the customer sees the week before choosing a day', () => {
     const withShort = await readCounts();
 
     // A longer service fits fewer times into the same working day. It must
-    // never be possible for the longer one to show more.
-    await option(page, TENANT_A.services.deposit).click();
+    // never be possible for the longer one to show more. Deliberately a
+    // service that needs no payment: a deposit service is greyed out when
+    // nothing can take the payment, and this test is about duration.
+    await option(page, TENANT_A.services.longer).click();
     await page.waitForTimeout(1500);
     const withLong = await readCounts();
 

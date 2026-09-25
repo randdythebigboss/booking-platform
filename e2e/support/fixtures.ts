@@ -18,6 +18,8 @@ export const TENANT_A = {
   timezone: 'America/Santo_Domingo',
   services: {
     free: 'Corte de cabello',
+    /** Longer than `free`, and needs no payment, so it is always bookable. */
+    longer: 'Corte + barba',
     deposit: 'Color y tratamiento',
     full: 'Taller privado',
   },
