@@ -81,8 +81,13 @@ npm run db:start
 npm run db:reset             # applies migrations and loads the demo data
 ```
 
-The demo login is `demo@bookingplatform.test` / `demo-password-123`, and the
-demo booking page is at `/p/demo-studio`.
+The demo booking page is then at `/p/demo-studio`, and the professional
+sign-in for the local stack is `demo@bookingplatform.test` with the fixture
+password in `supabase/seed.sql`.
+
+That fixture password authenticates **a disposable local database and nothing
+else**. The seed must never be loaded into a shared project; see
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Checks
 
@@ -92,18 +97,19 @@ npm run verify               # lint + typecheck + tests
 
 ## Documentation
 
-| Document                                     | What it covers                                                          |
-| -------------------------------------------- | ----------------------------------------------------------------------- |
-| [docs/PRODUCT.md](docs/PRODUCT.md)           | What the product is, who it serves, what is in and out of the MVP       |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the pieces fit, and where the availability engine lives             |
-| [docs/DATABASE.md](docs/DATABASE.md)         | The data model, and how double booking is made impossible               |
-| [docs/SECURITY.md](docs/SECURITY.md)         | Row Level Security, secrets, and the public API surface                 |
-| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)   | Working on this repo day to day                                         |
-| [docs/OPERATIONS.md](docs/OPERATIONS.md)     | Running it: migrations, demo data, the dispatcher, supporting somebody  |
-| [docs/BETA.md](docs/BETA.md)                 | What can be tested and installed for nothing, and what would cost money |
-| [docs/LIMITATIONS.md](docs/LIMITATIONS.md)   | What this beta deliberately does **not** do                             |
-| [docs/RELEASE.md](docs/RELEASE.md)           | The release-candidate checklist, and what was last verified             |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)     | What a host has to provide, and the GitHub Pages evaluation             |
-| [docs/BETA-TESTING.md](docs/BETA-TESTING.md) | What a tester reads, in Spanish and English                             |
-| [docs/PRIVACY.md](docs/PRIVACY.md)           | What personal information exists, where, and which decisions are open   |
-| [docs/DECISIONS/](docs/DECISIONS/)           | Why things are the way they are                                         |
+| Document                                         | What it covers                                                          |
+| ------------------------------------------------ | ----------------------------------------------------------------------- |
+| [docs/PRODUCT.md](docs/PRODUCT.md)               | What the product is, who it serves, what is in and out of the MVP       |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)     | How the pieces fit, and where the availability engine lives             |
+| [docs/DATABASE.md](docs/DATABASE.md)             | The data model, and how double booking is made impossible               |
+| [docs/SECURITY.md](docs/SECURITY.md)             | Row Level Security, secrets, and the public API surface                 |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)       | Working on this repo day to day                                         |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md)         | Running it: migrations, demo data, the dispatcher, supporting somebody  |
+| [docs/BETA.md](docs/BETA.md)                     | What can be tested and installed for nothing, and what would cost money |
+| [docs/LIMITATIONS.md](docs/LIMITATIONS.md)       | What this beta deliberately does **not** do                             |
+| [docs/BETA-READINESS.md](docs/BETA-READINESS.md) | What still blocks using real professional or customer data              |
+| [docs/RELEASE.md](docs/RELEASE.md)               | The release-candidate checklist, and what was last verified             |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)         | What a host has to provide, and the GitHub Pages evaluation             |
+| [docs/BETA-TESTING.md](docs/BETA-TESTING.md)     | What a tester reads, in Spanish and English                             |
+| [docs/PRIVACY.md](docs/PRIVACY.md)               | What personal information exists, where, and which decisions are open   |
+| [docs/DECISIONS/](docs/DECISIONS/)               | Why things are the way they are                                         |

@@ -44,6 +44,13 @@ demo@bookingplatform.test / demo-password-123
 /p/demo-studio
 ```
 
+> **That password is a fixture, not a secret, and it is only safe because
+> the database it unlocks is disposable.** It is published, so it is known
+> to everybody. Never load `supabase/seed.sql` into a shared project, and if
+> somebody already has, change that account's password in the Supabase
+> dashboard immediately: the seeded value is readable in git history for
+> ever. This happened once, to the development project, in Phase 12.
+
 ### Changing the schema
 
 Every change is a new migration file. Never edit a migration that has already

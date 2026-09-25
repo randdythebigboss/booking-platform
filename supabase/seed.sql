@@ -1,6 +1,11 @@
 -- ===========================================================================
 -- Demo data. Loaded automatically by `npm run db:reset` on a local stack.
--- Never run this against a real project: it inserts a known password.
+--
+-- NEVER RUN THIS AGAINST A SHARED PROJECT. It inserts an account whose
+-- password is published in this repository, so loading it anywhere other
+-- than a disposable local database hands that environment to anybody who
+-- can read GitHub -- and the value stays in git history for ever, so the
+-- only remedy afterwards is to change the password out of band.
 --
 --   Professional login : demo@bookingplatform.test / demo-password-123
 --   Public page        : /p/demo-studio
