@@ -224,7 +224,9 @@ test.describe('the storefront', () => {
   test('offers the booking link before the price list, not after it @mobile', async ({ page }) => {
     await page.goto(`/p/${TENANT_A.slug}`);
 
-    const book = page.getByRole('link', { name: 'Reservar' });
+    // The call to action is a Button inside a Link, so the role a reader
+    // meets is button; the anchor around it is only how it navigates.
+    const book = page.getByRole('button', { name: 'Reservar', exact: true });
     await expect(book.first()).toBeVisible();
 
     // Above the fold, which is the whole point: the old one was below six

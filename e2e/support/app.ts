@@ -104,12 +104,24 @@ export function option(page: Page, name: string | RegExp): Locator {
   return page.getByRole('radio', { name });
 }
 
-/** Reveals the times that are not free, which the page folds away. */
-export async function showUnavailableTimes(page: Page): Promise<void> {
+/**
+ * Reveals the times that are not free, which the page folds away.
+ *
+ * Returns whether there was anything to reveal: a day nobody has booked yet
+ * has nothing folded, and a test that insists otherwise is testing the seed
+ * rather than the product.
+ */
+export async function showUnavailableTimes(page: Page): Promise<boolean> {
+  // The grid has to exist before anything can be counted in it.
+  await expect(page.getByRole('radio', { name: /\d{1,2}:\d{2}/ }).first()).toBeVisible();
+
   const toggle = page.getByRole('button', {
     name: /Ver \d+ horas? no disponibles?|Show \d+ unavailable/,
   });
-  if ((await toggle.count()) > 0) await toggle.click();
+  if ((await toggle.count()) === 0) return false;
+
+  await toggle.click();
+  return true;
 }
 
 /** The first free time on the chosen day, whatever it happens to be. */

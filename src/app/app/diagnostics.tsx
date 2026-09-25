@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { Platform, View } from 'react-native';
 
 import { useLocale, useRequiredWorkspace, useSession } from '@/components/providers';
-import { Card, Screen, Text } from '@/components/ui';
+import { Card, Text } from '@/components/ui';
+import { WorkspaceShell } from '@/components/workspace-shell';
 import { useOnline } from '@/hooks/use-online';
 import { environmentName } from '@/lib/env';
 import { lastErrorCode } from '@/lib/last-error';
@@ -27,7 +28,7 @@ import { spacing } from '@/theme';
  * about anybody. See src/lib/last-error.ts.
  */
 export default function DiagnosticsScreen() {
-  const { business, role } = useRequiredWorkspace();
+  const { business, professional, role } = useRequiredWorkspace();
   const session = useSession();
   const { locale } = useLocale();
   const { t } = useTranslation();
@@ -54,7 +55,13 @@ export default function DiagnosticsScreen() {
   ];
 
   return (
-    <Screen title={t('diagnostics.title')} subtitle={t('diagnostics.subtitle')}>
+    <WorkspaceShell
+      businessName={business.name}
+      professionalName={professional?.displayName ?? undefined}
+      narrow
+      title={t('diagnostics.title')}
+      subtitle={t('diagnostics.subtitle')}
+    >
       <Card>
         <View style={{ gap: spacing.sm }}>
           {rows.map(([label, value]) => (
@@ -73,6 +80,6 @@ export default function DiagnosticsScreen() {
       <Text variant="caption" tone="muted">
         {t('diagnostics.privacyNote')}
       </Text>
-    </Screen>
+    </WorkspaceShell>
   );
 }

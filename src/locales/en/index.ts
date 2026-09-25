@@ -335,7 +335,7 @@ export const en: Translations = {
     removeWindow: 'Remove',
     addWindow: 'Add a period',
     notBookable: 'Your account is not set up as a bookable professional in this business yet.',
-    title: 'Availability',
+    title: 'Hours',
     subtitle: 'Your weekly hours, and the exceptions to them.',
     weekly: 'Weekly hours',
     weeklyHint: 'The norm. Changes to a specific date go elsewhere.',

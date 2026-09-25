@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
+import { DatePicker } from '@/components/date-picker';
 import { useRequiredWorkspace } from '@/components/providers';
-import { Button, Card, Dropdown, Feedback, Field, Screen, Text } from '@/components/ui';
+import { Button, Card, Dropdown, Feedback, Text } from '@/components/ui';
+import { WorkspaceShell } from '@/components/workspace-shell';
 import { addDays, isoDateIn } from '@/features/availability';
 import { useAsyncData } from '@/hooks/use-async-data';
 import { useFormat } from '@/i18n/use-format';
@@ -27,7 +29,8 @@ export default function SchedulePreviewScreen() {
 
   const services = useAsyncData(() => fetchServices(business.id), [business.id]);
   const [serviceId, setServiceId] = useState<string | null>(null);
-  const [date, setDate] = useState(() => isoDateIn(new Date(), timezone));
+  const today = isoDateIn(new Date(), timezone);
+  const [date, setDate] = useState(today);
 
   const activeServices = (services.data ?? []).filter((service) => service.isActive);
   const selectedId = serviceId ?? activeServices[0]?.id ?? null;
@@ -43,18 +46,29 @@ export default function SchedulePreviewScreen() {
 
   if (!professionalId) {
     return (
-      <Screen title={t('preview.title')}>
+      <WorkspaceShell
+        businessName={business.name}
+        professionalName={professional?.displayName ?? undefined}
+        narrow
+        title={t('preview.title')}
+      >
         <Card>
           <Text variant="body" tone="muted">
             {t('preview.notBookable')}
           </Text>
         </Card>
-      </Screen>
+      </WorkspaceShell>
     );
   }
 
   return (
-    <Screen title={t('preview.title')} subtitle={t('preview.subtitle')}>
+    <WorkspaceShell
+      businessName={business.name}
+      professionalName={professional?.displayName ?? undefined}
+      narrow
+      title={t('preview.title')}
+      subtitle={t('preview.subtitle')}
+    >
       {services.loading && <ActivityIndicator />}
       {services.error && <Feedback tone="danger" message={services.error} />}
 
@@ -78,14 +92,19 @@ export default function SchedulePreviewScreen() {
         />
       )}
 
-      <Field
-        label={t('preview.date')}
-        value={date}
-        onChangeText={setDate}
-        placeholder="2026-09-28"
-        autoCapitalize="none"
-        hint={t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
-      />
+      <View style={{ gap: spacing.xs }}>
+        <Text variant="label">{t('preview.date')}</Text>
+        <DatePicker
+          label={t('common.chooseADay')}
+          value={date}
+          minDate={today}
+          maxDate={addDays(today, 365)}
+          onChange={setDate}
+        />
+        <Text variant="caption" tone="muted">
+          {t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
+        </Text>
+      </View>
 
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>
         <Button
@@ -143,6 +162,6 @@ export default function SchedulePreviewScreen() {
           {t('preview.authoritative')}
         </Text>
       </Card>
-    </Screen>
+    </WorkspaceShell>
   );
 }

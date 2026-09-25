@@ -2,9 +2,17 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
+import { DatePicker } from '@/components/date-picker';
 import { useRequiredWorkspace } from '@/components/providers';
-import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
-import { isoDateIn, toBlockRange, validateBlock, type BlockErrors } from '@/features/availability';
+import { Button, Card, Feedback, Field, Text } from '@/components/ui';
+import { WorkspaceShell } from '@/components/workspace-shell';
+import {
+  addDays,
+  isoDateIn,
+  toBlockRange,
+  validateBlock,
+  type BlockErrors,
+} from '@/features/availability';
 import { useWorkspaceErrorText } from '@/i18n/use-error-text';
 import { useFormat } from '@/i18n/use-format';
 import { useIssueText } from '@/i18n/use-issue-text';
@@ -31,7 +39,8 @@ export default function BlockedTimeScreen() {
     [professionalId],
   );
 
-  const [date, setDate] = useState(() => isoDateIn(new Date(), timezone));
+  const today = isoDateIn(new Date(), timezone);
+  const [date, setDate] = useState(today);
   const [startTime, setStartTime] = useState('12:00');
   const [endTime, setEndTime] = useState('14:30');
   const [reason, setReason] = useState('');
@@ -42,13 +51,18 @@ export default function BlockedTimeScreen() {
 
   if (!professionalId) {
     return (
-      <Screen title={t('blocks.title')}>
+      <WorkspaceShell
+        businessName={business.name}
+        professionalName={professional?.displayName ?? undefined}
+        narrow
+        title={t('blocks.title')}
+      >
         <Card>
           <Text variant="body" tone="muted">
             {t('blocks.notBookable')}
           </Text>
         </Card>
-      </Screen>
+      </WorkspaceShell>
     );
   }
 
@@ -80,7 +94,13 @@ export default function BlockedTimeScreen() {
   }
 
   return (
-    <Screen title={t('blocks.title')} subtitle={t('blocks.subtitle')}>
+    <WorkspaceShell
+      businessName={business.name}
+      professionalName={professional?.displayName ?? undefined}
+      narrow
+      title={t('blocks.title')}
+      subtitle={t('blocks.subtitle')}
+    >
       <Card>
         <Text variant="heading">{t('blocks.add')}</Text>
         <Text variant="caption" tone="muted">
@@ -88,14 +108,21 @@ export default function BlockedTimeScreen() {
         </Text>
 
         <View style={{ gap: spacing.md, marginTop: spacing.sm }}>
-          <Field
-            label={t('blocks.date')}
-            value={date}
-            onChangeText={setDate}
-            placeholder="2026-09-28"
-            autoCapitalize="none"
-            error={issueText(errors.date)}
-          />
+          <View style={{ gap: spacing.xs }}>
+            <Text variant="label">{t('blocks.date')}</Text>
+            <DatePicker
+              label={t('common.chooseADay')}
+              value={date}
+              minDate={today}
+              maxDate={addDays(today, 365)}
+              onChange={setDate}
+            />
+            {issueText(errors.date) && (
+              <Text variant="caption" tone="danger">
+                {issueText(errors.date)}
+              </Text>
+            )}
+          </View>
           <View style={{ flexDirection: 'row', gap: spacing.sm }}>
             <View style={{ flex: 1 }}>
               <Field
@@ -167,6 +194,6 @@ export default function BlockedTimeScreen() {
           </Card>
         ))}
       </View>
-    </Screen>
+    </WorkspaceShell>
   );
 }

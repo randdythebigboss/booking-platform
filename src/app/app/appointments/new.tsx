@@ -5,7 +5,8 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { useLocale, useRequiredWorkspace } from '@/components/providers';
 import { SlotPicker } from '@/components/slot-picker';
-import { Button, Card, Dropdown, Feedback, Field, Screen, Text, ToggleRow } from '@/components/ui';
+import { Button, Card, Dropdown, Feedback, Field, Text, ToggleRow } from '@/components/ui';
+import { WorkspaceShell } from '@/components/workspace-shell';
 import { isoDateIn, parseClockTime, zonedInstant } from '@/features/availability';
 import { useWorkspaceErrorText } from '@/i18n/use-error-text';
 import { useFormat } from '@/i18n/use-format';
@@ -53,9 +54,9 @@ export default function NewAppointmentScreen() {
 
   if (!professional) {
     return (
-      <Screen title={t('manualBooking.title')}>
+      <WorkspaceShell businessName={business.name} narrow title={t('manualBooking.title')}>
         <Feedback tone="muted" message={t('manualBooking.notBookable')} />
-      </Screen>
+      </WorkspaceShell>
     );
   }
 
@@ -106,7 +107,13 @@ export default function NewAppointmentScreen() {
   }
 
   return (
-    <Screen title={t('manualBooking.title')} subtitle={t('manualBooking.subtitle')}>
+    <WorkspaceShell
+      businessName={business.name}
+      professionalName={professional?.displayName ?? undefined}
+      narrow
+      title={t('manualBooking.title')}
+      subtitle={t('manualBooking.subtitle')}
+    >
       <Card>
         <Text variant="heading">{t('manualBooking.stepService')}</Text>
         {services.loading && <ActivityIndicator />}
@@ -214,6 +221,6 @@ export default function NewAppointmentScreen() {
       {chosenService && (
         <Button label={t('manualBooking.submit')} loading={saving} onPress={save} />
       )}
-    </Screen>
+    </WorkspaceShell>
   );
 }

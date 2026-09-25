@@ -344,7 +344,7 @@ export const es = {
     addWindow: 'Añadir tramo',
     notBookable:
       'Tu cuenta todavía no está configurada como profesional con reservas en este negocio.',
-    title: 'Disponibilidad',
+    title: 'Horario',
     subtitle: 'Tu horario semanal, y las excepciones.',
     weekly: 'Horario semanal',
     weeklyHint: 'La norma. Las excepciones de un día concreto van aparte.',

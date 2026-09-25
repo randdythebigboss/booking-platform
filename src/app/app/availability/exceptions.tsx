@@ -2,18 +2,22 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
+import { DatePicker } from '@/components/date-picker';
 import { useRequiredWorkspace } from '@/components/providers';
-import { Button, Card, Feedback, Field, Screen, Segmented, Text } from '@/components/ui';
+import { Button, Card, Feedback, Field, Segmented, Text } from '@/components/ui';
+import { WorkspaceShell } from '@/components/workspace-shell';
 import {
   addDays,
   describeException,
   isoDateIn,
+  parseIsoDate,
   validateException,
   type ExceptionErrors,
   type ExceptionKind,
 } from '@/features/availability';
 import { useWorkspaceErrorText } from '@/i18n/use-error-text';
 import { useDynamicT } from '@/i18n/use-dynamic-t';
+import { useFormat } from '@/i18n/use-format';
 import { useIssueText } from '@/i18n/use-issue-text';
 import { useAsyncData } from '@/hooks/use-async-data';
 import {
@@ -25,6 +29,12 @@ import { spacing } from '@/theme';
 
 const HORIZON_DAYS = 180;
 
+/** Midday UTC, so formatting never slides a date into its neighbour. */
+function asDate(iso: string): Date {
+  const { year, month, day } = parseIsoDate(iso);
+  return new Date(Date.UTC(year, month - 1, day, 12));
+}
+
 export default function DateExceptionsScreen() {
   const { business, professional } = useRequiredWorkspace();
   const { t } = useTranslation();
@@ -32,6 +42,7 @@ export default function DateExceptionsScreen() {
   const issueText = useIssueText();
   const errorText = useWorkspaceErrorText();
   const timezone = business.timezone;
+  const format = useFormat();
   const professionalId = professional?.id ?? null;
 
   const today = isoDateIn(new Date(), timezone);
@@ -55,13 +66,18 @@ export default function DateExceptionsScreen() {
 
   if (!professionalId) {
     return (
-      <Screen title={t('exceptions.title')}>
+      <WorkspaceShell
+        businessName={business.name}
+        professionalName={professional?.displayName ?? undefined}
+        narrow
+        title={t('exceptions.title')}
+      >
         <Card>
           <Text variant="body" tone="muted">
             {t('exceptions.notBookable')}
           </Text>
         </Card>
-      </Screen>
+      </WorkspaceShell>
     );
   }
 
@@ -93,7 +109,13 @@ export default function DateExceptionsScreen() {
   }
 
   return (
-    <Screen title={t('exceptions.title')} subtitle={t('exceptions.subtitle')}>
+    <WorkspaceShell
+      businessName={business.name}
+      professionalName={professional?.displayName ?? undefined}
+      narrow
+      title={t('exceptions.title')}
+      subtitle={t('exceptions.subtitle')}
+    >
       <Card>
         <Text variant="heading">{t('exceptions.add')}</Text>
         <Text variant="caption" tone="muted">
@@ -101,14 +123,21 @@ export default function DateExceptionsScreen() {
         </Text>
 
         <View style={{ gap: spacing.md, marginTop: spacing.sm }}>
-          <Field
-            label={t('exceptions.date')}
-            value={date}
-            onChangeText={setDate}
-            placeholder="2026-09-29"
-            autoCapitalize="none"
-            error={issueText(errors.date)}
-          />
+          <View style={{ gap: spacing.xs }}>
+            <Text variant="label">{t('exceptions.date')}</Text>
+            <DatePicker
+              label={t('common.chooseADay')}
+              value={date}
+              minDate={today}
+              maxDate={addDays(today, 365)}
+              onChange={setDate}
+            />
+            {issueText(errors.date) && (
+              <Text variant="caption" tone="danger">
+                {issueText(errors.date)}
+              </Text>
+            )}
+          </View>
 
           <View style={{ gap: spacing.xs }}>
             <Text variant="label">{t('exceptions.whatChanges')}</Text>
@@ -185,7 +214,8 @@ export default function DateExceptionsScreen() {
       <View style={{ gap: spacing.sm }}>
         {(exceptions.data ?? []).map((exception) => (
           <Card key={exception.id}>
-            <Text variant="label">{exception.date}</Text>
+            {/* The date as a person writes it, not as the column stores it. */}
+            <Text variant="label">{format.date(asDate(exception.date), 'UTC')}</Text>
             <Text variant="body" tone={exception.kind === 'custom-hours' ? 'accent' : 'danger'}>
               {exception.kind === 'closed' && t('exceptions.closedAllDay')}
               {exception.kind === 'closed-period' &&
@@ -215,6 +245,6 @@ export default function DateExceptionsScreen() {
           </Card>
         ))}
       </View>
-    </Screen>
+    </WorkspaceShell>
   );
 }

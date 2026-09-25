@@ -6,7 +6,8 @@ import { ActivityIndicator, View } from 'react-native';
 import { MessageThread } from '@/components/message-thread';
 import { useRequiredWorkspace, useSession } from '@/components/providers';
 import { SlotPicker } from '@/components/slot-picker';
-import { Button, Card, Feedback, Field, Screen, Text, ToggleRow } from '@/components/ui';
+import { Button, Card, Feedback, Field, Text, ToggleRow } from '@/components/ui';
+import { WorkspaceShell } from '@/components/workspace-shell';
 import {
   availableActions,
   describeEvent,
@@ -43,7 +44,7 @@ import type { AppointmentStatus } from '@/types/domain';
 
 export default function AppointmentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { business } = useRequiredWorkspace();
+  const { business, professional } = useRequiredWorkspace();
   const session = useSession();
   const { t } = useTranslation();
   const format = useFormat();
@@ -212,23 +213,41 @@ export default function AppointmentDetailScreen() {
 
   if (appointment.loading) {
     return (
-      <Screen title={t('common.loading')}>
+      <WorkspaceShell
+        businessName={business.name}
+        professionalName={professional?.displayName ?? undefined}
+        narrow
+        title={t('common.loading')}
+      >
         <ActivityIndicator />
-      </Screen>
+      </WorkspaceShell>
     );
   }
 
   if (appointment.error) {
     return (
-      <Screen title={t('common.somethingWentWrong')}>
+      <WorkspaceShell
+        businessName={business.name}
+        professionalName={professional?.displayName ?? undefined}
+        narrow
+        title={t('common.somethingWentWrong')}
+      >
         <Feedback tone="danger" message={appointment.error} />
-      </Screen>
+      </WorkspaceShell>
     );
   }
 
   const row = appointment.data;
   if (!row) {
-    return <Screen title={t('common.notFound')} subtitle={t('appointments.notInThisBusiness')} />;
+    return (
+      <WorkspaceShell
+        businessName={business.name}
+        professionalName={professional?.displayName ?? undefined}
+        narrow
+        title={t('common.notFound')}
+        subtitle={t('appointments.notInThisBusiness')}
+      />
+    );
   }
 
   const actions = availableActions(row.status, row.startsAt);
@@ -240,7 +259,10 @@ export default function AppointmentDetailScreen() {
   const moved = rescheduleCount(events);
 
   return (
-    <Screen
+    <WorkspaceShell
+      businessName={business.name}
+      professionalName={professional?.displayName ?? undefined}
+      narrow
       title={format.time(row.startsAt, timezone)}
       subtitle={format.date(row.startsAt, timezone)}
     >
@@ -584,6 +606,6 @@ export default function AppointmentDetailScreen() {
           {t('history.immutable')}
         </Text>
       </Card>
-    </Screen>
+    </WorkspaceShell>
   );
 }

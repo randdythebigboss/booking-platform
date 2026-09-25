@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
-import { Card, Dropdown, Screen, Text } from '@/components/ui';
+import { Card, Dropdown, Text } from '@/components/ui';
+import { WorkspaceShell } from '@/components/workspace-shell';
 import { NOTIFICATION_STATUSES, type NotificationStatus } from '@/features/notifications';
 import { useDynamicT } from '@/i18n/use-dynamic-t';
 import { useFormat } from '@/i18n/use-format';
@@ -29,7 +30,7 @@ type StatusFilter = NotificationStatus | 'all';
  * copy it to.
  */
 export default function NotificationsScreen() {
-  const { business } = useRequiredWorkspace();
+  const { business, professional } = useRequiredWorkspace();
   const { t } = useTranslation();
   const tk = useDynamicT();
   const format = useFormat();
@@ -58,7 +59,13 @@ export default function NotificationsScreen() {
   useRefreshOnFocus(notifications.reload);
 
   return (
-    <Screen title={t('notifications.title')} subtitle={t('notifications.subtitle')}>
+    <WorkspaceShell
+      businessName={business.name}
+      professionalName={professional?.displayName ?? undefined}
+      narrow
+      title={t('notifications.title')}
+      subtitle={t('notifications.subtitle')}
+    >
       <Dropdown
         label={t('appointments.status')}
         value={status}
@@ -127,6 +134,6 @@ export default function NotificationsScreen() {
       <Text variant="caption" tone="muted">
         {t('notifications.developmentDelivery')}
       </Text>
-    </Screen>
+    </WorkspaceShell>
   );
 }

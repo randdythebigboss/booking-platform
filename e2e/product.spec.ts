@@ -131,12 +131,16 @@ test.describe('what a customer can see of a day', () => {
     // Grouped the way people describe a day.
     await expect(page.getByText('Mañana', { exact: true })).toBeVisible();
 
-    await showUnavailableTimes(page);
+    // A day nobody has booked yet folds nothing away, and a test that insists
+    // otherwise is testing the seed rather than the product.
+    const hadHidden = await showUnavailableTimes(page);
 
-    const all = await page.getByRole('radio', { name: /\d{1,2}:\d{2}/ }).count();
-    expect(all).toBeGreaterThan(offered);
-    // The legend, because shading alone never carries meaning.
-    await expect(page.getByText('Ocupado', { exact: true })).toBeVisible();
+    if (hadHidden) {
+      const all = await page.getByRole('radio', { name: /\d{1,2}:\d{2}/ }).count();
+      expect(all).toBeGreaterThan(offered);
+      // The legend, because shading alone never carries meaning.
+      await expect(page.getByText('Ocupado', { exact: true })).toBeVisible();
+    }
   });
 
   /**
@@ -154,6 +158,9 @@ test.describe('what a customer can see of a day', () => {
     await page.goto(`/p/${TENANT_A.slug}/book`);
     await option(page, TENANT_A.services.free).click();
     await chooseDay(page, openDateISO(2));
+
+    // Somebody has that time, so the page has something folded away.
+    expect(await showUnavailableTimes(page)).toBe(true);
     await expect(page.getByRole('radio', { name: /\d{1,2}:\d{2}.*Ocupado/ }).first()).toBeVisible();
 
     const body = (await page.textContent('body')) ?? '';
@@ -208,7 +215,7 @@ test.describe('the conversation about an appointment', () => {
     await bookAsGuest(page);
 
     await expect(page.getByRole('heading', { name: TEXT.es.messages })).toBeVisible();
-    await page.getByRole('textbox', { name: 'Escribe un mensaje' }).fill('Llego un poco tarde.');
+    await page.getByRole('textbox', { name: 'Tu mensaje' }).fill('Llego un poco tarde.');
     await page.getByRole('button', { name: 'Enviar' }).click();
 
     await expect(page.getByText('Llego un poco tarde.')).toBeVisible();
@@ -218,9 +225,7 @@ test.describe('the conversation about an appointment', () => {
   test('the professional reads it and answers', async ({ page, context }) => {
     const guest = await context.newPage();
     await bookAsGuest(guest, { guest: { ...GUEST, name: 'Habla Conmigo' } });
-    await guest
-      .getByRole('textbox', { name: 'Escribe un mensaje' })
-      .fill('¿Puedo llegar 10 min tarde?');
+    await guest.getByRole('textbox', { name: 'Tu mensaje' }).fill('¿Puedo llegar 10 min tarde?');
     await guest.getByRole('button', { name: 'Enviar' }).click();
     await expect(guest.getByText('¿Puedo llegar 10 min tarde?')).toBeVisible();
 
@@ -233,7 +238,7 @@ test.describe('the conversation about an appointment', () => {
     await page.waitForURL(/\/app\/appointments\/[0-9a-f-]+/);
 
     await expect(page.getByText('¿Puedo llegar 10 min tarde?')).toBeVisible();
-    await page.getByRole('textbox', { name: 'Escribe un mensaje' }).fill('Sin problema.');
+    await page.getByRole('textbox', { name: 'Tu mensaje' }).fill('Sin problema.');
     await page.getByRole('button', { name: 'Enviar' }).click();
     await expect(page.getByText('Sin problema.')).toBeVisible();
 
@@ -247,7 +252,7 @@ test.describe('the conversation about an appointment', () => {
     const url = await bookAsGuest(page);
     const id = url.split('/booking/')[1]?.split('/')[0] ?? '';
 
-    await page.getByRole('textbox', { name: 'Escribe un mensaje' }).fill('Secreto del cliente.');
+    await page.getByRole('textbox', { name: 'Tu mensaje' }).fill('Secreto del cliente.');
     await page.getByRole('button', { name: 'Enviar' }).click();
     await expect(page.getByText('Secreto del cliente.')).toBeVisible();
 
