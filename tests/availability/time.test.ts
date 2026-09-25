@@ -6,6 +6,7 @@ import {
   formatClockTime,
   isDateWithin,
   isoDateIn,
+  normalizeClockInput,
   parseClockTime,
   weekdayOf,
   zonedInstant,
@@ -83,5 +84,35 @@ describe('isDateWithin', () => {
     expect(isDateWithin('2026-09-21', '2026-09-22', null)).toBe(false);
     expect(isDateWithin('2026-09-21', null, '2026-09-20')).toBe(false);
     expect(isDateWithin('2026-09-21', null, null)).toBe(true);
+  });
+});
+
+describe('normalizeClockInput', () => {
+  it('reads digits positionally, the way a microwave does', () => {
+    expect(normalizeClockInput('9')).toBe('09:00');
+    expect(normalizeClockInput('09')).toBe('09:00');
+    expect(normalizeClockInput('930')).toBe('09:30');
+    expect(normalizeClockInput('0930')).toBe('09:30');
+    expect(normalizeClockInput('1815')).toBe('18:15');
+  });
+
+  it('ignores the punctuation somebody types around them', () => {
+    expect(normalizeClockInput('9:30')).toBe('09:30');
+    expect(normalizeClockInput('18.15')).toBe('18:15');
+    expect(normalizeClockInput(' 09 : 30 ')).toBe('09:30');
+  });
+
+  it('keeps end-of-day but refuses the hour after it', () => {
+    expect(normalizeClockInput('24')).toBe('24:00');
+    expect(normalizeClockInput('2400')).toBe('24:00');
+    expect(normalizeClockInput('2401')).toBeNull();
+    expect(normalizeClockInput('25')).toBeNull();
+  });
+
+  it('returns nothing rather than guessing', () => {
+    expect(normalizeClockInput('')).toBeNull();
+    expect(normalizeClockInput('abc')).toBeNull();
+    expect(normalizeClockInput('0970')).toBeNull();
+    expect(normalizeClockInput('12345')).toBeNull();
   });
 });

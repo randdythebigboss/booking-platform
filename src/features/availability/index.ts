@@ -22,6 +22,7 @@ export {
   formatClockTime,
   isDateWithin,
   isoDateIn,
+  normalizeClockInput,
   parseClockTime,
   parseIsoDate,
   weekdayOf,

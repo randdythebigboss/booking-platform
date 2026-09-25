@@ -10,4 +10,5 @@ export { Select, type SelectOption, type SelectProps } from './select';
 export { Segmented, type SegmentedOption, type SegmentedProps } from './segmented';
 export { Stat, type StatProps } from './stat';
 export { Text, type TextProps } from './text';
+export { TimeInput, type TimeInputProps } from './time-input';
 export { ToggleRow, type ToggleRowProps } from './toggle-row';

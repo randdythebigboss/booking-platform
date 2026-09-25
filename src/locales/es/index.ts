@@ -13,6 +13,7 @@
  */
 export const es = {
   common: {
+    discard: 'Descartar',
     save: 'Guardar',
     cancel: 'Cancelar',
     back: 'Volver',
@@ -306,6 +307,11 @@ export const es = {
   },
 
   availability: {
+    unsaved: 'Tienes cambios sin guardar.',
+    nothingOpenHint: 'Enciende los días que trabajas y pon tus horas.',
+    copyToOtherDays: 'Copiar a los demás días',
+    weeklyTotal_one: '{{hours}} h a la semana, en {{count}} día.',
+    weeklyTotal_other: '{{hours}} h a la semana, en {{count}} días.',
     exceptionsHelp: 'Cierra una fecha concreta, o ábrela con otro horario.',
     dateSpecificBody: 'El horario semanal de arriba es la norma. Todo lo demás es una excepción.',
     dateSpecific: 'Cambios en fechas concretas',

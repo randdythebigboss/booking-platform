@@ -110,3 +110,29 @@ export function isDateWithin(
   if (until && date > until) return false;
   return true;
 }
+
+/**
+ * Turns whatever somebody typed into a clock time, or into nothing.
+ *
+ * The weekly editor used to be two raw text fields that accepted any string
+ * and only complained after Save, so `9`, `9am` and `0900` -- all of which
+ * mean the same thing to the person typing them -- produced an error instead
+ * of an opening hour. Digits are read positionally, the way a till or a
+ * microwave reads them: `9` and `09` are nine o'clock, `930` and `0930` are
+ * half past nine.
+ *
+ * Returns `null` for anything that cannot be a time, so the caller can leave
+ * the field alone rather than replace what somebody is still typing.
+ */
+export function normalizeClockInput(raw: string): ClockTime | null {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 0 || digits.length > 4) return null;
+
+  const hours = digits.length <= 2 ? Number(digits) : Number(digits.slice(0, digits.length - 2));
+  const minutes = digits.length <= 2 ? 0 : Number(digits.slice(-2));
+
+  if (hours > 24 || minutes > 59) return null;
+  if (hours === 24 && minutes > 0) return null;
+
+  return formatClockTime(hours * 60 + minutes);
+}
