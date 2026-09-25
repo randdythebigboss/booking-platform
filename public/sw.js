@@ -23,11 +23,27 @@
 
 const CACHE = 'booking-platform-shell-v1';
 
+/**
+ * Where this deployment is served from, ending without a slash.
+ *
+ * `''` for a site at a domain root. `'/booking-platform'` when GitHub Pages
+ * serves it from a repository subpath -- and the paths below have to allow for
+ * that, or they match nothing at all. They matched nothing at all: the worker
+ * installed, took control, and quietly cached zero bytes, because every asset
+ * arrives as `/booking-platform/_expo/...` and the allow-list was written for
+ * a root deployment.
+ *
+ * Taken from the registration's own scope rather than from a build-time
+ * constant, so this file stays static and needs no templating.
+ */
+const BASE = new URL(self.registration.scope).pathname.replace(/\/$/, '');
+
 // Only what the build emits, and only when it is hashed and immutable.
-const CACHEABLE = [/^\/_expo\/static\//, /^\/assets\//, /^\/icons\//, /^\/fonts\//];
+const CACHEABLE = ['/_expo/static/', '/assets/', '/icons/', '/fonts/'];
 
 function isCacheable(url) {
-  return url.origin === self.location.origin && CACHEABLE.some((shape) => shape.test(url.pathname));
+  if (url.origin !== self.location.origin) return false;
+  return CACHEABLE.some((prefix) => url.pathname.startsWith(BASE + prefix));
 }
 
 self.addEventListener('install', () => {

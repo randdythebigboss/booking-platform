@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { createContext, runInContext } from 'node:vm';
 
 import { PNG } from 'pngjs';
 import { describe, expect, it } from 'vitest';
@@ -133,24 +134,80 @@ describe('the web manifest', () => {
   });
 });
 
+/**
+ * Runs `public/sw.js` in a stubbed worker scope and hands back its
+ * `isCacheable`, for a deployment served from `scope`.
+ *
+ * Executing it rather than reading it, because the bug this replaced a
+ * string-matching test over was invisible in the source: the allow-list looked
+ * completely reasonable and matched nothing at all once the site moved to a
+ * repository subpath.
+ */
+function serviceWorkerAt(scope: string): (url: URL) => boolean {
+  const context = {
+    self: {
+      registration: { scope },
+      location: { origin: new URL(scope).origin },
+      addEventListener() {},
+      skipWaiting() {},
+      clients: { claim() {} },
+    },
+    caches: { keys: async () => [], open: async () => ({}), match: async () => undefined },
+    fetch: async () => ({}),
+    URL,
+    Promise,
+  };
+
+  createContext(context);
+  runInContext(serviceWorker, context);
+
+  return (context as unknown as { isCacheable: (url: URL) => boolean }).isCacheable;
+}
+
 describe('the service worker', () => {
-  it('caches only the build output, and names the allowance explicitly', () => {
-    expect(serviceWorker).toContain('_expo');
-    expect(serviceWorker).toContain('assets');
-    expect(serviceWorker).toContain('icons');
+  const ROOT = 'https://app.example.test/';
+  const SUBPATH = 'https://someone.github.io/booking-platform/';
+
+  it('caches the build output when the site is at a domain root', () => {
+    const isCacheable = serviceWorkerAt(ROOT);
+
+    for (const path of ['/_expo/static/js/web/entry-abc.js', '/assets/x.png', '/icons/icon-512.png', '/fonts/a.ttf']) {
+      expect(isCacheable(new URL(path, ROOT)), path).toBe(true);
+    }
   });
 
-  it('never caches anything from the API or another origin', () => {
-    // The rule that matters: an installed application must not answer a
-    // question about somebody's calendar from disk. Everything it will cache
-    // is same-origin and is a path the build emits.
-    expect(serviceWorker).toContain('url.origin === self.location.origin');
+  /**
+   * The regression. GitHub Pages serves a project site from `/<repo>/`, so
+   * every asset arrives prefixed. An allow-list anchored at `/` matched none
+   * of them, and the worker installed, took control and cached zero bytes --
+   * silently, because caching nothing looks exactly like working.
+   */
+  it('caches the build output when the site is under a repository subpath', () => {
+    const isCacheable = serviceWorkerAt(SUBPATH);
 
-    const allowList = serviceWorker.match(/const CACHEABLE = \[(.*?)\];/s)?.[1] ?? '';
-    expect(allowList).not.toBe('');
-    expect(allowList).not.toMatch(/supabase/i);
-    expect(allowList).not.toMatch(/rest/);
-    expect(allowList).not.toMatch(/auth/);
+    for (const path of ['_expo/static/js/web/entry-abc.js', 'assets/x.png', 'icons/icon-512.png']) {
+      expect(isCacheable(new URL(path, SUBPATH)), path).toBe(true);
+    }
+
+    // And it does not start caching another project served from the same host.
+    expect(isCacheable(new URL('https://someone.github.io/other-repo/_expo/static/js/a.js'))).toBe(
+      false,
+    );
+  });
+
+  it('never caches an API response, a page, or another origin', () => {
+    for (const scope of [ROOT, SUBPATH]) {
+      const isCacheable = serviceWorkerAt(scope);
+
+      expect(isCacheable(new URL('rest/v1/appointments?select=*', scope)), scope).toBe(false);
+      expect(isCacheable(new URL('auth/v1/token', scope)), scope).toBe(false);
+      expect(isCacheable(new URL('p/demo-studio/book', scope)), scope).toBe(false);
+      expect(isCacheable(new URL(scope)), scope).toBe(false);
+      expect(
+        isCacheable(new URL('https://abcdef.supabase.co/rest/v1/appointments')),
+        scope,
+      ).toBe(false);
+    }
   });
 
   it('leaves navigations alone rather than serving pages from a cache', () => {
