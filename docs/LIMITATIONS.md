@@ -19,9 +19,12 @@ implementation rather than a change of design.
   transmitted. There is no field for one.
 - **No payouts, no marketplace, no platform fee.** Each business owns its own
   payment relationship; the platform never holds anybody's money.
-- **Azul is a button and a sentence.** Pressing it says card payment is not
-  available yet and that nothing has been charged. There is no gateway behind
-  it, no merchant account and no request.
+- **Azul is a placeholder.** A customer looking at an unpaid booking gets a
+  button that, when pressed, says card payment is not available yet and that
+  nothing has been charged. A professional in Settings gets a disabled
+  *Connect Azul — coming soon* and a line saying they would need their own
+  merchant account. There is no gateway behind either, no merchant account and
+  no request.
 - **No taxes, tips, discounts or coupons.**
 
 ## Messages
@@ -43,8 +46,10 @@ implementation rather than a change of design.
 - **No App Store, no Google Play.** No developer account exists with either.
 - **No native build.** The product runs as a web application, installable from
   a browser. Expo Go can load it on a phone over the local network.
-- **No public deployment.** It has not been put on the internet, and doing so
-  is a Product Owner decision.
+- **The public deployment is GitHub Pages, and it is a demo.** It is served
+  as a static site from the repository, it asks search engines not to index
+  it, and it talks to the *development* Supabase project. It is not a
+  production environment and nothing about it is sized or monitored as one.
 
 ## Content and language
 
