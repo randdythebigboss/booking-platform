@@ -196,7 +196,7 @@ test.describe('the conversation about an appointment', () => {
 
   test('the professional reads it and answers', async ({ page, context }) => {
     const guest = await context.newPage();
-    const url = await bookAsGuest(guest, { guest: { ...GUEST, name: 'Habla Conmigo' } });
+    await bookAsGuest(guest, { guest: { ...GUEST, name: 'Habla Conmigo' } });
     await guest
       .getByRole('textbox', { name: 'Escribe un mensaje' })
       .fill('¿Puedo llegar 10 min tarde?');
