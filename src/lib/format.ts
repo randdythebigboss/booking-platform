@@ -90,6 +90,28 @@ export function formatDateIn(instant: Date, timezone: string, locale: string): s
   }).format(instant);
 }
 
+
+/**
+ * A day and its month, short: `26 sept`.
+ *
+ * For a list row where the date is secondary to the time and has to fit in a
+ * narrow column beside it without wrapping.
+ */
+export function formatDayAndMonthIn(instant: Date, timezone: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: timezone,
+    day: 'numeric',
+    month: 'short',
+  }).format(instant);
+}
+
+/**
+ * The weekday on its own, short: `sáb`. For a calendar strip.
+ */
+export function formatWeekdayIn(instant: Date, timezone: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { timeZone: timezone, weekday: 'short' }).format(instant);
+}
+
 /**
  * Short date and time together, for history lines where a move may cross a
  * day and "10:00 to 14:00" would be a lie.

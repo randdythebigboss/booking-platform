@@ -1,8 +1,7 @@
-import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
-import { Button, Card, Text } from '@/components/ui';
+import { Button, Card, PressableLink, Text } from '@/components/ui';
 import { radius, spacing, useTheme } from '@/theme';
 
 export interface SetupStep {
@@ -62,55 +61,54 @@ export function SetupChecklist({ steps, onDismiss }: SetupChecklistProps) {
 
       <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
         {steps.map((step, index) => (
-          <Link key={step.key} href={step.href} asChild>
+          <PressableLink
+            key={step.key}
+            href={step.href}
+            // The number, the name and the state, so a screen reader gives
+            // the same information the layout gives everyone else.
+            accessibilityLabel={`${index + 1}. ${titles[step.key]} — ${
+              step.done ? t('setup.done') : t('setup.pending')
+            }`}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: spacing.sm,
+              minHeight: 44,
+              padding: spacing.sm,
+              borderRadius: radius.md,
+              borderWidth: 1,
+              borderColor: step.done ? palette.border : palette.accent,
+              backgroundColor: step.done ? 'transparent' : palette.surfaceMuted,
+              opacity: step.done ? 0.65 : 1,
+            }}
+          >
             <View
-              accessibilityRole="link"
-              // The number, the name and the state, so a screen reader gives
-              // the same information the layout gives everyone else.
-              accessibilityLabel={`${index + 1}. ${titles[step.key]} — ${
-                step.done ? t('setup.done') : t('setup.pending')
-              }`}
               style={{
-                flexDirection: 'row',
+                width: 26,
+                height: 26,
+                borderRadius: 13,
                 alignItems: 'center',
-                gap: spacing.sm,
-                minHeight: 44,
-                padding: spacing.sm,
-                borderRadius: radius.md,
+                justifyContent: 'center',
+                backgroundColor: step.done ? palette.accent : 'transparent',
                 borderWidth: 1,
-                borderColor: step.done ? palette.border : palette.accent,
-                backgroundColor: step.done ? 'transparent' : palette.surfaceMuted,
-                opacity: step.done ? 0.65 : 1,
+                borderColor: step.done ? palette.accent : palette.border,
               }}
             >
-              <View
-                style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: 13,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: step.done ? palette.accent : 'transparent',
-                  borderWidth: 1,
-                  borderColor: step.done ? palette.accent : palette.border,
-                }}
+              <Text
+                variant="caption"
+                style={{ color: step.done ? palette.accentText : palette.textMuted }}
               >
-                <Text
-                  variant="caption"
-                  style={{ color: step.done ? palette.accentText : palette.textMuted }}
-                >
-                  {step.done ? '✓' : String(index + 1)}
-                </Text>
-              </View>
-
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text variant="label">{titles[step.key]}</Text>
-                <Text variant="caption" tone="muted">
-                  {hints[step.key]}
-                </Text>
-              </View>
+                {step.done ? '✓' : String(index + 1)}
+              </Text>
             </View>
-          </Link>
+
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text variant="label">{titles[step.key]}</Text>
+              <Text variant="caption" tone="muted">
+                {hints[step.key]}
+              </Text>
+            </View>
+          </PressableLink>
         ))}
       </View>
 

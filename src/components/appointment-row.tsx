@@ -1,12 +1,12 @@
-import { Link } from 'expo-router';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
-import { Text } from '@/components/ui';
-import { statusLabelKey, statusTone } from '@/features/appointments';
+import { Badge, PressableLink, Text, type BadgeTone } from '@/components/ui';
+import { statusLabelKey } from '@/features/appointments';
 import { useDynamicT } from '@/i18n/use-dynamic-t';
 import { useFormat } from '@/i18n/use-format';
 import type { ProfessionalAppointment } from '@/services/appointments';
 import { radius, spacing, useTheme } from '@/theme';
+import type { AppointmentStatus } from '@/types/domain';
 
 export interface AppointmentRowProps {
   appointment: ProfessionalAppointment;
@@ -15,7 +15,36 @@ export interface AppointmentRowProps {
   showDate?: boolean;
 }
 
-/** One appointment, readable at a glance on a phone. */
+/**
+ * How a status looks, and the character that carries it when colour does not.
+ *
+ * The mark matters more than the tint: a cancelled appointment among confirmed
+ * ones has to be obvious to somebody who cannot tell the two hues apart, and
+ * to anybody glancing at a phone in daylight.
+ */
+export function statusBadge(status: AppointmentStatus): { tone: BadgeTone; mark: string } {
+  switch (status) {
+    case 'confirmed':
+      return { tone: 'success', mark: '✓' };
+    case 'pending':
+      return { tone: 'warning', mark: '•' };
+    case 'cancelled':
+      return { tone: 'danger', mark: '✕' };
+    case 'completed':
+      return { tone: 'accent', mark: '✓' };
+    default:
+      return { tone: 'neutral', mark: '–' };
+  }
+}
+
+/**
+ * One appointment, readable at a glance.
+ *
+ * The time leads, in a fixed-width column, so a list of them scans down the
+ * left edge instead of wandering. The one this replaced was four lines of
+ * loose text with the status floated to the right of the first one, and
+ * nothing lined up with anything.
+ */
 export function AppointmentRow({ appointment, timezone, showDate = true }: AppointmentRowProps) {
   const { palette } = useTheme();
   const tk = useDynamicT();
@@ -24,44 +53,53 @@ export function AppointmentRow({ appointment, timezone, showDate = true }: Appoi
 
   const time = format.time(appointment.startsAt, timezone);
   const status = tk(statusLabelKey(appointment.status));
+  const badge = statusBadge(appointment.status);
+  const cancelled = appointment.status === 'cancelled';
 
   return (
-    <Link href={`/app/appointments/${appointment.id}`} asChild>
-      <Pressable
-        accessibilityRole="button"
-        // The status belongs in the spoken label too: sighted readers get it
-        // from the badge, and a screen reader should not have to guess.
-        accessibilityLabel={`${time} · ${appointment.customer.fullName} · ${status}`}
-        style={({ pressed }) => ({
-          padding: spacing.md,
-          borderRadius: radius.md,
-          borderWidth: 1,
-          borderColor: palette.border,
-          backgroundColor: pressed ? palette.surfaceMuted : palette.surface,
-          gap: spacing.xs,
-        })}
-      >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm }}>
-          <Text variant="label">{time}</Text>
-          <Text variant="caption" tone={statusTone(appointment.status)}>
-            {status}
-          </Text>
-        </View>
-
+    <PressableLink
+      href={`/app/appointments/${appointment.id}`}
+      // The status belongs in the spoken label too: sighted readers get it
+      // from the badge, and a screen reader should not have to guess.
+      accessibilityLabel={`${time} · ${appointment.customer.fullName} · ${service?.name ?? ''} · ${status}`}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        minHeight: 64,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        borderRadius: radius.md,
+        borderWidth: 1,
+        borderColor: palette.border,
+        backgroundColor: palette.surface,
+        opacity: cancelled ? 0.7 : 1,
+      }}
+    >
+      {/* The time column. Fixed width so every row in a list aligns. */}
+      <View style={{ width: 64, gap: 1 }}>
+        <Text variant="label" style={{ textDecorationLine: cancelled ? 'line-through' : 'none' }}>
+          {time}
+        </Text>
         {showDate && (
-          <Text variant="caption" tone="muted">
-            {format.date(appointment.startsAt, timezone)}
+          <Text variant="caption" tone="muted" numberOfLines={1}>
+            {format.dayAndMonth(appointment.startsAt, timezone)}
           </Text>
         )}
+      </View>
 
-        <Text variant="body">{appointment.customer.fullName}</Text>
-
+      <View style={{ flex: 1, gap: 1 }}>
+        <Text variant="body" numberOfLines={1}>
+          {appointment.customer.fullName}
+        </Text>
         {service && (
-          <Text variant="caption" tone="muted">
+          <Text variant="caption" tone="muted" numberOfLines={1}>
             {service.name} {'·'} {format.duration(service.durationMinutes)}
           </Text>
         )}
-      </Pressable>
-    </Link>
+      </View>
+
+      <Badge label={status} tone={badge.tone} mark={badge.mark} />
+    </PressableLink>
   );
 }
