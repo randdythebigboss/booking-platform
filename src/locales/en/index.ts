@@ -665,6 +665,7 @@ export const en: Translations = {
     unread_one: '{{count}} unread message',
     unread_other: '{{count}} unread messages',
     couldNotSend: 'We could not send your message. Please try again.',
+    tooLong: 'That message is too long.',
     couldNotLoad: 'We could not load the messages.',
     stayInApp: 'Messages stay in here. Nothing is sent by email or WhatsApp.',
     openThread: 'Open messages',

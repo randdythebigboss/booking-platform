@@ -1,5 +1,5 @@
 import { Link, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -10,6 +10,7 @@ import { guestStatusKey, toBookingError, type GuestAppointment } from '@/feature
 import { useBookingErrorText } from '@/i18n/use-error-text';
 import { useDynamicT } from '@/i18n/use-dynamic-t';
 import { useFormat } from '@/i18n/use-format';
+import { MessageThread } from '@/components/message-thread';
 import { useGuestToken } from '@/hooks/use-guest-token';
 import {
   cancelAppointmentByToken,
@@ -23,6 +24,12 @@ import {
   type GuestPaymentSummary,
 } from '@/services/payments';
 import { spacing } from '@/theme';
+import {
+  fetchMessagesByToken,
+  markMessagesReadByToken,
+  sendMessageByToken,
+  type AppointmentMessage,
+} from '@/services/messages';
 
 type State =
   | { kind: 'loading' }
@@ -41,6 +48,31 @@ type State =
 export default function ConfirmationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const token = useGuestToken();
+
+  // The conversation about this appointment. A guest has no account, so the
+  // booking link is the only thing that proves who they are -- the same
+  // credential that already lets them move and cancel it.
+  const [messages, setMessages] = useState<AppointmentMessage[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(true);
+
+  const loadMessages = useCallback(async () => {
+    if (!id || !token) return;
+    setMessagesLoading(true);
+    try {
+      setMessages(await fetchMessagesByToken({ appointmentId: id, accessToken: token }));
+      // Opening the page is reading them. Not awaited: an unread badge that
+      // clears a moment later is not worth delaying the conversation for.
+      void markMessagesReadByToken({ appointmentId: id, accessToken: token }).catch(() => {});
+    } catch {
+      setMessages([]);
+    } finally {
+      setMessagesLoading(false);
+    }
+  }, [id, token]);
+
+  useEffect(() => {
+    void loadMessages();
+  }, [loadMessages]);
   const { t } = useTranslation();
   const format = useFormat();
   const tk = useDynamicT();
@@ -429,6 +461,23 @@ export default function ConfirmationScreen() {
             } finally {
               setCancelling(false);
             }
+          }}
+        />
+      )}
+
+      {token && (
+        <MessageThread
+          messages={messages}
+          loading={messagesLoading}
+          viewer="customer"
+          timezone={appointment.timezone}
+          onSend={async (body) => {
+            await sendMessageByToken({
+              appointmentId: appointment.appointmentId,
+              accessToken: token,
+              body,
+            });
+            await loadMessages();
           }}
         />
       )}

@@ -682,6 +682,7 @@ export const es = {
     unread_one: '{{count}} mensaje sin leer',
     unread_other: '{{count}} mensajes sin leer',
     couldNotSend: 'No pudimos enviar el mensaje. Inténtalo de nuevo.',
+    tooLong: 'El mensaje es demasiado largo.',
     couldNotLoad: 'No pudimos cargar los mensajes.',
     stayInApp: 'Los mensajes se quedan aquí dentro. No se envía nada por correo ni por WhatsApp.',
     openThread: 'Abrir mensajes',

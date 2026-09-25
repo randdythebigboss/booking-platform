@@ -1,9 +1,10 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
-import { useRequiredWorkspace } from '@/components/providers';
+import { MessageThread } from '@/components/message-thread';
+import { useRequiredWorkspace, useSession } from '@/components/providers';
 import { SlotPicker } from '@/components/slot-picker';
 import { Button, Card, Feedback, Field, Screen, Text, ToggleRow } from '@/components/ui';
 import {
@@ -32,11 +33,18 @@ import {
   refundPayment,
 } from '@/services/payments';
 import { spacing } from '@/theme';
+import {
+  fetchMessages,
+  markMessagesRead,
+  sendMessageAsProfessional,
+  type AppointmentMessage,
+} from '@/services/messages';
 import type { AppointmentStatus } from '@/types/domain';
 
 export default function AppointmentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { business } = useRequiredWorkspace();
+  const session = useSession();
   const { t } = useTranslation();
   const format = useFormat();
   const tk = useDynamicT();
@@ -175,6 +183,32 @@ export default function AppointmentDetailScreen() {
       setSaving(false);
     }
   }
+
+  // The conversation about this appointment. Loaded separately from the
+  // appointment itself so a thread that fails to load never stops the screen
+  // that tells the professional when somebody is arriving.
+  const [messages, setMessages] = useState<AppointmentMessage[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(true);
+
+  const loadMessages = useCallback(async () => {
+    if (!id) return;
+    setMessagesLoading(true);
+    try {
+      setMessages(await fetchMessages(id));
+      // Reading them is what marks the customer's messages read. Not awaited
+      // for anything the screen draws: a badge that stays lit one moment
+      // longer is not worth blocking on.
+      void markMessagesRead(id).catch(() => {});
+    } catch {
+      setMessages([]);
+    } finally {
+      setMessagesLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    void loadMessages();
+  }, [loadMessages]);
 
   if (appointment.loading) {
     return (
@@ -505,6 +539,23 @@ export default function AppointmentDetailScreen() {
           ))}
         </View>
       </Card>
+
+      <MessageThread
+        messages={messages}
+        loading={messagesLoading}
+        viewer="professional"
+        timezone={timezone}
+        onSend={async (body) => {
+          await sendMessageAsProfessional({
+            appointmentId: row.id,
+            businessId: business.id,
+            authorUserId: session.user?.id ?? '',
+            authorName: business.name,
+            body,
+          });
+          await loadMessages();
+        }}
+      />
 
       <Card>
         <Text variant="heading">{t('history.heading')}</Text>
