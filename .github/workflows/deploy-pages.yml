@@ -97,14 +97,9 @@ jobs:
           EXPECT_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
         run: ./tools/release/verify-build.sh dist
 
-      # Cheap insurance: the bundle is about to be public.
+      # Cheap insurance: this is about to be public.
       - name: Refuse to publish a secret
-        run: |
-          if grep -rIlE 'service_role|sb_secret_|SUPABASE_SERVICE_ROLE|-----BEGIN [A-Z ]*PRIVATE KEY' dist; then
-            echo "::error::the built output contains something that looks like a secret"
-            exit 1
-          fi
-          echo "no secret-shaped strings in the built output"
+        run: ./tools/release/scan-bundle.sh dist
 
       - uses: actions/upload-pages-artifact@v3
         with:
