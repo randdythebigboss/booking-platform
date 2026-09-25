@@ -206,3 +206,15 @@ describe('formatTimeIn', () => {
     expect(formatTimeIn(morning, 'America/Santo_Domingo', ES).length).toBeLessThanOrEqual(11);
   });
 });
+
+describe('formatDateTimeIn', () => {
+  it('writes the clock the same way the time formatter does', () => {
+    const afternoon = new Date('2026-09-25T18:09:00.000Z'); // 14:09 in Santo Domingo
+    const written = formatDateTimeIn(afternoon, 'America/Santo_Domingo', ES);
+
+    expect(written).toContain('2:09 p.m.');
+    // The outbox row and the message bubble share a fixed-width column with
+    // the appointment list; a padded hour and a spaced day period wrap it.
+    expect(written).not.toContain('02:09');
+  });
+});

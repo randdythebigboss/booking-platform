@@ -72,6 +72,9 @@ export function formatDuration(minutes: number, locale: string): string {
   return `${unit(hours, 'hour')} ${unit(rest, 'minute')}`;
 }
 
+/** Every kind of space, including the narrow ones CLDR puts inside "p. m.". */
+const SPACES = /\s+/gu;
+
 /**
  * Always renders in the business timezone, never the device one.
  *
@@ -96,9 +99,9 @@ export function formatTimeIn(instant: Date, timezone: string, locale: string): s
   }).formatToParts(instant);
 
   return parts
-    .map((part) => (part.type === 'dayPeriod' ? part.value.replace(/\s+/gu, '') : part.value))
+    .map((part) => (part.type === 'dayPeriod' ? part.value.replace(SPACES, '') : part.value))
     .join('')
-    .replace(/\s+/gu, ' ')
+    .replace(SPACES, ' ')
     .trim();
 }
 
@@ -137,13 +140,22 @@ export function formatWeekdayIn(instant: Date, timezone: string, locale: string)
  * day and "10:00 to 14:00" would be a lie.
  */
 export function formatDateTimeIn(instant: Date, timezone: string, locale: string): string {
-  return new Intl.DateTimeFormat(locale, {
+  // Built the same way as formatTimeIn, for the same reason: this is the
+  // string an outbox row and a message bubble carry, and "25 sept, 02:09 p. m."
+  // wraps where "25 sept, 2:09 p.m." does not.
+  const parts = new Intl.DateTimeFormat(locale, {
     timeZone: timezone,
     day: 'numeric',
     month: 'short',
-    hour: '2-digit',
+    hour: 'numeric',
     minute: '2-digit',
-  }).format(instant);
+  }).formatToParts(instant);
+
+  return parts
+    .map((part) => (part.type === 'dayPeriod' ? part.value.replace(SPACES, '') : part.value))
+    .join('')
+    .replace(SPACES, ' ')
+    .trim();
 }
 
 /**
