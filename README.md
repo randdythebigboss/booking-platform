@@ -19,10 +19,11 @@ https://randdythebigboss.github.io/booking-platform/p/demo-studio
 The product is end to end and speaks two languages. A professional sets up
 their business and hours, a customer books as a guest in under a minute with
 no account, and either side can move or cancel that appointment before it
-starts. Everything that happens to an appointment is
-recorded in an append-only log that nobody can edit. Notifications are composed
-and queued; payments are modelled, held and settled. It installs from a browser
-as an application.
+starts, and the two of them can talk about it inside the application.
+Everything that happens to an appointment is recorded in an append-only log
+that nobody can edit. Notifications are composed and queued; payments are
+modelled, held and settled. A customer may keep an account, and never needs
+one. It installs from a browser as an application.
 
 **Nothing external is connected, and that is deliberate.** No payment provider,
 no email or SMS provider, no store. Where a real one would go there
@@ -39,22 +40,23 @@ moment is being shown, and the two never influence each other. Business
 content -- names, services, notes -- is shown exactly as it was entered and is
 never translated.
 
-| Phase | Scope | State |
-| ----- | ----- | ----- |
-| 0 | Repo, Expo scaffold, CI, database schema, RLS, availability engine | Done |
-| 1 | Auth, business onboarding, services, weekly availability | Done |
-| 2 | Scheduling engine wired to the UI, exceptions, blocks | Done |
-| 3 | Public booking page, guest booking, confirmation | Done |
-| 4 | Professional dashboard, calendar, status changes | Done |
-| 5 | Appointment history, rescheduling, manual booking | Done |
-| 6 | Spanish + English, locale-aware formatting, product hardening | Done |
-| 7 | Real Supabase project, security audit, concurrency | Done |
-| 8 | Notification outbox, reminders, dispatcher, mock provider | Done |
-| 9 | Payment domain, slot holds, refunds, mock provider | Done |
-| 10 | PWA packaging, offline behaviour, accessibility, beta readiness | Done |
-| 11 | Release candidate: end-to-end suite, deployment package, release docs | Done |
-| 12 | Deployed to GitHub Pages as a free beta | Done |
-| — | Real payment provider, real messaging, public deployment, stores | **Not started, by decision** |
+| Phase | Scope                                                                                                 | State                        |
+| ----- | ----------------------------------------------------------------------------------------------------- | ---------------------------- |
+| 0     | Repo, Expo scaffold, CI, database schema, RLS, availability engine                                    | Done                         |
+| 1     | Auth, business onboarding, services, weekly availability                                              | Done                         |
+| 2     | Scheduling engine wired to the UI, exceptions, blocks                                                 | Done                         |
+| 3     | Public booking page, guest booking, confirmation                                                      | Done                         |
+| 4     | Professional dashboard, calendar, status changes                                                      | Done                         |
+| 5     | Appointment history, rescheduling, manual booking                                                     | Done                         |
+| 6     | Spanish + English, locale-aware formatting, product hardening                                         | Done                         |
+| 7     | Real Supabase project, security audit, concurrency                                                    | Done                         |
+| 8     | Notification outbox, reminders, dispatcher, mock provider                                             | Done                         |
+| 9     | Payment domain, slot holds, refunds, mock provider                                                    | Done                         |
+| 10    | PWA packaging, offline behaviour, accessibility, beta readiness                                       | Done                         |
+| 11    | Release candidate: end-to-end suite, deployment package, release docs                                 | Done                         |
+| 12    | Deployed to GitHub Pages as a free beta                                                               | Done                         |
+| 13    | Product pass: date control, language toggle, setup guide, optional customer accounts, in-app messages | Done                         |
+| —     | Real payment provider, real messaging, public deployment, stores                                      | **Not started, by decision** |
 
 ## Stack
 
@@ -90,18 +92,18 @@ npm run verify               # lint + typecheck + tests
 
 ## Documentation
 
-| Document                                     | What it covers                                                    |
-| -------------------------------------------- | ----------------------------------------------------------------- |
-| [docs/PRODUCT.md](docs/PRODUCT.md)           | What the product is, who it serves, what is in and out of the MVP |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the pieces fit, and where the availability engine lives       |
-| [docs/DATABASE.md](docs/DATABASE.md)         | The data model, and how double booking is made impossible         |
-| [docs/SECURITY.md](docs/SECURITY.md)         | Row Level Security, secrets, and the public API surface           |
-| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)   | Working on this repo day to day                                   |
-| [docs/OPERATIONS.md](docs/OPERATIONS.md)     | Running it: migrations, demo data, the dispatcher, supporting somebody |
+| Document                                     | What it covers                                                          |
+| -------------------------------------------- | ----------------------------------------------------------------------- |
+| [docs/PRODUCT.md](docs/PRODUCT.md)           | What the product is, who it serves, what is in and out of the MVP       |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the pieces fit, and where the availability engine lives             |
+| [docs/DATABASE.md](docs/DATABASE.md)         | The data model, and how double booking is made impossible               |
+| [docs/SECURITY.md](docs/SECURITY.md)         | Row Level Security, secrets, and the public API surface                 |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)   | Working on this repo day to day                                         |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md)     | Running it: migrations, demo data, the dispatcher, supporting somebody  |
 | [docs/BETA.md](docs/BETA.md)                 | What can be tested and installed for nothing, and what would cost money |
-| [docs/LIMITATIONS.md](docs/LIMITATIONS.md)   | What this beta deliberately does **not** do                       |
-| [docs/RELEASE.md](docs/RELEASE.md)           | The release-candidate checklist, and what was last verified       |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)     | What a host has to provide, and the GitHub Pages evaluation       |
-| [docs/BETA-TESTING.md](docs/BETA-TESTING.md) | What a tester reads, in Spanish and English                       |
+| [docs/LIMITATIONS.md](docs/LIMITATIONS.md)   | What this beta deliberately does **not** do                             |
+| [docs/RELEASE.md](docs/RELEASE.md)           | The release-candidate checklist, and what was last verified             |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)     | What a host has to provide, and the GitHub Pages evaluation             |
+| [docs/BETA-TESTING.md](docs/BETA-TESTING.md) | What a tester reads, in Spanish and English                             |
 | [docs/PRIVACY.md](docs/PRIVACY.md)           | What personal information exists, where, and which decisions are open   |
-| [docs/DECISIONS/](docs/DECISIONS/)           | Why things are the way they are                                   |
+| [docs/DECISIONS/](docs/DECISIONS/)           | Why things are the way they are                                         |

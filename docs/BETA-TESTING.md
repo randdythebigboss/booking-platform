@@ -13,10 +13,10 @@ reales ni con información real de nadie.
 
 Dos cosas concretas:
 
-* **Ningún pago es real.** Si ves un botón de pagar, dirá *"Pago de
-  demostración — no se realizará ningún cargo real"*. No hay tarjetas, no hay
+- **Ningún pago es real.** Si ves un botón de pagar, dirá _"Pago de
+  demostración — no se realizará ningún cargo real"_. No hay tarjetas, no hay
   cobros, no hay dinero.
-* **No se envía ningún mensaje.** El sistema prepara correos y recordatorios y
+- **No se envía ningún mensaje.** El sistema prepara correos y recordatorios y
   te deja verlos en la pantalla de Avisos, pero no sale nada. Nadie recibe
   nada.
 
@@ -76,9 +76,9 @@ customers or anybody's real information.
 
 Two specific things:
 
-* **No payment is real.** If you see a pay button it says *"Demo payment — no
-  real charge will be made"*. There are no cards, no charges, no money.
-* **No message is ever sent.** The system prepares emails and reminders and
+- **No payment is real.** If you see a pay button it says _"Demo payment — no
+  real charge will be made"_. There are no cards, no charges, no money.
+- **No message is ever sent.** The system prepares emails and reminders and
   lets you see them on the Notifications screen, but nothing leaves. Nobody
   receives anything.
 

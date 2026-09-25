@@ -8,12 +8,12 @@ worse than no checklist.
 
 ## Where the version lives
 
-| Place | Value |
-| --- | --- |
-| `package.json` `version` | `0.1.0-beta.1` |
-| `app.json` `expo.extra.release` | `0.1.0-beta.1` |
-| `app.json` `expo.version` | `0.1.0` — the platform version; Apple and Google reject a prerelease tag |
-| Diagnostics screen | reads `expo.extra.release` |
+| Place                           | Value                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| `package.json` `version`        | `0.1.0-beta.1`                                                           |
+| `app.json` `expo.extra.release` | `0.1.0-beta.1`                                                           |
+| `app.json` `expo.version`       | `0.1.0` — the platform version; Apple and Google reject a prerelease tag |
+| Diagnostics screen              | reads `expo.extra.release`                                               |
 
 `tests/packaging/release.test.ts` fails if those disagree. They did once, and
 the diagnostics screen confidently reported a 1.0.0 release that never existed.
@@ -78,52 +78,67 @@ Then, by hand, the things a checklist cannot do:
 
 ## Last verified
 
-| | |
-| --- | --- |
-| Version | `0.1.0-beta.1` |
-| Branch | `phase11/release-candidate` |
-| Last code commit verified | `133042a` |
-| GitHub Actions | all three jobs green |
-| Lint, types | clean |
-| Unit tests | **351 passing**, 32 files |
-| SQL suites | **10 passing**, from an empty database, 35 migrations |
-| End-to-end | **64 passing** — 58 desktop, 6 at 375px |
-| Accessibility | **0 violations** (axe, WCAG 2.1 A + AA) across 8 screens |
-| Expo doctor | 21/21 |
-| Web export | 2.5 MB; 1.72 MB JS raw, **455 KB gzipped**, one chunk |
-| Clean clone | `npm ci`, verify, export, packaging, 64 end-to-end — all pass |
-| Secret scan | clean — only the validation regex and test placeholders |
-| Tables without RLS | **0** |
-| `SECURITY DEFINER` without a pinned `search_path` | **0** |
-| Functions `anon` may execute | 13, all classified |
-| `anon` on notifications, payments, payment_events, platform_settings | **no privilege at all** |
-| Payment simulation, cloud | **off** |
-| Real payment provider | **none** |
-| Real messaging provider | **none** |
-| Cloud smoke | booking, reschedule, cancel, both languages, no pay button |
-| Responsive | 320 / 375 / 430 / 768px — no horizontal overflow |
+|                                                                      |                                                               |
+| -------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Version                                                              | `0.1.0-beta.1`                                                |
+| Branch                                                               | `phase11/release-candidate`                                   |
+| Last code commit verified                                            | `8b2eebb`                                                     |
+| GitHub Actions                                                       | all three jobs green                                          |
+| Lint, types                                                          | clean                                                         |
+| Unit tests                                                           | **352 passing**, 32 files                                     |
+| SQL suites                                                           | **11 passing**, from an empty database, 39 migrations         |
+| End-to-end                                                           | **87 passing** — 77 desktop, 10 at 375px                      |
+| Accessibility                                                        | **0 violations** (axe, WCAG 2.1 A + AA) across 8 screens      |
+| Expo doctor                                                          | 21/21                                                         |
+| Web export                                                           | 2.5 MB; 1.72 MB JS raw, **455 KB gzipped**, one chunk         |
+| Clean clone                                                          | `npm ci`, verify, export, packaging, 64 end-to-end — all pass |
+| Secret scan                                                          | clean — only the validation regex and test placeholders       |
+| Tables without RLS                                                   | **0**                                                         |
+| `SECURITY DEFINER` without a pinned `search_path`                    | **0**                                                         |
+| Functions `anon` may execute                                         | 13, all classified                                            |
+| `anon` on notifications, payments, payment_events, platform_settings | **no privilege at all**                                       |
+| Payment simulation, cloud                                            | **off**                                                       |
+| Real payment provider                                                | **none**                                                      |
+| Real messaging provider                                              | **none**                                                      |
+| Cloud smoke                                                          | booking, reschedule, cancel, both languages, no pay button    |
+| Responsive                                                           | 320 / 375 / 430 / 768px — no horizontal overflow              |
 
 ## Deployed
 
-| | |
-| --- | --- |
-| URL | https://randdythebigboss.github.io/booking-platform/ |
-| Host | GitHub Pages, from this repository. No account, no domain, no cost |
-| Published by | `.github/workflows/deploy-pages.yml`, on every push to `main` |
-| Supabase | `booking-platform-dev`; Site URL and allow-list point at the beta, local development URLs kept |
-| Payment simulation | off |
-| Search engines | asked to stay away — `noindex, nofollow` and a `robots.txt`. **Not access control** |
+|                    |                                                                                                |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| URL                | https://randdythebigboss.github.io/booking-platform/                                           |
+| Host               | GitHub Pages, from this repository. No account, no domain, no cost                             |
+| Published by       | `.github/workflows/deploy-pages.yml`, on every push to `main`                                  |
+| Supabase           | `booking-platform-dev`; Site URL and allow-list point at the beta, local development URLs kept |
+| Payment simulation | off                                                                                            |
+| Search engines     | asked to stay away — `noindex, nofollow` and a `robots.txt`. **Not access control**            |
 
 Two defects were found by deploying that no test had caught, both fixed with a
 regression test:
 
-* The **secret scan matched supabase-js**, which contains
+- The **secret scan matched supabase-js**, which contains
   `startsWith("sb_secret_")` because classifying key formats is its job. It
   matches values now, not words.
-* The **service worker cached nothing under the repository subpath**. Its
+- The **service worker cached nothing under the repository subpath**. Its
   allow-list was anchored at `/` while every asset arrives at
   `/booking-platform/...`, so it installed, took control and cached zero bytes
   — silently, because caching nothing looks like working.
+
+## What the beta gained after it shipped
+
+A product pass the Product Owner asked for before inviting anybody:
+
+- The booking date is a week of days you tap, not a text field. It cannot
+  reach the past, and "today" is today where the _business_ is.
+- The times show the whole day -- free, taken, gone -- and a taken time says
+  nothing whatsoever about who has it.
+- The language control is a small toggle in the top-right of every screen.
+- A professional gets a five-step setup guide that disappears when it is done.
+- A customer may keep an account, and still never needs one to book.
+- Each appointment has a conversation, reachable by the guest's own link or by
+  the customer's account, and it is the only channel that works.
+- Azul has a button that says card payment is not available yet.
 
 ## Cutting the candidate
 

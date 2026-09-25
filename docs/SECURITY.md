@@ -184,11 +184,11 @@ Supabase grants EXECUTE on new functions to `anon`, `authenticated` and
 accident. That has caused a real leak twice, so every function in `public`
 now belongs to exactly one group:
 
-| Group                      | Means                                                                                                                     |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| PUBLIC / ANON-SAFE         | A stranger may call it: the booking and availability surface, plus the two helpers the public catalogue policies evaluate |
+| Group                      | Means                                                                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| PUBLIC / ANON-SAFE         | A stranger may call it: the booking and availability surface, plus the two helpers the public catalogue policies evaluate      |
 | AUTHENTICATED PROFESSIONAL | A signed-in member may call it: the write RPCs, the professional booking and reschedule operations, and the membership helpers |
-| INTERNAL ONLY              | Only other functions and triggers call it                                                                                 |
+| INTERNAL ONLY              | Only other functions and triggers call it                                                                                      |
 
 `supabase/tests/function_grants.sql` asserts the classification and fails
 when a new function appears in `public` without being placed in a group.
@@ -250,7 +250,7 @@ subject or a body.
 
 **A client never names a price.** There is no amount argument on any function
 a browser may call: `book_appointment` computes what is owed from the service.
-Passing one is not refused, it is *impossible* -- PostgREST answers `PGRST202`,
+Passing one is not refused, it is _impossible_ -- PostgREST answers `PGRST202`,
 because no such function exists.
 
 **A client never says something was paid.** `apply_payment_outcome` is the only

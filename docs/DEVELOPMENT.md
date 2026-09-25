@@ -185,7 +185,6 @@ mapping, the payment state machine, and environment handling.
 Add a test to `tests/availability/slots.test.ts` for every scheduling rule you
 touch. That file is the executable specification of what "available" means.
 
-
 ## End-to-end tests
 
 Playwright, in a real browser, against a **built** application and a **real**
@@ -223,23 +222,23 @@ E2E_BASE_URL=http://127.0.0.1:4321 npx playwright test e2e/payments.spec.ts
 
 ### What to know before writing one
 
-* **Every test starts from the fixtures.** `e2e/support/test.ts` resets the
+- **Every test starts from the fixtures.** `e2e/support/test.ts` resets the
   database before each one, automatically. It is not caution: the seeded
   professional works 09:00 to 18:00, and a suite that books a dozen
   appointments into the same day eventually meets "no hay horas disponibles"
   and starts failing in whatever order it happened to run in.
-* **Address the page the way a person does** -- by role and accessible name,
+- **Address the page the way a person does** -- by role and accessible name,
   never by CSS structure. A `div > div:nth-child(3)` selector passes happily
   while the label is missing, and `e2e/accessibility.spec.ts` exists to notice
   missing labels.
-* **Reach for the database only for what a browser cannot do**: flipping the
+- **Reach for the database only for what a browser cannot do**: flipping the
   server-side payment-simulation switch, and reading back a fact no screen
   shows. `e2e/support/db.ts` is the whole seam.
-* **SQL goes through a file, not an argument.** The demo data is Spanish, and
+- **SQL goes through a file, not an argument.** The demo data is Spanish, and
   on Windows an accented character in `psql -c` is mangled into an invalid
   byte sequence before psql ever sees it.
-* Tag a test `@mobile` to also run it at 375px.
-* Never print a guest token.
+- Tag a test `@mobile` to also run it at 375px.
+- Never print a guest token.
 
 ## Commits
 
@@ -253,12 +252,12 @@ Never commit `.env`, `.env.local`, a service-role key, or any credential. See
 
 Three jobs, and none of them needs a credential:
 
-* **Lint, types, tests, Expo export** -- plus the packaging checks that the
+- **Lint, types, tests, Expo export** -- plus the packaging checks that the
   built output really carries a manifest, a service worker and its icons.
-* **Migrations, seed and database guarantees** -- every migration applied to a
+- **Migrations, seed and database guarantees** -- every migration applied to a
   real Postgres from nothing via the Supabase CLI, then every SQL suite in
   `supabase/tests`. This is what proves the SQL is valid.
-* **End-to-end in a browser** -- a local Supabase stack, the deterministic
+- **End-to-end in a browser** -- a local Supabase stack, the deterministic
   fixtures, a build pointed at them, and Playwright. On a failure it uploads
   the traces and screenshots as an artifact.
 

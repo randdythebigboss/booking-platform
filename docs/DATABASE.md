@@ -20,15 +20,15 @@ hand in a dashboard.
 | `customers`               | A customer within one business. May be a guest.                                    |
 | `appointments`            | The booking itself.                                                                |
 | `appointment_items`       | What was booked, snapshotted.                                                      |
-| `payments`                | What was owed, what was paid, and by which provider. One row per attempt.           |
-| `payment_events`          | Append-only history of a payment. Written by a trigger, editable by nobody.         |
-| `platform_settings`       | One row of deployment switches. No client role may read it at all.                  |
+| `payments`                | What was owed, what was paid, and by which provider. One row per attempt.          |
+| `payment_events`          | Append-only history of a payment. Written by a trigger, editable by nobody.        |
+| `platform_settings`       | One row of deployment switches. No client role may read it at all.                 |
 | `appointment_events`      | Append-only history of an appointment. Written by a trigger, editable by nobody.   |
 | `notifications`           | The outbox: what has to be said to a customer, and what happened when it was.      |
 
 `profiles.preferred_locale` holds a user's interface language. It needed no
 new policy: `profiles` was already scoped to `id = auth.uid()` for both select
-and update. The check constrains it to the *shape* of a language tag rather
+and update. The check constrains it to the _shape_ of a language tag rather
 than to a list of the languages that exist today, so adding one is a
 client-only change.
 
@@ -128,11 +128,11 @@ owner of the calendar. A professional may enter a walk-in at 13:07 and may
 work late if they say so explicitly; they may never book over a block, another
 appointment, or another tenant's calendar.
 
-| Rule | Guest | Professional |
-| --- | --- | --- |
-| Overlap, blocked time, tenant boundaries | always | **always** |
-| Working hours and exceptions | always | unless `p_override_schedule` |
-| Slot interval, minimum notice, horizon | always | never |
+| Rule                                     | Guest  | Professional                 |
+| ---------------------------------------- | ------ | ---------------------------- |
+| Overlap, blocked time, tenant boundaries | always | **always**                   |
+| Working hours and exceptions             | always | unless `p_override_schedule` |
+| Slot interval, minimum notice, horizon   | always | never                        |
 
 An off-grid appointment cannot leak off-grid availability: the engine
 generates candidates from the grid and subtracts busy time, so a 13:07
@@ -219,21 +219,21 @@ it on; production must not.
 transaction talks to a messaging provider; see
 [ADR 0020](DECISIONS/0020-notifications-leave-through-an-outbox.md).
 
-* `dedupe_key` is unique and deterministic, so nothing is ever queued twice.
+- `dedupe_key` is unique and deterministic, so nothing is ever queued twice.
   For an event it is derived from the event; for a reminder, from the
   appointment and the instant it is for -- which is what lets a move cancel the
   old reminder and queue a correct new one.
-* `status` walks `pending -> processing -> sent | failed`, or is `cancelled`
+- `status` walks `pending -> processing -> sent | failed`, or is `cancelled`
   when the appointment it was for went away. `claimed_at` records when a
   dispatcher took it, so `requeue_stalled_notifications` can put back what a
   dispatcher that died never finished.
-* The payload is minimal and frozen: business, professional, service, customer
+- The payload is minimal and frozen: business, professional, service, customer
   name, the instant, the timezone. No notes, no price, no token.
-* Reminders are one per appointment per instant, `reminder_lead_minutes`
+- Reminders are one per appointment per instant, `reminder_lead_minutes`
   before it -- 24 hours by default, `0` to send none. An appointment booked
   closer than the lead time gets no reminder, because one that fires as you
   book is noise.
-* Only email is queued today, and only when the booking left an address. The
+- Only email is queued today, and only when the booking left an address. The
   channel enum carries `sms`, `whatsapp`, `push` and `in_app` so the next one
   is an adapter rather than a migration.
 
@@ -258,25 +258,25 @@ server-side validator:
 
 ## Functions
 
-| Function                      | Audience            | Purpose                                                                               |
-| ----------------------------- | ------------------- | ------------------------------------------------------------------------------------- |
-| `get_availability_context`    | anon, authenticated | The ingredients the engine needs, for a date range                                    |
-| `get_available_slots`         | anon, authenticated | The authoritative list of bookable start times for one professional, service and date |
-| `book_appointment`            | anon, authenticated | The only way a guest creates an appointment                                           |
-| `get_appointment_by_token`    | anon, authenticated | A guest reads their own booking                                                       |
-| `cancel_appointment_by_token` | anon, authenticated | A guest cancels their own booking                                                     |
-| `is_slot_within_availability` | internal            | Server-side working-hours check                                                       |
-| `is_slot_aligned`             | internal            | Server-side slot-interval check                                                       |
-| `working_windows`             | internal            | The shared definition of a professional's open hours on a date                        |
-| `create_business`             | authenticated       | Business, membership and professional profile in one transaction                      |
-| `save_service`                | authenticated       | Create or update a service, keeping it assigned to the professionals                  |
-| `set_weekly_schedule`         | authenticated       | Replace a whole week of working hours atomically                                      |
-| `set_appointment_status`       | authenticated       | Drive one appointment through the lifecycle, and nothing else                         |
-| `reschedule_appointment`       | authenticated       | Move an appointment, atomically, keeping its identity                                 |
-| `create_manual_appointment`    | authenticated       | The professional enters a booking themselves                                          |
-| `reschedule_appointment_by_token` | anon, authenticated | A guest moves their own booking                                                    |
-| `assert_professional_slot_is_free` | internal        | The shared gate both professional write paths pass through                            |
-| `declare_appointment_actor`    | internal            | Names who is acting, for the history trigger                                          |
+| Function                           | Audience            | Purpose                                                                               |
+| ---------------------------------- | ------------------- | ------------------------------------------------------------------------------------- |
+| `get_availability_context`         | anon, authenticated | The ingredients the engine needs, for a date range                                    |
+| `get_available_slots`              | anon, authenticated | The authoritative list of bookable start times for one professional, service and date |
+| `book_appointment`                 | anon, authenticated | The only way a guest creates an appointment                                           |
+| `get_appointment_by_token`         | anon, authenticated | A guest reads their own booking                                                       |
+| `cancel_appointment_by_token`      | anon, authenticated | A guest cancels their own booking                                                     |
+| `is_slot_within_availability`      | internal            | Server-side working-hours check                                                       |
+| `is_slot_aligned`                  | internal            | Server-side slot-interval check                                                       |
+| `working_windows`                  | internal            | The shared definition of a professional's open hours on a date                        |
+| `create_business`                  | authenticated       | Business, membership and professional profile in one transaction                      |
+| `save_service`                     | authenticated       | Create or update a service, keeping it assigned to the professionals                  |
+| `set_weekly_schedule`              | authenticated       | Replace a whole week of working hours atomically                                      |
+| `set_appointment_status`           | authenticated       | Drive one appointment through the lifecycle, and nothing else                         |
+| `reschedule_appointment`           | authenticated       | Move an appointment, atomically, keeping its identity                                 |
+| `create_manual_appointment`        | authenticated       | The professional enters a booking themselves                                          |
+| `reschedule_appointment_by_token`  | anon, authenticated | A guest moves their own booking                                                       |
+| `assert_professional_slot_is_free` | internal            | The shared gate both professional write paths pass through                            |
+| `declare_appointment_actor`        | internal            | Names who is acting, for the history trigger                                          |
 
 `is_slot_within_availability` is deliberately not granted to `anon`: exposing
 it would let a stranger probe a private calendar one timestamp at a time.
@@ -317,18 +317,18 @@ schedule, a block, an exception and one existing appointment.
 Ten SQL suites run against a database built from nothing, in CI and via
 `tools/local-postgres/run-validation.sh`:
 
-| File                                         | Proves                                                                                                             |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `supabase/tests/booking_guarantees.sql`      | No double booking, blocks respected, working hours and policy enforced server-side, cancellation releases the slot |
-| `supabase/tests/tenant_isolation.sql`        | A stranger sees a published catalogue and nothing else, and cannot write into someone else's business              |
-| `supabase/tests/availability_api.sql`        | `get_available_slots` offers the right times and reveals nothing else                                              |
-| `supabase/tests/public_booking.sql`          | The guest path: discovery, booking, the race, token access, tenant isolation                                       |
-| `supabase/tests/professional_operations.sql` | The appointment lifecycle, and who may drive it                                                                    |
-| `supabase/tests/appointment_lifecycle.sql`   | Rescheduling, manual booking, the reschedule race, history integrity and privacy, DST                             |
-| `supabase/tests/customer_identity.sql`       | Who counts as the same customer, and the tenant boundary that is never crossed to decide                          |
+| File                                         | Proves                                                                                                                                                 |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `supabase/tests/booking_guarantees.sql`      | No double booking, blocks respected, working hours and policy enforced server-side, cancellation releases the slot                                     |
+| `supabase/tests/tenant_isolation.sql`        | A stranger sees a published catalogue and nothing else, and cannot write into someone else's business                                                  |
+| `supabase/tests/availability_api.sql`        | `get_available_slots` offers the right times and reveals nothing else                                                                                  |
+| `supabase/tests/public_booking.sql`          | The guest path: discovery, booking, the race, token access, tenant isolation                                                                           |
+| `supabase/tests/professional_operations.sql` | The appointment lifecycle, and who may drive it                                                                                                        |
+| `supabase/tests/appointment_lifecycle.sql`   | Rescheduling, manual booking, the reschedule race, history integrity and privacy, DST                                                                  |
+| `supabase/tests/customer_identity.sql`       | Who counts as the same customer, and the tenant boundary that is never crossed to decide                                                               |
 | `supabase/tests/notification_outbox.sql`     | What booking queues and what it refuses to queue twice, reminders following their appointment, claiming and retrying, who may read or drain the outbox |
-| `supabase/tests/payments.sql`                | What a service may ask for, that the amount is never the caller's, holds and their expiry, idempotent outcomes, refunds, and who may touch money |
-| `supabase/tests/function_grants.sql`         | Every function is classified, RLS covers every table                                                               |
+| `supabase/tests/payments.sql`                | What a service may ask for, that the amount is never the caller's, holds and their expiry, idempotent outcomes, refunds, and who may touch money       |
+| `supabase/tests/function_grants.sql`         | Every function is classified, RLS covers every table                                                                                                   |
 
 The Phase 1 functions run as `SECURITY INVOKER`, so Row Level Security still
 decides who may do what. They exist for atomicity, not for privilege.

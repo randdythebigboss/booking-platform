@@ -6,12 +6,12 @@ production environment yet, and this document does not create one.
 
 ## Environments
 
-| Environment  | What it is                               | Where its configuration lives |
-| ------------ | ---------------------------------------- | ----------------------------- |
-| Local        | PostgreSQL + PostgREST on your machine    | `.env.local`, git-ignored     |
-| Development  | The free Supabase project `booking-platform-dev` | `.env.local`, git-ignored |
-| Beta         | Not created yet                          | —                             |
-| Production   | Not created yet                          | —                             |
+| Environment | What it is                                       | Where its configuration lives |
+| ----------- | ------------------------------------------------ | ----------------------------- |
+| Local       | PostgreSQL + PostgREST on your machine           | `.env.local`, git-ignored     |
+| Development | The free Supabase project `booking-platform-dev` | `.env.local`, git-ignored     |
+| Beta        | Not created yet                                  | —                             |
+| Production  | Not created yet                                  | —                             |
 
 One rule, and it is the one that keeps the others honest: **nothing
 environment-specific is committed.** The repository holds `.env.example` and no
@@ -38,17 +38,17 @@ that is not a migration is a change the next environment will not have.
 Two things learned deploying this schema for the first time, both worth
 knowing before doing it again:
 
-* **Never `drop schema public cascade` on a Supabase project.** It takes
+- **Never `drop schema public cascade` on a Supabase project.** It takes
   Supabase's default privileges with it, and every table then exists, with
   correct policies, answering `42501 permission denied`. Migration
   `20260925100000` makes this repository grant its own tables so a fresh
   project does not depend on those defaults -- but the drop is still not
   something to do.
-* **Recreating a function resets its grants.** Supabase grants `EXECUTE` on new
+- **Recreating a function resets its grants.** Supabase grants `EXECUTE` on new
   functions to `anon` and `authenticated`. Any migration that replaces a
   function restates its classification immediately afterwards, and
   `supabase/tests/function_grants.sql` fails the build if one is forgotten.
-* **PostgREST caches the schema.** After a migration that adds or replaces a
+- **PostgREST caches the schema.** After a migration that adds or replaces a
   function or a column, run
 
   ```sql
@@ -59,7 +59,8 @@ knowing before doing it again:
   overload resolves to the signature that used to exist. `supabase db reset`
   and the local stack restart PostgREST for you; a migration applied to a
   running cloud project does not.
-* **Reproduce a function from the live definition, never from a migration.**
+
+- **Reproduce a function from the live definition, never from a migration.**
   A function is rewritten by several migrations over its life, and the one
   that is easiest to find is rarely the newest. Copying an old body silently
   removes everything added since -- which happened once here, dropping three
@@ -147,15 +148,15 @@ order by e.occurred_at;
 Logs are read by more people than a message is, and they are copied into chat
 windows and issue trackers.
 
-* Never a booking access token. It is a bearer credential
+- Never a booking access token. It is a bearer credential
   ([ADR 0019](DECISIONS/0019-the-guest-token-rides-in-the-fragment.md)); a log
   line containing one is a disclosure.
-* Never a password, a service-role key, a database URL with credentials in it,
+- Never a password, a service-role key, a database URL with credentials in it,
   or a session token.
-* Not a customer's full address. The dispatcher redacts: `l***@example.test`,
+- Not a customer's full address. The dispatcher redacts: `l***@example.test`,
   `***0144`. `last_error` holds a short reason, truncated, never a provider's
   response body -- those echo the request, and the request is the message.
-* Not a message body or subject. What was sent is reconstructable from the
+- Not a message body or subject. What was sent is reconstructable from the
   template key and the payload by anyone entitled to see them.
 
 ## Supporting somebody

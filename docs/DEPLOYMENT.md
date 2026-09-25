@@ -21,12 +21,12 @@ environment** and pointing it at another means building again.
 
 ## What a host has to provide
 
-| Requirement | Why | What happens without it |
-| --- | --- | --- |
-| **HTTPS** | Service workers and installability require a secure context | The application works; it never offers to install |
-| **A fallback for unmatched paths** | Routing is client-side | `/p/some-business` returns the host's own 404 page |
-| **Correct MIME types** | `.webmanifest` and `.js` in particular | Silent: the manifest is ignored, the bundle may not execute |
-| **Files served as-is** | Nothing needs rewriting, minifying or injecting | Varies, all bad |
+| Requirement                        | Why                                                         | What happens without it                                     |
+| ---------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------- |
+| **HTTPS**                          | Service workers and installability require a secure context | The application works; it never offers to install           |
+| **A fallback for unmatched paths** | Routing is client-side                                      | `/p/some-business` returns the host's own 404 page          |
+| **Correct MIME types**             | `.webmanifest` and `.js` in particular                      | Silent: the manifest is ignored, the bundle may not execute |
+| **Files served as-is**             | Nothing needs rewriting, minifying or injecting             | Varies, all bad                                             |
 
 Nothing else. No environment variables at runtime, no secrets on the host, no
 Node process, no database connection from the host.
@@ -36,7 +36,7 @@ Node process, no database connection from the host.
 Expo Router writes one HTML file per route, and a dynamic route becomes a
 literal directory: `dist/p/[slug].html`, `dist/p/[slug]/book.html`. No plain
 file server matches `/p/demo-studio` against a folder called `[slug]`, so
-every public booking link — the thing the product is *for* — returns 404.
+every public booking link — the thing the product is _for_ — returns 404.
 
 Two ways to fix it, and the first works everywhere:
 
@@ -70,14 +70,14 @@ rules, then confirmed against the live site.
 
 **It works.** Verified end to end at `/<repo>/`:
 
-| | |
-| --- | --- |
-| The application loads | ✅ |
-| Deep link to `/<repo>/p/demo-studio/book` | ✅ renders, via the `404.html` fallback |
-| A guest booking, start to confirmation | ✅ |
-| The credential in the fragment, and a reload | ✅ |
-| Manifest fetched, `start_url` and `scope` correct | ✅ |
-| Service worker registered, scoped to `/<repo>/` | ✅ |
+|                                                   |                                         |
+| ------------------------------------------------- | --------------------------------------- |
+| The application loads                             | ✅                                      |
+| Deep link to `/<repo>/p/demo-studio/book`         | ✅ renders, via the `404.html` fallback |
+| A guest booking, start to confirmation            | ✅                                      |
+| The credential in the fragment, and a reload      | ✅                                      |
+| Manifest fetched, `start_url` and `scope` correct | ✅                                      |
+| Service worker registered, scoped to `/<repo>/`   | ✅                                      |
 
 Two things make that true, and both are in the repository now:
 
@@ -98,7 +98,7 @@ The workflow does it, and takes both values from `actions/configure-pages`
 rather than from a string somebody typed:
 
 ```yaml
-APP_BASE_PATH: ${{ steps.pages.outputs.base_path }}   # /booking-platform
+APP_BASE_PATH: ${{ steps.pages.outputs.base_path }} # /booking-platform
 EXPO_PUBLIC_SITE_URL: ${{ steps.pages.outputs.base_url }}
 ```
 
@@ -140,7 +140,7 @@ That is a reason to prefer a root-serving host, not a reason Pages cannot work.
 ## Host-neutral, deliberately
 
 No provider-specific configuration file is committed. The export is plain
-static output plus one rule — *unmatched path serves the application shell* —
+static output plus one rule — _unmatched path serves the application shell_ —
 that every host can express. Committing a `vercel.json` would make the beta
 quietly about Vercel.
 
@@ -150,17 +150,17 @@ Two settings in the Supabase dashboard, under **Authentication → URL
 Configuration**, have to name the beta URL before a professional can sign in
 from it:
 
-* **Site URL** — where authentication redirects land.
-* **Redirect allow-list** — add `<beta-url>/**`.
+- **Site URL** — where authentication redirects land.
+- **Redirect allow-list** — add `<beta-url>/**`.
 
 The Site URL is now the beta, and the local development URLs remain in the
 allow-list so local work is unaffected. Adding the beta did not remove them.
 
 Also required at that point:
 
-* `EXPO_PUBLIC_SITE_URL` set to the beta URL at build time, because it is what
+- `EXPO_PUBLIC_SITE_URL` set to the beta URL at build time, because it is what
   the dashboard's shareable booking link is built from.
-* A build made against the beta's Supabase project, not a developer's.
+- A build made against the beta's Supabase project, not a developer's.
 
 ## What is not prepared, and why
 
