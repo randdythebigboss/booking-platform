@@ -1,4 +1,4 @@
-import { Redirect } from 'expo-router';
+import { Link, Redirect } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
@@ -141,6 +141,10 @@ export default function LoginScreen() {
           }}
         />
       </View>
+
+      <Link href="/account/login" asChild>
+        <Button label={t('account.forCustomers')} variant="secondary" />
+      </Link>
     </Screen>
   );
 }

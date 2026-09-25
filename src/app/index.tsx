@@ -45,6 +45,10 @@ export default function LandingScreen() {
           </Text>
         </Card>
       )}
+
+      <Link href="/account/login" asChild>
+        <Button label={t('account.forCustomers')} variant="secondary" />
+      </Link>
     </Screen>
   );
 }

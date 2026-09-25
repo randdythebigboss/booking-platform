@@ -10,6 +10,8 @@ import { guestStatusKey, toBookingError, type GuestAppointment } from '@/feature
 import { useBookingErrorText } from '@/i18n/use-error-text';
 import { useDynamicT } from '@/i18n/use-dynamic-t';
 import { useFormat } from '@/i18n/use-format';
+import { AzulPlaceholder } from '@/components/azul-placeholder';
+import { useSession } from '@/components/providers';
 import { MessageThread } from '@/components/message-thread';
 import { useGuestToken } from '@/hooks/use-guest-token';
 import {
@@ -30,6 +32,7 @@ import {
   sendMessageByToken,
   type AppointmentMessage,
 } from '@/services/messages';
+import { claimAppointment } from '@/services/customer-account';
 
 type State =
   | { kind: 'loading' }
@@ -48,6 +51,8 @@ type State =
 export default function ConfirmationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const token = useGuestToken();
+  const session = useSession();
+  const [claim, setClaim] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
 
   // The conversation about this appointment. A guest has no account, so the
   // booking link is the only thing that proves who they are -- the same
@@ -325,6 +330,10 @@ export default function ConfirmationScreen() {
 
           {payFailure && <Feedback tone="danger" message={payFailure} />}
 
+          {/* Where paying by card will go. It does not go there yet, and
+              pressing it says so rather than pretending. */}
+          {payment.status !== 'paid' && <AzulPlaceholder compact />}
+
           {/* Development only, and the server says so: the same switch that
               decides whether a simulated outcome is accepted decides whether
               these are drawn. A production deployment leaves it off and these
@@ -463,6 +472,37 @@ export default function ConfirmationScreen() {
             }
           }}
         />
+      )}
+
+      {token && session.status === 'signed-in' && (
+        <Card>
+          <Text variant="body" tone="muted">
+            {claim === 'saved' ? t('account.saved') : t('account.saveThisBooking')}
+          </Text>
+          {claim === 'failed' && <Feedback tone="danger" message={t('account.couldNotSave')} />}
+          {claim !== 'saved' && (
+            <Button
+              label={t('account.saveThisBooking')}
+              variant="secondary"
+              loading={claim === 'saving'}
+              onPress={async () => {
+                setClaim('saving');
+                try {
+                  const ok = await claimAppointment({
+                    appointmentId: appointment.appointmentId,
+                    accessToken: token,
+                  });
+                  setClaim(ok ? 'saved' : 'failed');
+                } catch {
+                  setClaim('failed');
+                }
+              }}
+            />
+          )}
+          <Link href="/account" asChild>
+            <Button label={t('account.myAppointments')} variant="secondary" />
+          </Link>
+        </Card>
       )}
 
       {token && (

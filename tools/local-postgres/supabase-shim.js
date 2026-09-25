@@ -11,8 +11,9 @@
  *   /rest/v1/*   forwarded to PostgREST with the prefix stripped
  *   /auth/v1/*   the handful of GoTrue endpoints supabase-js actually calls
  *
- * It is NOT GoTrue. There is no sign-up, no email confirmation, no password
- * reset, no token expiry and no refresh -- its tokens never expire. A flow
+ * It is NOT GoTrue. Sign-up writes the rows the product reads and confirms
+ * the address on the spot; there is no email confirmation, no password reset,
+ * no token expiry and no refresh -- its tokens never expire. A flow
  * that works here shows that Row Level Security and the RPCs behave; it shows
  * nothing about authentication. See docs/DEVELOPMENT.md.
  *
@@ -69,12 +70,20 @@ function verifyJwt(token) {
  */
 function queryColumn(sql, variables = {}) {
   const args = [
-    '-h', CONFIG.pgHost,
-    '-p', String(CONFIG.pgPort),
-    '-U', CONFIG.pgUser,
-    '-d', CONFIG.pgDatabase,
-    '-X', '-q', '-t', '-A',
-    '-v', 'ON_ERROR_STOP=1',
+    '-h',
+    CONFIG.pgHost,
+    '-p',
+    String(CONFIG.pgPort),
+    '-U',
+    CONFIG.pgUser,
+    '-d',
+    CONFIG.pgDatabase,
+    '-X',
+    '-q',
+    '-t',
+    '-A',
+    '-v',
+    'ON_ERROR_STOP=1',
   ];
   for (const [name, value] of Object.entries(variables)) {
     args.push('-v', name + '=' + value);
@@ -127,6 +136,56 @@ function findUserByCredentials(email, password) {
   return rows[0] || null;
 }
 
+/**
+ * Creates an account the way the seed does, because GoTrue is not here.
+ *
+ * Real GoTrue hashes the password, writes auth.identities, may send a
+ * confirmation email and enforces its own rules about all of it. This writes
+ * the two rows the rest of the product actually reads, confirms the address
+ * on the spot, and stops there.
+ *
+ * It exists so the optional customer account can be exercised in a browser on
+ * a machine with no Docker. CI runs the real thing; a green run here says
+ * nothing about GoTrue and everything about what the product does once
+ * somebody is signed in.
+ */
+function createUser(email, password, fullName) {
+  const existing = queryColumn(
+    "select id::text from auth.users where lower(email) = lower(:'email')",
+    {
+      email,
+    },
+  );
+  if (existing[0]) return { error: 'User already registered' };
+
+  const rows = queryColumn(
+    'with created as (' +
+      'insert into auth.users (' +
+      '  instance_id, id, aud, role, email, encrypted_password,' +
+      '  email_confirmed_at, created_at, updated_at,' +
+      '  raw_app_meta_data, raw_user_meta_data,' +
+      '  confirmation_token, recovery_token, email_change_token_new, email_change' +
+      ') values (' +
+      "  '00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated'," +
+      "  lower(:'email'), extensions.crypt(:'password', extensions.gen_salt('bf'))," +
+      '  now(), now(), now(),' +
+      '  \'{"provider":"email","providers":["email"]}\'::jsonb,' +
+      "  jsonb_build_object('full_name', :'fullName')," +
+      "  '', '', '', ''" +
+      ') returning id' +
+      '), identity as (' +
+      '  insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)' +
+      '  select gen_random_uuid(), created.id, created.id::text,' +
+      "         jsonb_build_object('sub', created.id::text, 'email', lower(:'email'), 'email_verified', true)," +
+      "         'email', now(), now(), now()" +
+      '  from created' +
+      ') select id::text from created',
+    { email, password, fullName: fullName || '' },
+  );
+
+  return { id: rows[0] || null };
+}
+
 function findUserById(id) {
   const rows = queryColumn("select email from auth.users where id = :'id'::uuid", { id });
   return rows[0] || null;
@@ -169,7 +228,10 @@ async function handleAuth(req, res, url) {
       const userId = Buffer.from(String(body.refresh_token || ''), 'base64url').toString('utf8');
       const email = userId ? findUserById(userId) : null;
       if (!email) {
-        return send(res, 400, { error: 'invalid_grant', error_description: 'Unknown refresh token' });
+        return send(res, 400, {
+          error: 'invalid_grant',
+          error_description: 'Unknown refresh token',
+        });
       }
       return send(res, 200, issueSession(userId, email));
     }
@@ -184,6 +246,26 @@ async function handleAuth(req, res, url) {
       });
     }
     return send(res, 200, issueSession(userId, String(body.email)));
+  }
+
+  if (path === '/signup') {
+    const body = await readBody(req);
+    const email = String(body.email || '');
+    const password = String(body.password || '');
+    const fullName = String((body.data && body.data.full_name) || '');
+
+    if (!email || password.length < 8) {
+      return send(res, 400, { message: 'Password should be at least 8 characters' });
+    }
+
+    const created = createUser(email, password, fullName);
+    if (created.error) {
+      return send(res, 400, { message: created.error, error_description: created.error });
+    }
+
+    // Confirmed on the spot, so the browser gets a session and the flow
+    // continues. Real GoTrue may not, which is the point of the caveat above.
+    return send(res, 200, issueSession(created.id, email));
   }
 
   if (path === '/user') {
@@ -246,8 +328,12 @@ const server = http.createServer((req, res) => {
 
 server.listen(CONFIG.port, '127.0.0.1', () => {
   process.stdout.write(
-    'supabase shim on http://127.0.0.1:' + CONFIG.port +
-      ' -> postgrest ' + CONFIG.postgrestPort +
-      ', database ' + CONFIG.pgDatabase + '\n',
+    'supabase shim on http://127.0.0.1:' +
+      CONFIG.port +
+      ' -> postgrest ' +
+      CONFIG.postgrestPort +
+      ', database ' +
+      CONFIG.pgDatabase +
+      '\n',
   );
 });

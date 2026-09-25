@@ -13,9 +13,12 @@ import { useAsyncData } from '@/hooks/use-async-data';
 import { useRefreshOnFocus } from '@/hooks/use-refresh-on-focus';
 import { shareOrCopy, webShareCapabilities } from '@/features/sharing';
 import { publicBookingUrl } from '@/lib/env';
+import { SetupChecklist, type SetupStep } from '@/components/setup-checklist';
 import { fetchAppointments } from '@/services/appointments';
 import { signOut } from '@/services/auth';
 import { spacing } from '@/theme';
+import { fetchWeeklySchedule } from '@/services/schedule-admin';
+import { fetchServices } from '@/services/service-admin';
 
 const UPCOMING_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -55,6 +58,30 @@ export default function DashboardScreen() {
     [business.id, today],
   );
 
+  // What the professional has and has not done yet. Every one of these
+  // screens already existed and was reachable; what was missing was any sign
+  // of which order they go in, or that hours are useless without services.
+  const services = useAsyncData(() => fetchServices(business.id), [business.id]);
+  const schedule = useAsyncData(
+    () => (professional ? fetchWeeklySchedule(professional.id) : Promise.resolve([])),
+    [professional?.id],
+  );
+
+  const setupSteps: SetupStep[] = [
+    // The business exists at all, which it does by the time this renders.
+    { key: 'business', done: true, href: '/app/settings' },
+    { key: 'services', done: (services.data ?? []).length > 0, href: '/app/services' },
+    { key: 'schedule', done: (schedule.data ?? []).length > 0, href: '/app/availability' },
+    {
+      key: 'review',
+      done: (services.data ?? []).length > 0 && (schedule.data ?? []).length > 0,
+      href: '/app/availability/preview',
+    },
+    { key: 'share', done: business.isPublished, href: '/app/settings' },
+  ];
+
+  const setupComplete = setupSteps.every((step) => step.done);
+
   const next = (upcoming.data ?? [])[0] ?? null;
   const pendingCount = (upcoming.data ?? []).filter((a) => a.status === 'pending').length;
   const link = publicBookingUrl(business.slug);
@@ -87,6 +114,8 @@ export default function DashboardScreen() {
 
   return (
     <Screen title={business.name} subtitle={professional?.displayName ?? undefined}>
+      {!setupComplete && <SetupChecklist steps={setupSteps} />}
+
       <OfflineNotice />
 
       <Card>

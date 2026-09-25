@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
+import { AzulPlaceholder } from '@/components/azul-placeholder';
 import { useRequiredWorkspace, useWorkspace } from '@/components/providers';
 import { Link } from 'expo-router';
 
@@ -265,6 +266,8 @@ export default function SettingsScreen() {
             />
           </>
         )}
+
+        <AzulPlaceholder />
 
         <Card>
           <Text variant="heading">{t('settings.publishing')}</Text>
