@@ -84,7 +84,10 @@ export async function chooseDay(page: Page, iso: string, language: Language = 'e
     timeZone: 'UTC',
   }).format(new Date(`${iso}T12:00:00Z`));
 
-  const day = page.getByRole('radio', { name: spoken, exact: true });
+  // The chip is named "<full date> — <what it holds>", so the date is a
+  // prefix of the accessible name rather than the whole of it.
+  const escaped = spoken.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+  const day = page.getByRole('radio', { name: new RegExp('^' + escaped) });
 
   // Ten weeks of stepping more than covers the 60-day booking horizon.
   for (let attempt = 0; attempt < 10; attempt++) {

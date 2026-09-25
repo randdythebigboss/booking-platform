@@ -146,7 +146,11 @@ export function WeekAvailability({
           const chosen = date === value;
           const gone = date < today || date > maxDate;
           const state = gone ? (date < today ? 'past' : 'beyond') : (summary?.state ?? 'open');
-          const bookable = state === 'open';
+          // A full day can still be opened: seeing that every hour is taken
+          // is a different fact from "the shop is shut", and the customer
+          // does something different about each. Closed, past and beyond
+          // have nothing behind them, so they stay unpressable.
+          const bookable = state === 'open' || state === 'full';
 
           const mark =
             state === 'open'
