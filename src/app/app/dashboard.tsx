@@ -337,8 +337,20 @@ function NextAppointment({
         <Badge label={status} tone={badge.tone} mark={badge.mark} />
       </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm }}>
-        <Text variant="display">{format.time(appointment.startsAt, timezone)}</Text>
+      {/* Wraps onto two lines rather than breaking the time in half: at 375px
+          "10:00 a.m." beside "lunes, 28 de septiembre" does not fit, and the
+          half that gets broken is the one that matters. */}
+      <View
+        style={{
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          alignItems: 'baseline',
+          gap: spacing.sm,
+        }}
+      >
+        <Text variant="display" numberOfLines={1}>
+          {format.time(appointment.startsAt, timezone)}
+        </Text>
         <Text variant="body" tone="muted">
           {format.date(appointment.startsAt, timezone)}
         </Text>
