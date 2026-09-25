@@ -100,7 +100,9 @@ function write(path, image) {
   // colorType 2 is RGB with no alpha: these are all opaque, and carrying a
   // pointless alpha channel is what made the old 1024 icon 799 KB.
   fs.writeFileSync(path, PNG.sync.write(image, { deflateLevel: 9, colorType: 2 }));
-  console.log(`${path}  ${image.width}x${image.height}  ${Math.round(fs.statSync(path).size / 1024)} KB`);
+  console.log(
+    `${path}  ${image.width}x${image.height}  ${Math.round(fs.statSync(path).size / 1024)} KB`,
+  );
 }
 
 const appIcon = read('assets/images/icon.png');

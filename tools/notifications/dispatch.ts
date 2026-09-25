@@ -57,11 +57,9 @@ function psqlBinary(): string {
 
 /** Runs one statement. What it printed is the caller's business. */
 function run(sql: string): string {
-  return execFileSync(
-    psqlBinary(),
-    [connectionString(), '-v', 'ON_ERROR_STOP=1', '-tAc', sql],
-    { encoding: 'utf8' },
-  ).trim();
+  return execFileSync(psqlBinary(), [connectionString(), '-v', 'ON_ERROR_STOP=1', '-tAc', sql], {
+    encoding: 'utf8',
+  }).trim();
 }
 
 /**
@@ -109,22 +107,20 @@ const store: NotificationStore = {
         `select coalesce(json_agg(n), '[]'::json) from public.claim_due_notifications(${Number(limit)}) n`,
       ) ?? [];
 
-    return rows.map(
-      (row): NotificationJob => ({
-        id: row.id,
-        businessId: row.business_id,
-        appointmentId: row.appointment_id,
-        kind: row.kind,
-        channel: row.channel,
-        recipient: row.recipient,
-        templateKey: row.template_key,
-        locale: row.locale,
-        payload: row.payload,
-        attemptCount: row.attempt_count,
-        maxAttempts: row.max_attempts,
-        scheduledFor: new Date(row.scheduled_for),
-      }),
-    );
+    return rows.map((row): NotificationJob => ({
+      id: row.id,
+      businessId: row.business_id,
+      appointmentId: row.appointment_id,
+      kind: row.kind,
+      channel: row.channel,
+      recipient: row.recipient,
+      templateKey: row.template_key,
+      locale: row.locale,
+      payload: row.payload,
+      attemptCount: row.attempt_count,
+      maxAttempts: row.max_attempts,
+      scheduledFor: new Date(row.scheduled_for),
+    }));
   },
 
   async markSent(id, provider, providerMessageId) {
@@ -169,9 +165,7 @@ async function main(): Promise<void> {
     });
 
     if (summary.claimed > 0 || !watch) {
-      console.log(
-        `claimed ${summary.claimed}, sent ${summary.sent}, failed ${summary.failed}`,
-      );
+      console.log(`claimed ${summary.claimed}, sent ${summary.sent}, failed ${summary.failed}`);
     }
 
     if (watch) await new Promise((resolve) => setTimeout(resolve, 5000));

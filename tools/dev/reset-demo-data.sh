@@ -46,6 +46,11 @@ fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
+# Where the database is, before what it says about itself. A shared project
+# answers "development" truthfully, so the environment column alone cannot
+# tell it from a disposable stack. See tools/dev/disposable-db.cjs.
+node "$REPO_ROOT/tools/dev/disposable-db.cjs" "$URL" || exit 4
+
 environment="$("$PSQL" "$URL" -tAc \
   "select coalesce((select environment from public.platform_settings), 'unknown')")"
 
