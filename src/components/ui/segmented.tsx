@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, View } from 'react-native';
 
-import { radius, spacing, useTheme } from '@/theme';
+import { TOUCH_TARGET, radius, spacing, useTheme } from '@/theme';
 import { Text } from './text';
 
 export interface SegmentedOption<T extends string> {
@@ -65,7 +65,7 @@ export function Segmented<T extends string>({
               accessibilityLabel={option.label}
               onPress={() => onChange(option.value)}
               style={{
-                minHeight: 38,
+                minHeight: TOUCH_TARGET,
                 alignItems: 'center',
                 justifyContent: 'center',
                 paddingHorizontal: spacing.md,

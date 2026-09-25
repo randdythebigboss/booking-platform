@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { Pressable, Switch, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
-import { Button, Feedback, Text, TimeInput } from '@/components/ui';
+import { Button, Feedback, SwitchControl, Text, TimeInput } from '@/components/ui';
 import type { ScheduleEntry } from '@/features/availability/schedule';
 import { spacing, useTheme } from '@/theme';
 
@@ -123,13 +123,8 @@ export function DayHoursRow({
           )}
         </Pressable>
 
-        <Switch
-          value={open}
-          onValueChange={onToggle}
-          // The weekday alone: a screen reader already says "switch, on".
-          accessibilityLabel={label}
-          trackColor={{ true: palette.accent, false: palette.border }}
-        />
+        {/* The weekday alone: a screen reader already says "switch, on". */}
+        <SwitchControl value={open} onChange={onToggle} label={label} />
       </View>
 
       {open && expanded && (

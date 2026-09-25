@@ -4,7 +4,7 @@ import { Pressable, View } from 'react-native';
 import { useLocale } from '@/components/providers';
 import { Text } from '@/components/ui/text';
 import { LOCALE_NAMES, LOCALE_SHORT_NAMES, SUPPORTED_LOCALES, type Locale } from '@/locales';
-import { radius, spacing, useTheme } from '@/theme';
+import { TOUCH_TARGET, radius, spacing, useTheme } from '@/theme';
 
 /**
  * The language control, small enough to live in the corner of every screen.
@@ -54,9 +54,9 @@ export function LanguageToggle() {
             accessibilityLabel={LOCALE_NAMES[option]}
             onPress={() => setLocale(option)}
             style={{
-              // Small, but never smaller than a thumb.
+              // Never smaller than a thumb, in either direction.
               minWidth: 44,
-              minHeight: 36,
+              minHeight: TOUCH_TARGET,
               alignItems: 'center',
               justifyContent: 'center',
               paddingHorizontal: spacing.sm,

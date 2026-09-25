@@ -12,6 +12,11 @@ export interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
+  /**
+   * What to say when the visible label is not words -- an arrow, a glyph.
+   * Defaults to the label, which is right almost everywhere.
+   */
+  accessibilityLabel?: string;
   accessibilityHint?: string;
   /** Shrinks the control for a toolbar or a card footer. */
   size?: 'regular' | 'compact';
@@ -37,6 +42,7 @@ export function Button({
   disabled = false,
   loading = false,
   style,
+  accessibilityLabel,
   accessibilityHint,
   size = 'regular',
 }: ButtonProps) {
@@ -65,6 +71,7 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ disabled: inactive, busy: loading }}
       accessibilityHint={accessibilityHint}
       disabled={inactive}

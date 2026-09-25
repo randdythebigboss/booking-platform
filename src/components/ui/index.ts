@@ -11,6 +11,7 @@ export { Screen, type ScreenProps } from './screen';
 export { SearchableSelect, type SearchableSelectProps } from './searchable-select';
 export type { SelectOption } from './option';
 export { Segmented, type SegmentedOption, type SegmentedProps } from './segmented';
+export { SwitchControl, type SwitchControlProps } from './switch-control';
 export { Stat, type StatProps } from './stat';
 export { Text, type TextProps } from './text';
 export { TimeInput, type TimeInputProps } from './time-input';

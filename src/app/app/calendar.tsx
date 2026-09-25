@@ -101,8 +101,12 @@ export default function CalendarScreen() {
               gap: spacing.sm,
             }}
           >
+            {/* Arrows, not sentences. "‹ Día anterior / Hoy / Día siguiente ›"
+                needed 335px of a 320px screen, and the strip above already
+                says which way is which. */}
             <Button
-              label={'‹ ' + t('common.previousDay')}
+              label="‹"
+              accessibilityLabel={t('common.previousDay')}
               variant="ghost"
               size="compact"
               onPress={() => setDate(addDays(date, -1))}
@@ -115,7 +119,8 @@ export default function CalendarScreen() {
               onPress={() => setDate(today)}
             />
             <Button
-              label={t('common.nextDay') + ' ›'}
+              label="›"
+              accessibilityLabel={t('common.nextDay')}
               variant="ghost"
               size="compact"
               onPress={() => setDate(addDays(date, 1))}
