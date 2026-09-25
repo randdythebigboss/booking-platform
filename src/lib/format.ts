@@ -72,13 +72,36 @@ export function formatDuration(minutes: number, locale: string): string {
   return `${unit(hours, 'hour')} ${unit(rest, 'minute')}`;
 }
 
-/** Always renders in the business timezone, never the device one. */
+/**
+ * Always renders in the business timezone, never the device one.
+ *
+ * Two deliberate departures from what Intl hands back for `es-DO`:
+ *
+ *   * The hour is not zero-padded. `02:45 p. m.` is a timestamp; `2:45 p.m.`
+ *     is a time somebody says out loud.
+ *   * The spaces inside the day period go. CLDR puts a full space in `p. m.`,
+ *     which made the string wide enough to wrap onto two lines in the fixed
+ *     time column of an appointment row -- the column that exists so a list
+ *     lines up down its left edge.
+ *
+ * Nothing else is touched: the order of the parts, the separator and whether
+ * there is a day period at all remain the locale's business, so a 24-hour
+ * language still gets `14:45`.
+ */
 export function formatTimeIn(instant: Date, timezone: string, locale: string): string {
-  return new Intl.DateTimeFormat(locale, {
+  const parts = new Intl.DateTimeFormat(locale, {
     timeZone: timezone,
-    hour: '2-digit',
+    hour: 'numeric',
     minute: '2-digit',
-  }).format(instant);
+  }).formatToParts(instant);
+
+  return parts
+    .map((part) =>
+      part.type === 'dayPeriod' ? part.value.replace(/\s+/gu, '') : part.value,
+    )
+    .join('')
+    .replace(/\s+/gu, ' ')
+    .trim();
 }
 
 export function formatDateIn(instant: Date, timezone: string, locale: string): string {

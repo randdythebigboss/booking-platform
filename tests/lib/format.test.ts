@@ -67,14 +67,14 @@ describe('formatMoney', () => {
 describe('formatTimeIn', () => {
   it('renders in the business timezone, not the host one', () => {
     const instant = new Date('2026-09-21T13:00:00.000Z');
-    expect(formatTimeIn(instant, 'America/Santo_Domingo', ES)).toMatch(/09:00/);
-    expect(formatTimeIn(instant, 'Europe/Madrid', ES)).toMatch(/03:00/);
+    expect(formatTimeIn(instant, 'America/Santo_Domingo', ES)).toMatch(/9:00/);
+    expect(formatTimeIn(instant, 'Europe/Madrid', ES)).toMatch(/3:00/);
   });
 
   it('keeps the business timezone when the language changes', () => {
     // 17:00 in Santo Domingo. Whatever the words around it, it is 5pm there.
     const instant = new Date('2026-09-23T21:00:00.000Z');
-    expect(formatTimeIn(instant, 'America/Santo_Domingo', ES)).toMatch(/05:00/);
+    expect(formatTimeIn(instant, 'America/Santo_Domingo', ES)).toMatch(/5:00/);
     expect(formatTimeIn(instant, 'America/Santo_Domingo', EN)).toMatch(/5:00/);
   });
 
@@ -182,5 +182,23 @@ describe('formatClockIn', () => {
   it('leaves a 24-hour locale alone', () => {
     const afternoon = new Date('2026-09-25T17:30:00.000Z');
     expect(formatClockIn(afternoon, 'UTC', 'es-ES')).toBe('17:30');
+  });
+});
+
+describe('formatTimeIn', () => {
+  it('says a time rather than stamping one', () => {
+    const afternoon = new Date('2026-09-25T18:45:00.000Z'); // 14:45 in Santo Domingo
+    expect(formatTimeIn(afternoon, 'America/Santo_Domingo', ES)).toBe('2:45 p.m.');
+    expect(formatTimeIn(afternoon, 'America/Santo_Domingo', EN)).toBe('2:45 PM');
+  });
+
+  it('leaves a 24-hour language alone', () => {
+    const afternoon = new Date('2026-09-25T18:45:00.000Z');
+    expect(formatTimeIn(afternoon, 'UTC', 'es-ES')).toBe('18:45');
+  });
+
+  it('fits the fixed time column an appointment row draws', () => {
+    const morning = new Date('2026-09-25T13:00:00.000Z');
+    expect(formatTimeIn(morning, 'America/Santo_Domingo', ES).length).toBeLessThanOrEqual(11);
   });
 });

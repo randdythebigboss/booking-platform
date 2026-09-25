@@ -104,7 +104,7 @@ values
   ('44444444-4444-4444-8444-000000000002', '22222222-2222-4222-8222-222222222222',
    'Corte + barba', 'El arreglo completo.', 45, 0, 5, 1200.00, 'DOP', 1),
   ('44444444-4444-4444-8444-000000000003', '22222222-2222-4222-8222-222222222222',
-   'Servicio premium', 'Corte, barba, toalla caliente y peinado.', 60, 5, 10, 1800.00, 'DOP', 2)
+   'Corte, barba y toalla caliente', 'El servicio completo, sin prisa.', 60, 5, 10, 1800.00, 'DOP', 2)
 on conflict (id) do nothing;
 
 insert into public.professional_services (professional_id, service_id)
@@ -159,7 +159,7 @@ insert into public.customers (id, business_id, full_name, email, phone)
 values (
   '55555555-5555-4555-8555-555555555555',
   '22222222-2222-4222-8222-222222222222',
-  'Maria Peralta',
+  'María Peralta',
   'maria@example.test',
   '+1 809 555 0199'
 )
@@ -194,6 +194,59 @@ select
   1200.00,
   'DOP'
 from created;
+
+-- A few more bookings, so every screen has something to show ------------------
+--
+-- One today, one waiting to be confirmed, one already done. A dashboard whose
+-- only content is a single appointment in two days' time cannot demonstrate a
+-- day view, a pending badge or a past list, and a demo that cannot demonstrate
+-- itself is worse than no demo.
+--
+-- Inserted directly, for the same reason as the one above: the seed must not
+-- depend on which weekday it happens to run on.
+
+insert into public.customers (id, business_id, full_name, email, phone)
+values
+  ('55555555-5555-4555-8555-000000000002', '22222222-2222-4222-8222-222222222222',
+   'Yerlin Mateo', null, '+1 809 555 0210'),
+  ('55555555-5555-4555-8555-000000000003', '22222222-2222-4222-8222-222222222222',
+   'Joel Guzmán', null, '+1 809 555 0211'),
+  ('55555555-5555-4555-8555-000000000004', '22222222-2222-4222-8222-222222222222',
+   'Carolina Objío', 'carolina@example.test', '+1 809 555 0212')
+on conflict (business_id, phone) do nothing;
+
+with rows as (
+  select * from (values
+    ('55555555-5555-4555-8555-000000000002'::uuid, 0, time '15:00', 30,
+     '44444444-4444-4444-8444-000000000001'::uuid, 'Corte de cabello', 800.00, 'confirmed'),
+    ('55555555-5555-4555-8555-000000000003'::uuid, 1, time '11:00', 45,
+     '44444444-4444-4444-8444-000000000002'::uuid, 'Corte + barba', 1200.00, 'pending'),
+    ('55555555-5555-4555-8555-000000000004'::uuid, -3, time '09:00', 30,
+     '44444444-4444-4444-8444-000000000001'::uuid, 'Corte de cabello', 800.00, 'completed')
+  ) as t(customer_id, day_offset, at, minutes, service_id, service_name, price, status)
+), created as (
+  insert into public.appointments (
+    business_id, professional_id, customer_id, starts_at, ends_at,
+    buffer_before_minutes, buffer_after_minutes, status, source
+  )
+  select
+    '22222222-2222-4222-8222-222222222222',
+    '33333333-3333-4333-8333-333333333333',
+    rows.customer_id,
+    ((current_date + rows.day_offset)::timestamp + rows.at) at time zone 'America/Santo_Domingo',
+    ((current_date + rows.day_offset)::timestamp + rows.at + make_interval(mins => rows.minutes))
+      at time zone 'America/Santo_Domingo',
+    0, 5, rows.status::appointment_status, 'public_page'
+  from rows
+  returning id, customer_id
+)
+insert into public.appointment_items (
+  appointment_id, service_id, service_name_snapshot,
+  duration_minutes_snapshot, price_snapshot, currency_snapshot
+)
+select created.id, rows.service_id, rows.service_name, rows.minutes, rows.price, 'DOP'
+from created
+join rows on rows.customer_id = created.customer_id;
 
 -- Payments, in development ----------------------------------------------------
 --

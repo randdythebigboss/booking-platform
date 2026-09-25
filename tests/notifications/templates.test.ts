@@ -86,8 +86,8 @@ describe('time', () => {
     const spanish = renderNotification('booking.confirmed', 'es', payload);
     const english = renderNotification('booking.confirmed', 'en', payload);
 
-    expect(spanish.body).toContain('02:00');
-    expect(english.body).toContain('02:00');
+    expect(spanish.body).toContain('2:00');
+    expect(english.body).toContain('2:00');
     expect(spanish.body).toContain('America/Santo_Domingo');
   });
 
@@ -96,7 +96,7 @@ describe('time', () => {
     const message = renderNotification('booking.confirmed', 'en', madrid);
 
     // The same instant is 20:00 in Madrid. Locale and timezone are independent.
-    expect(message.body).toContain('08:00');
+    expect(message.body).toContain('8:00');
   });
 
   it(`writes the date in the reader's language`, () => {
