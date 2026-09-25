@@ -274,6 +274,20 @@ export const es = {
   },
 
   services: {
+    show: 'Mostrar',
+    hiddenBadge: 'Oculto',
+    hiddenSection: 'Ocultos',
+    neverDeleted:
+      'Los servicios no se borran. Ocultar uno lo quita de tu página pública; las citas que ya lo usaron lo conservan.',
+    basics: 'Lo básico',
+    timeAndPrice: 'Duración y precio',
+    gaps: 'Margen alrededor de la cita',
+    gapsHint:
+      'Tiempo que se reserva antes y después para preparar o recoger. Cuenta para la agenda, pero el cliente no lo ve.',
+    visibility: 'Visibilidad',
+    customerSees: 'El cliente verá: {{summary}}',
+    unsaved: 'Tienes cambios sin guardar.',
+    backToList: 'Volver a Servicios',
     depositIn: 'Depósito en {{currency}}',
     depositHint: 'Lo que el cliente paga al reservar. No puede ser mayor que el precio.',
     hide: 'Ocultar',

@@ -125,3 +125,22 @@ export function formatDateTimeIn(instant: Date, timezone: string, locale: string
     minute: '2-digit',
   }).format(instant);
 }
+
+/**
+ * The mark a currency is written with, for a form label.
+ *
+ * `Precio en DOP` is a code from a standards document; `Precio en RD$` is what
+ * is written on the price list on the wall. Intl already knows the pairing for
+ * every currency it supports, so this asks it rather than keeping a table that
+ * would be wrong for the first business outside this region.
+ *
+ * Falls back to the code itself, which is always better than nothing.
+ */
+export function currencySymbol(currency: string, locale: string): string {
+  try {
+    const parts = new Intl.NumberFormat(locale, { style: 'currency', currency }).formatToParts(0);
+    return parts.find((part) => part.type === 'currency')?.value ?? currency;
+  } catch {
+    return currency;
+  }
+}

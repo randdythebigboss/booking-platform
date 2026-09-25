@@ -265,6 +265,20 @@ export const en: Translations = {
   },
 
   services: {
+    show: 'Show',
+    hiddenBadge: 'Hidden',
+    hiddenSection: 'Hidden',
+    neverDeleted:
+      'Services are never deleted. Hiding one takes it off your public page; appointments that already used it keep it.',
+    basics: 'The basics',
+    timeAndPrice: 'Length and price',
+    gaps: 'Gap around the appointment',
+    gapsHint:
+      'Time held before and after to set up or tidy away. It counts against your day, but the customer never sees it.',
+    visibility: 'Visibility',
+    customerSees: 'A customer will see: {{summary}}',
+    unsaved: 'You have unsaved changes.',
+    backToList: 'Back to Services',
     depositIn: 'Deposit in {{currency}}',
     depositHint: 'What the customer pays when booking. It cannot be more than the price.',
     hide: 'Hide',

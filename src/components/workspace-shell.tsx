@@ -92,7 +92,7 @@ export function WorkspaceShell({
               {title}
             </Text>
             {subtitle && (
-              <Text variant="caption" tone="muted" numberOfLines={2}>
+              <Text variant="caption" tone="muted" numberOfLines={3}>
                 {subtitle}
               </Text>
             )}

@@ -4,6 +4,7 @@ import {
   formatDateIn,
   formatDateTimeIn,
   formatDuration,
+  currencySymbol,
   formatMoney,
   formatTimeIn,
 } from '@/lib/format';
@@ -151,5 +152,16 @@ describe('money that came from the database', () => {
     // Not the same string: the two locales disagree about the symbol and the
     // spacing, which is the entire reason this goes through Intl.
     expect(spanish).not.toBe(english);
+  });
+});
+
+describe('currencySymbol', () => {
+  it('gives the mark a price list is written with, not the ISO code', () => {
+    expect(currencySymbol('DOP', 'es-DO')).toBe('RD$');
+    expect(currencySymbol('USD', 'en-US')).toBe('$');
+  });
+
+  it('falls back to the code rather than throwing on an unknown currency', () => {
+    expect(currencySymbol('XXXX', 'es-DO')).toBe('XXXX');
   });
 });

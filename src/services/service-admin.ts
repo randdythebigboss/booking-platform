@@ -86,13 +86,18 @@ export async function saveService(input: SaveServiceInput): Promise<string> {
 }
 
 /**
- * Services are deactivated, not deleted: past appointments reference them,
- * and their snapshots should keep pointing at something real.
+ * Shows a service on the booking page, or takes it off.
+ *
+ * Never a delete. Past appointments carry a snapshot of what was booked but
+ * still point at the service row, and a professional who stops offering
+ * something in March should not lose the record of having offered it in
+ * February. Hiding is therefore the strongest thing this screen can do -- and
+ * it is reversible, which is why the same call turns a service back on.
  */
-export async function deactivateService(serviceId: string): Promise<void> {
+export async function setServiceActive(serviceId: string, isActive: boolean): Promise<void> {
   const { error } = await getSupabase()
     .from('services')
-    .update({ is_active: false })
+    .update({ is_active: isActive })
     .eq('id', serviceId);
 
   if (error) throw toWorkspaceError(error);
