@@ -103,6 +103,28 @@ Then, by hand, the things a checklist cannot do:
 | Cloud smoke | booking, reschedule, cancel, both languages, no pay button |
 | Responsive | 320 / 375 / 430 / 768px — no horizontal overflow |
 
+## Deployed
+
+| | |
+| --- | --- |
+| URL | https://randdythebigboss.github.io/booking-platform/ |
+| Host | GitHub Pages, from this repository. No account, no domain, no cost |
+| Published by | `.github/workflows/deploy-pages.yml`, on every push to `main` |
+| Supabase | `booking-platform-dev`; Site URL and allow-list point at the beta, local development URLs kept |
+| Payment simulation | off |
+| Search engines | asked to stay away — `noindex, nofollow` and a `robots.txt`. **Not access control** |
+
+Two defects were found by deploying that no test had caught, both fixed with a
+regression test:
+
+* The **secret scan matched supabase-js**, which contains
+  `startsWith("sb_secret_")` because classifying key formats is its job. It
+  matches values now, not words.
+* The **service worker cached nothing under the repository subpath**. Its
+  allow-list was anchored at `/` while every asset arrives at
+  `/booking-platform/...`, so it installed, took control and cached zero bytes
+  — silently, because caching nothing looks like working.
+
 ## Cutting the candidate
 
 A Git tag is the whole ceremony:

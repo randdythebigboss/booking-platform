@@ -9,21 +9,23 @@ The customer opens that link, sees the times that are genuinely free, and
 books. No account required.
 
 ```
-app.example.com/p/demo-studio
+https://randdythebigboss.github.io/booking-platform/p/demo-studio
 ```
 
 ## Status
 
-**Release candidate `0.1.0-beta.1`.** The product is end to end and speaks two
-languages. A professional sets up their business and hours, a customer books as
-a guest in under a minute with no account, and either side can move or cancel
-that appointment before it starts. Everything that happens to an appointment is
+**Beta `0.1.0-beta.1`, live at https://randdythebigboss.github.io/booking-platform/**
+
+The product is end to end and speaks two languages. A professional sets up
+their business and hours, a customer books as a guest in under a minute with
+no account, and either side can move or cancel that appointment before it
+starts. Everything that happens to an appointment is
 recorded in an append-only log that nobody can edit. Notifications are composed
 and queued; payments are modelled, held and settled. It installs from a browser
 as an application.
 
 **Nothing external is connected, and that is deliberate.** No payment provider,
-no email or SMS provider, no store, no hosting. Where a real one would go there
+no email or SMS provider, no store. Where a real one would go there
 is an abstraction and a mock, so connecting one later is a change of
 implementation rather than a change of design. What that means in practice --
 no money moves, no message is ever sent -- is written down in
@@ -51,6 +53,7 @@ never translated.
 | 9 | Payment domain, slot holds, refunds, mock provider | Done |
 | 10 | PWA packaging, offline behaviour, accessibility, beta readiness | Done |
 | 11 | Release candidate: end-to-end suite, deployment package, release docs | Done |
+| 12 | Deployed to GitHub Pages as a free beta | Done |
 | — | Real payment provider, real messaging, public deployment, stores | **Not started, by decision** |
 
 ## Stack
