@@ -1,16 +1,27 @@
+import { Link } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { AzulPlaceholder } from '@/components/azul-placeholder';
 import { useRequiredWorkspace, useWorkspace } from '@/components/providers';
-import { Link } from 'expo-router';
-
-import { Button, Card, Feedback, Field, Screen, Select, Text, ToggleRow } from '@/components/ui';
+import { SettingsSection } from '@/components/settings-section';
+import {
+  Button,
+  Card,
+  Feedback,
+  Field,
+  SearchableSelect,
+  Select,
+  Text,
+  ToggleRow,
+} from '@/components/ui';
+import { WorkspaceShell } from '@/components/workspace-shell';
 import { validateSlug } from '@/features/business/slug';
 import { COMMON_TIMEZONES, formatTimezoneLabel } from '@/features/business/timezones';
 import { parseNumericInput } from '@/features/services/validation';
 import { issue, type ValidationIssue } from '@/features/validation';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 import { useWorkspaceErrorText } from '@/i18n/use-error-text';
 import { useIssueText } from '@/i18n/use-issue-text';
 import { publicBookingUrl } from '@/lib/env';
@@ -26,6 +37,8 @@ interface Errors {
   displayName?: ValidationIssue;
 }
 
+type Section = 'business' | 'profile' | 'rules' | 'reminders' | 'publication';
+
 /**
  * How long before an appointment its reminder goes out.
  *
@@ -34,6 +47,29 @@ interface Errors {
  */
 const REMINDER_CHOICES = [0, 60, 120, 1440, 2880] as const;
 
+/**
+ * Everything about a business that is not its calendar.
+ *
+ * ---------------------------------------------------------------------------
+ * Five sections, five Save buttons
+ * ---------------------------------------------------------------------------
+ *
+ * This was one column of eighteen controls with a single Save at the bottom.
+ * Changing a phone number sent the booking horizon, the reminder lead and the
+ * published flag with it, and the button was a screen and a half below the
+ * field being edited. Each section now saves itself, and only itself.
+ *
+ * ---------------------------------------------------------------------------
+ * Published and accepting bookings are different things
+ * ---------------------------------------------------------------------------
+ *
+ * They lived in different halves of the old page and read almost identically,
+ * so nobody could say what the pair of them meant together. They are now side
+ * by side under Publication, with a sentence above them that states the actual
+ * consequence of the combination -- including the quiet one, where the page is
+ * published, the link works, and there is not a single time to book because
+ * the only professional has stopped accepting.
+ */
 export default function SettingsScreen() {
   const { business, professional } = useRequiredWorkspace();
   const workspace = useWorkspace();
@@ -43,7 +79,7 @@ export default function SettingsScreen() {
 
   // Timezone names are machine identifiers, not copy.
   const timezoneOptions = COMMON_TIMEZONES.map((zone) => ({
-    value: zone,
+    value: zone as string,
     label: formatTimezoneLabel(zone),
   }));
 
@@ -53,7 +89,7 @@ export default function SettingsScreen() {
   const [phone, setPhone] = useState(business.phone ?? '');
   const [email, setEmail] = useState(business.email ?? '');
   const [address, setAddress] = useState(business.address ?? '');
-  const [timezone, setTimezone] = useState(business.timezone);
+  const [timezone, setTimezone] = useState<string>(business.timezone);
 
   const [slotInterval, setSlotInterval] = useState(String(business.slotIntervalMinutes));
   const [minimumNotice, setMinimumNotice] = useState(String(business.minimumNoticeMinutes));
@@ -67,53 +103,60 @@ export default function SettingsScreen() {
   const [isBookable, setIsBookable] = useState(professional?.isBookable ?? true);
 
   const [errors, setErrors] = useState<Errors>({});
-  const [failure, setFailure] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<Section | null>(null);
+  const [saved, setSaved] = useState<Section | null>(null);
+  const [failure, setFailure] = useState<{ section: Section; message: string } | null>(null);
 
-  function validate(): { errors: Errors; values: Record<string, number> } {
-    const next: Errors = {};
-    const values: Record<string, number> = {
-      slotInterval: parseNumericInput(slotInterval),
-      minimumNotice: parseNumericInput(minimumNotice),
-      horizon: parseNumericInput(horizon),
-    };
+  const dirty: Record<Section, boolean> = {
+    business:
+      name !== business.name ||
+      slug !== business.slug ||
+      description !== (business.description ?? '') ||
+      phone !== (business.phone ?? '') ||
+      email !== (business.email ?? '') ||
+      address !== (business.address ?? '') ||
+      timezone !== business.timezone,
+    profile:
+      displayName !== (professional?.displayName ?? '') || bio !== (professional?.bio ?? ''),
+    rules:
+      slotInterval !== String(business.slotIntervalMinutes) ||
+      minimumNotice !== String(business.minimumNoticeMinutes) ||
+      horizon !== String(business.bookingHorizonDays) ||
+      autoConfirm !== business.autoConfirmBookings,
+    reminders: reminderLead !== String(business.reminderLeadMinutes),
+    publication:
+      isPublished !== business.isPublished || isBookable !== (professional?.isBookable ?? true),
+  };
 
-    if (name.trim().length === 0) next.name = issue('business.nameRequired');
+  useUnsavedChanges(Object.values(dirty).some(Boolean));
 
-    const slugError = validateSlug(slug);
-    if (slugError) next.slug = slugError;
+  /** Runs one section's save, and owns the busy, saved and error states. */
+  async function run(section: Section, checks: Errors, work: () => Promise<void>) {
+    setErrors(checks);
+    setFailure(null);
+    setSaved(null);
+    if (Object.values(checks).some(Boolean)) return;
 
-    if (!Number.isInteger(values.slotInterval) || (values.slotInterval as number) < 1) {
-      next.slotInterval = issue('policy.slotInterval');
+    setBusy(section);
+    try {
+      await work();
+      setSaved(section);
+      workspace.refresh();
+    } catch (cause) {
+      setFailure({ section, message: errorText(cause) });
+    } finally {
+      setBusy(null);
     }
-    if (!Number.isInteger(values.minimumNotice) || (values.minimumNotice as number) < 0) {
-      next.minimumNotice = issue('policy.minimumNotice');
-    }
-    if (
-      !Number.isInteger(values.horizon) ||
-      (values.horizon as number) < 0 ||
-      (values.horizon as number) > 365
-    ) {
-      next.horizon = issue('policy.horizon');
-    }
-    if (professional && displayName.trim().length === 0) {
-      next.displayName = issue('displayName.required');
-    }
-
-    return { errors: next, values };
   }
 
-  async function submit() {
-    const { errors: nextErrors, values } = validate();
-    setErrors(nextErrors);
-    setFailure(null);
-    setSaved(false);
-    if (Object.values(nextErrors).some(Boolean)) return;
+  function saveBusiness() {
+    const checks: Errors = {};
+    if (name.trim().length === 0) checks.name = issue('business.nameRequired');
+    const slugError = validateSlug(slug);
+    if (slugError) checks.slug = slugError;
 
-    setBusy(true);
-    try {
-      await updateBusiness(business.id, {
+    return run('business', checks, () =>
+      updateBusiness(business.id, {
         name: name.trim(),
         slug: slug.trim(),
         description: description.trim() || null,
@@ -121,36 +164,91 @@ export default function SettingsScreen() {
         email: email.trim() || null,
         address: address.trim() || null,
         timezone,
-        slotIntervalMinutes: values.slotInterval as number,
-        minimumNoticeMinutes: values.minimumNotice as number,
-        bookingHorizonDays: values.horizon as number,
-        autoConfirmBookings: autoConfirm,
-        reminderLeadMinutes: Number(reminderLead),
-        isPublished,
-      });
-
-      if (professional) {
-        await updateProfessional(professional.id, {
-          displayName: displayName.trim(),
-          bio: bio.trim() || null,
-          isBookable,
-        });
-      }
-
-      setSaved(true);
-      workspace.refresh();
-    } catch (cause) {
-      setFailure(errorText(cause));
-    } finally {
-      setBusy(false);
-    }
+      }),
+    );
   }
 
-  return (
-    <Screen title={t('settings.title')} subtitle={t('settings.subtitle')}>
-      <View style={{ gap: spacing.md }}>
-        <Text variant="heading">{t('settings.business')}</Text>
+  function saveProfile() {
+    const checks: Errors = {};
+    if (professional && displayName.trim().length === 0) {
+      checks.displayName = issue('displayName.required');
+    }
 
+    return run('profile', checks, async () => {
+      if (!professional) return;
+      await updateProfessional(professional.id, {
+        displayName: displayName.trim(),
+        bio: bio.trim() || null,
+      });
+    });
+  }
+
+  function saveRules() {
+    const checks: Errors = {};
+    const parsedInterval = parseNumericInput(slotInterval);
+    const parsedNotice = parseNumericInput(minimumNotice);
+    const parsedHorizon = parseNumericInput(horizon);
+
+    if (!Number.isInteger(parsedInterval) || parsedInterval < 1) {
+      checks.slotInterval = issue('policy.slotInterval');
+    }
+    if (!Number.isInteger(parsedNotice) || parsedNotice < 0) {
+      checks.minimumNotice = issue('policy.minimumNotice');
+    }
+    if (!Number.isInteger(parsedHorizon) || parsedHorizon < 0 || parsedHorizon > 365) {
+      checks.horizon = issue('policy.horizon');
+    }
+
+    return run('rules', checks, () =>
+      updateBusiness(business.id, {
+        slotIntervalMinutes: parsedInterval,
+        minimumNoticeMinutes: parsedNotice,
+        bookingHorizonDays: parsedHorizon,
+        autoConfirmBookings: autoConfirm,
+      }),
+    );
+  }
+
+  function saveReminders() {
+    return run('reminders', {}, () =>
+      updateBusiness(business.id, { reminderLeadMinutes: Number(reminderLead) }),
+    );
+  }
+
+  function savePublication() {
+    return run('publication', {}, async () => {
+      await updateBusiness(business.id, { isPublished });
+      if (professional) await updateProfessional(professional.id, { isBookable });
+    });
+  }
+
+  const sectionError = (section: Section) =>
+    failure?.section === section ? failure.message : null;
+
+  // What the two switches add up to, said once, in the order that matters.
+  const publicationStatus = !isPublished
+    ? t('settings.statusUnpublished')
+    : professional && !isBookable
+      ? t('settings.statusNotAccepting')
+      : t('settings.statusLive');
+
+  return (
+    <WorkspaceShell
+      businessName={business.name}
+      professionalName={professional?.displayName ?? undefined}
+      title={t('settings.title')}
+      subtitle={t('settings.subtitle')}
+      narrow
+    >
+      <SettingsSection
+        title={t('settings.businessSection')}
+        description={t('settings.businessSectionHint')}
+        onSave={saveBusiness}
+        dirty={dirty.business}
+        busy={busy === 'business'}
+        saved={saved === 'business'}
+        error={sectionError('business')}
+      >
         <Field
           label={t('settings.businessName')}
           value={name}
@@ -169,6 +267,16 @@ export default function SettingsScreen() {
           hint={t('settings.slugWarning')}
         />
 
+        {/* The warning is worth more when it is about to happen than when it
+            is a standing footnote, so it only appears once the box differs
+            from what is published. */}
+        {slug !== business.slug && slug.trim().length > 0 && (
+          <Feedback
+            tone="warning"
+            message={t('settings.slugChanging', { from: business.slug, to: slug.trim() })}
+          />
+        )}
+
         <Field
           label={t('settings.description')}
           value={description}
@@ -182,6 +290,7 @@ export default function SettingsScreen() {
           value={phone}
           onChangeText={setPhone}
           keyboardType="phone-pad"
+          inputMode="tel"
         />
         <Field
           label={t('settings.email')}
@@ -189,24 +298,56 @@ export default function SettingsScreen() {
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
+          inputMode="email"
         />
         <Field label={t('settings.address')} value={address} onChangeText={setAddress} multiline />
 
-        <Select
+        <SearchableSelect
           label={t('settings.timezone')}
           value={timezone}
           options={timezoneOptions}
           onChange={setTimezone}
+          searchLabel={t('settings.searchTimezone')}
+          emptyLabel={t('settings.noTimezoneMatch')}
           hint={t('settings.timezoneKeepsMoment')}
         />
+      </SettingsSection>
 
-        <Text variant="heading">{t('settings.policy')}</Text>
+      {professional && (
+        <SettingsSection
+          title={t('settings.profileSection')}
+          description={t('settings.profileSectionHint')}
+          onSave={saveProfile}
+          dirty={dirty.profile}
+          busy={busy === 'profile'}
+          saved={saved === 'profile'}
+          error={sectionError('profile')}
+        >
+          <Field
+            label={t('settings.nameCustomersSee')}
+            value={displayName}
+            onChangeText={setDisplayName}
+            error={issueText(errors.displayName)}
+          />
+          <Field label={t('settings.shortBio')} value={bio} onChangeText={setBio} multiline />
+        </SettingsSection>
+      )}
 
+      <SettingsSection
+        title={t('settings.rulesSection')}
+        description={t('settings.rulesSectionHint')}
+        onSave={saveRules}
+        dirty={dirty.rules}
+        busy={busy === 'rules'}
+        saved={saved === 'rules'}
+        error={sectionError('rules')}
+      >
         <Field
           label={t('settings.slotIntervalLabel')}
           value={slotInterval}
           onChangeText={setSlotInterval}
           keyboardType="number-pad"
+          inputMode="numeric"
           error={issueText(errors.slotInterval)}
           hint={t('settings.slotIntervalHint')}
         />
@@ -215,6 +356,7 @@ export default function SettingsScreen() {
           value={minimumNotice}
           onChangeText={setMinimumNotice}
           keyboardType="number-pad"
+          inputMode="numeric"
           error={issueText(errors.minimumNotice)}
           hint={t('settings.minimumNoticeHint')}
         />
@@ -223,6 +365,7 @@ export default function SettingsScreen() {
           value={horizon}
           onChangeText={setHorizon}
           keyboardType="number-pad"
+          inputMode="numeric"
           error={issueText(errors.horizon)}
           hint={t('settings.bookingHorizonHint')}
         />
@@ -233,7 +376,16 @@ export default function SettingsScreen() {
           value={autoConfirm}
           onChange={setAutoConfirm}
         />
+      </SettingsSection>
 
+      <SettingsSection
+        title={t('settings.remindersSection')}
+        onSave={saveReminders}
+        dirty={dirty.reminders}
+        busy={busy === 'reminders'}
+        saved={saved === 'reminders'}
+        error={sectionError('reminders')}
+      >
         {/* A short list rather than a number field: "how long before" is a
             choice between a handful of sensible answers, and a box that accepts
             37 minutes invites somebody to type 37 minutes. */}
@@ -248,56 +400,68 @@ export default function SettingsScreen() {
           hint={t('settings.reminderLeadHint')}
         />
 
-        {professional && (
-          <>
-            <Text variant="heading">{t('settings.yourProfile')}</Text>
-            <Field
-              label={t('settings.nameCustomersSee')}
-              value={displayName}
-              onChangeText={setDisplayName}
-              error={issueText(errors.displayName)}
+        {/* Said here rather than only in a document. A professional choosing
+            "24 hours before" is entitled to know nothing will arrive. */}
+        <Feedback tone="muted" message={t('settings.remindersNotDelivered')} />
+        <View style={{ flexDirection: 'row' }}>
+          <Link href="/app/notifications" asChild>
+            <Button
+              label={t('settings.seeNotifications')}
+              variant="secondary"
+              size="compact"
             />
-            <Field label={t('settings.shortBio')} value={bio} onChangeText={setBio} multiline />
-            <ToggleRow
-              label={t('settings.acceptingBookings')}
-              description={t('settings.acceptingBookingsHint')}
-              value={isBookable}
-              onChange={setIsBookable}
-            />
-          </>
-        )}
+          </Link>
+        </View>
+      </SettingsSection>
 
+      <SettingsSection title={t('settings.paymentsSection')}>
         <AzulPlaceholder />
+      </SettingsSection>
 
-        <Card>
-          <Text variant="heading">{t('settings.publishing')}</Text>
-          <Text variant="body" tone="muted" selectable>
-            {publicBookingUrl(business.slug)}
-          </Text>
+      <SettingsSection
+        title={t('settings.publicationSection')}
+        description={publicationStatus}
+        onSave={savePublication}
+        dirty={dirty.publication}
+        busy={busy === 'publication'}
+        saved={saved === 'publication'}
+        error={sectionError('publication')}
+      >
+        <Text variant="body" tone="muted" selectable>
+          {publicBookingUrl(business.slug)}
+        </Text>
+
+        <ToggleRow
+          label={t('settings.publishedLabel')}
+          description={t('settings.publishedHidden')}
+          value={isPublished}
+          onChange={setIsPublished}
+        />
+
+        {professional && (
           <ToggleRow
-            label={t('settings.published')}
-            description={t('settings.publishedHidden')}
-            value={isPublished}
-            onChange={setIsPublished}
+            label={t('settings.acceptingBookings')}
+            description={t('settings.acceptingBookingsHint')}
+            value={isBookable}
+            onChange={setIsBookable}
           />
-        </Card>
+        )}
+      </SettingsSection>
 
-        {failure && <Feedback tone="danger" message={failure} />}
-        {saved && <Feedback tone="success" message={t('settings.saved')} />}
-
-        <Button label={t('settings.save')} onPress={submit} loading={busy} />
-
-        {/* Technical details for a support conversation. No customer data. */}
-        <Link href="/app/diagnostics" asChild>
-          <Button label={t('diagnostics.title')} variant="ghost" />
-        </Link>
-
-        <Card>
-          <Text variant="caption" tone="muted">
-            {t('language.hint')}
-          </Text>
-        </Card>
-      </View>
-    </Screen>
+      <Card>
+        <Text variant="caption" tone="muted">
+          {t('language.hint')}
+        </Text>
+        <Text variant="caption" tone="muted">
+          {t('settings.diagnosticsHint')}
+        </Text>
+        <View style={{ flexDirection: 'row', marginTop: spacing.xs }}>
+          {/* Technical details for a support conversation. No customer data. */}
+          <Link href="/app/diagnostics" asChild>
+            <Button label={t('diagnostics.title')} variant="ghost" size="compact" />
+          </Link>
+        </View>
+      </Card>
+    </WorkspaceShell>
   );
 }

@@ -6,6 +6,7 @@ export { Feedback, type FeedbackProps } from './feedback';
 export { Field, type FieldProps } from './field';
 export { PressableLink, type PressableLinkProps } from './pressable-link';
 export { Screen, type ScreenProps } from './screen';
+export { SearchableSelect, type SearchableSelectProps } from './searchable-select';
 export { Select, type SelectOption, type SelectProps } from './select';
 export { Segmented, type SegmentedOption, type SegmentedProps } from './segmented';
 export { Stat, type StatProps } from './stat';

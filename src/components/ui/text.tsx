@@ -4,7 +4,7 @@ import { typography, useTheme, type TypographyVariant } from '@/theme';
 
 export interface TextProps extends RNTextProps {
   variant?: TypographyVariant;
-  tone?: 'default' | 'muted' | 'accent' | 'danger' | 'success';
+  tone?: 'default' | 'muted' | 'accent' | 'danger' | 'success' | 'warning';
 }
 
 /**
@@ -28,7 +28,9 @@ export function Text({ variant = 'body', tone = 'default', style, ...rest }: Tex
           ? palette.danger
           : tone === 'success'
             ? palette.success
-            : palette.text;
+            : tone === 'warning'
+              ? palette.warning
+              : palette.text;
 
   const heading =
     variant === 'title'

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
-import { Button, Card, Feedback, Text } from '@/components/ui';
+import { Button, Feedback, Text } from '@/components/ui';
 import { spacing } from '@/theme';
 
 /**
@@ -62,19 +62,27 @@ export function AzulPlaceholder({ compact = false }: { compact?: boolean }) {
     );
   }
 
+  // On Settings the reader is the professional, not a customer. "Pay with
+  // Azul" was a customer's button on a professional's screen, and pressing it
+  // to be told nothing is charged made no sense to the person it was shown to.
+  // What they want to know is whether they can connect their own account yet.
   return (
-    <Card>
-      <Text variant="heading">{t('azul.settingsTitle')}</Text>
+    <View style={{ gap: spacing.sm }}>
       <Text variant="body" tone="muted">
         {t('azul.settingsBody')}
       </Text>
-      <Feedback tone="muted" message={t('azul.settingsStatus')} />
-      <Button
-        label={t('azul.payWithAzul')}
-        variant="secondary"
-        onPress={() => setExplained(true)}
-      />
-      {explained && explanation}
-    </Card>
+      <Text variant="caption" tone="muted">
+        {t('azul.connectHint')}
+      </Text>
+      <View style={{ flexDirection: 'row' }}>
+        <Button
+          label={t('azul.connect')}
+          variant="secondary"
+          size="compact"
+          disabled
+          onPress={() => undefined}
+        />
+      </View>
+    </View>
   );
 }
