@@ -25,6 +25,8 @@ export interface Formatters {
   /** An exact decimal from the database, or a number. Never arithmetic. */
   money: (amount: string | number, currency: string) => string;
   duration: (minutes: number) => string;
+  /** The word for today, for an accessible label. */
+  todayWord: () => string;
 }
 
 /**
@@ -50,6 +52,7 @@ export function useFormat(): Formatters {
       dateTime: (instant, timezone) => formatDateTimeIn(instant, timezone, intlLocale),
       money: (amount, currency) => formatMoney(amount, currency, intlLocale),
       duration: (minutes) => formatDuration(minutes, intlLocale),
+      todayWord: () => (intlLocale.startsWith('es') ? 'hoy' : 'today'),
     }),
     [intlLocale],
   );
