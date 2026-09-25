@@ -60,7 +60,9 @@ describe('key parity', () => {
     // A sentence that says {{name}} in Spanish and {{nombre}} in English
     // renders the placeholder verbatim to whoever reads the second one.
     const placeholders = (value: string) =>
-      (value.match(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g) ?? []).map((m) => m.replace(/[{}\s]/g, '')).sort();
+      (value.match(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g) ?? [])
+        .map((m) => m.replace(/[{}\s]/g, ''))
+        .sort();
 
     for (const key of Object.keys(flatEs)) {
       expect(placeholders(flatEn[key] as string), `placeholders differ at ${key}`).toEqual(

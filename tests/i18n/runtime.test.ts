@@ -140,7 +140,9 @@ describe('interpolation', () => {
   it('does not HTML-escape ordinary punctuation', async () => {
     await i18n.changeLanguage('es');
     // React escapes for us; double-escaping turns an apostrophe into &#39;.
-    expect(i18n.t('appointments.note', { note: "Trae su propio té & café" })).toContain('&');
-    expect(i18n.t('appointments.note', { note: "Trae su propio té & café" })).not.toContain('&amp;');
+    expect(i18n.t('appointments.note', { note: 'Trae su propio té & café' })).toContain('&');
+    expect(i18n.t('appointments.note', { note: 'Trae su propio té & café' })).not.toContain(
+      '&amp;',
+    );
   });
 });

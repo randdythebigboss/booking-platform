@@ -113,13 +113,18 @@ describe('the web manifest', () => {
     // A literally drawn icon that leaves a margin looks shrunken next to every
     // other icon on the home screen.
     for (const icon of icons.filter((i) => i.purpose === 'any')) {
-      expect(coverage(`public/${icon.src}`), `${icon.src} should fill its frame`).toBeGreaterThan(0.9);
+      expect(coverage(`public/${icon.src}`), `${icon.src} should fill its frame`).toBeGreaterThan(
+        0.9,
+      );
     }
 
     // A maskable icon is cropped to a circle or a squircle, so anything
     // outside the middle 80% can be cut off.
     for (const icon of icons.filter((i) => i.purpose === 'maskable')) {
-      expect(coverage(`public/${icon.src}`), `${icon.src} should stay inside the safe zone`).toBeLessThan(0.8);
+      expect(
+        coverage(`public/${icon.src}`),
+        `${icon.src} should stay inside the safe zone`,
+      ).toBeLessThan(0.8);
     }
   });
 
@@ -171,7 +176,12 @@ describe('the service worker', () => {
   it('caches the build output when the site is at a domain root', () => {
     const isCacheable = serviceWorkerAt(ROOT);
 
-    for (const path of ['/_expo/static/js/web/entry-abc.js', '/assets/x.png', '/icons/icon-512.png', '/fonts/a.ttf']) {
+    for (const path of [
+      '/_expo/static/js/web/entry-abc.js',
+      '/assets/x.png',
+      '/icons/icon-512.png',
+      '/fonts/a.ttf',
+    ]) {
       expect(isCacheable(new URL(path, ROOT)), path).toBe(true);
     }
   });
@@ -203,10 +213,9 @@ describe('the service worker', () => {
       expect(isCacheable(new URL('auth/v1/token', scope)), scope).toBe(false);
       expect(isCacheable(new URL('p/demo-studio/book', scope)), scope).toBe(false);
       expect(isCacheable(new URL(scope)), scope).toBe(false);
-      expect(
-        isCacheable(new URL('https://abcdef.supabase.co/rest/v1/appointments')),
-        scope,
-      ).toBe(false);
+      expect(isCacheable(new URL('https://abcdef.supabase.co/rest/v1/appointments')), scope).toBe(
+        false,
+      );
     }
   });
 

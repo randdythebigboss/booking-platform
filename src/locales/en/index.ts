@@ -825,6 +825,8 @@ export const en: Translations = {
     'policy.minimumNotice': 'Use a whole number of minutes, zero or more.',
     'policy.slotInterval': 'Use a whole number of minutes, at least 1.',
     'slug.taken': 'That public link is already taken. Try another one.',
+    'email.demoOnly':
+      'This demonstration only accepts test addresses, for example yourname@example.test. We cannot verify a real one yet.',
     'email.required': 'Enter your email address.',
     'email.invalid': 'That does not look like an email address.',
     'password.required': 'Enter a password.',

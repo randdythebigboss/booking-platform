@@ -843,6 +843,8 @@ export const es = {
     'policy.minimumNotice': 'Usa un número entero de minutos, cero o más.',
     'policy.slotInterval': 'Usa un número entero de minutos, al menos 1.',
     'slug.taken': 'Ese enlace público ya está ocupado. Prueba con otro.',
+    'email.demoOnly':
+      'Esta demostración solo acepta direcciones de prueba, por ejemplo tunombre@example.test. Todavía no podemos verificar un correo real.',
     'email.required': 'Escribe tu correo electrónico.',
     'email.invalid': 'Eso no parece un correo electrónico.',
     'password.required': 'Escribe una contraseña.',

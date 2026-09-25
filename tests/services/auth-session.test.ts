@@ -95,7 +95,10 @@ describe('onAuthChange', () => {
 
     listeners[0]?.('SIGNED_IN', SESSION);
     listeners[0]?.('SIGNED_OUT', null);
-    listeners[0]?.('SIGNED_IN', { ...SESSION, user: { id: 'user-2', email: 'other@example.test' } });
+    listeners[0]?.('SIGNED_IN', {
+      ...SESSION,
+      user: { id: 'user-2', email: 'other@example.test' },
+    });
 
     expect(seen.map((user) => user?.id ?? null)).toEqual(['user-1', null, 'user-2']);
   });

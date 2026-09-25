@@ -25,6 +25,9 @@ declare
     -- The whole shape of a day, with a state per slot and nothing about the
     -- appointment behind a busy one.
     'get_day_schedule',
+    -- The same day view, aggregated per day across a week: a date, a state and
+    -- a count of what is FREE. Strictly less than get_day_schedule returns.
+    'get_week_availability',
     -- The guest's own conversation. The booking credential is the guest's
     -- only identity, and each of these checks it before doing anything.
     'get_appointment_messages_by_token',

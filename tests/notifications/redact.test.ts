@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { redactEmail, redactPhone, redactRecipient, safeErrorReason } from '@/features/notifications';
+import {
+  redactEmail,
+  redactPhone,
+  redactRecipient,
+  safeErrorReason,
+} from '@/features/notifications';
 
 /**
  * A dispatcher's log is read while something is wrong, often by somebody who

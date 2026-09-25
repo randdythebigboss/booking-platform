@@ -5,7 +5,11 @@ import { View } from 'react-native';
 
 import { useSession } from '@/components/providers';
 import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
-import { MIN_PASSWORD_LENGTH, validateCredentials } from '@/features/auth/validation';
+import {
+  MIN_PASSWORD_LENGTH,
+  isDemoRegistrationAllowed,
+  validateCredentials,
+} from '@/features/auth/validation';
 import { hasIssues, issue, type ValidationIssue } from '@/features/validation';
 import { useWorkspaceErrorText } from '@/i18n/use-error-text';
 import { useIssueText } from '@/i18n/use-issue-text';
@@ -55,6 +59,11 @@ export default function LoginScreen() {
     const nextErrors: Errors = validateCredentials(email, password);
     if (mode === 'sign-up' && fullName.trim().length === 0) {
       nextErrors.fullName = issue('name.required');
+    }
+    // Nothing here can verify an address, so nothing here accepts one that
+    // could belong to somebody. See isDemoRegistrationAllowed.
+    if (mode === 'sign-up' && !nextErrors.email && !isDemoRegistrationAllowed(email)) {
+      nextErrors.email = issue('email.demoOnly');
     }
 
     setErrors(nextErrors);
