@@ -1,11 +1,15 @@
-# Putting the beta somewhere
+# Where the beta lives
 
-What the application needs from a host, what has been verified against a real
-one, and what changes when the URL is chosen.
+**Deployed:** https://randdythebigboss.github.io/booking-platform/
 
-**Nothing here has been deployed.** No hosting account exists, no domain has
-been bought, and making the application publicly reachable is a Product Owner
-decision, not an engineering one.
+GitHub Pages, on the repository that already existed. No hosting account was
+created, no domain was bought and nothing costs anything. The build is
+published by `.github/workflows/deploy-pages.yml` on every push to `main`,
+after the same gates CI runs.
+
+This is a **beta**. Every business, customer and appointment in it is
+invented, no payment provider is connected and no message is ever sent. See
+[LIMITATIONS.md](LIMITATIONS.md).
 
 ## What the build is
 
@@ -60,9 +64,9 @@ chosen, so none of it is here.
 
 ## GitHub Pages
 
-The repository is already on GitHub, so Pages is the obvious $0 option. It was
-evaluated properly rather than assumed, by building for a subpath and serving
-the result through a server that reproduces Pages' own rules.
+This is the deployment. Evaluated before it was chosen, by building for a
+subpath and serving the result through a server that reproduces Pages' own
+rules, then confirmed against the live site.
 
 **It works.** Verified end to end at `/<repo>/`:
 
@@ -90,16 +94,43 @@ Before this, all of those pointed at the domain root and 404'd under a
 subpath. The application still ran, and simply never offered to install — the
 kind of failure nobody notices.
 
-To deploy there, someone would:
+The workflow does it, and takes both values from `actions/configure-pages`
+rather than from a string somebody typed:
 
-```bash
-# in app.json: "experiments": { "baseUrl": "/booking-platform" }
-npx expo export --platform web --output-dir dist
-cp dist/index.html dist/404.html
+```yaml
+APP_BASE_PATH: ${{ steps.pages.outputs.base_path }}   # /booking-platform
+EXPO_PUBLIC_SITE_URL: ${{ steps.pages.outputs.base_url }}
 ```
 
-and publish `dist/` to the Pages branch. **This has not been done, and Pages
-has not been enabled.**
+Two build-time inputs come from **repository variables**, not from the
+repository: `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+Both are public client configuration -- the publishable key is constrained
+entirely by Row Level Security and ships in the bundle by design. No secret
+key, no database password and no management token is used by the application
+or by the workflow.
+
+### The 404 fallback, and why it is not a copy of index.html
+
+`tools/release/make-spa-fallback.cjs` writes it. Copying `index.html` works
+and logs a React hydration error on every deep link: the file carries the home
+page's pre-rendered markup, the client then draws a booking page, and React
+finds text it did not expect. So the copy has its root emptied and
+`__EXPO_ROUTER_HYDRATE__` turned off -- React renders instead of hydrating,
+there is nothing to disagree about, and the console is clean. It also removes
+the flash of home-page content before the router catches up.
+
+The remaining wrinkle is inherent to Pages: a deep-linked route is served with
+an HTTP 404 status while rendering correctly. That is invisible to a person
+and matters only to a crawler, which is being asked to stay away anyway.
+
+### Asking search engines to stay away
+
+The build emits `<meta name="robots" content="noindex, nofollow">` and ships a
+`robots.txt` that disallows everything. Opting back in is deliberate:
+`EXPO_PUBLIC_ALLOW_INDEXING=1` at build time.
+
+**This is not access control.** The URL is public and anyone who has it can
+open the site. Nothing about the beta should be described as private.
 
 The one caveat worth stating: a **user or organisation** site
 (`name.github.io`) serves from the root and needs no `baseUrl` at all. A
@@ -122,13 +153,8 @@ from it:
 * **Site URL** — where authentication redirects land.
 * **Redirect allow-list** — add `<beta-url>/**`.
 
-Today they are `http://127.0.0.1:4320` and `http://127.0.0.1:4320/**`, which is
-local development. **No placeholder for a future URL has been invented**, and
-nothing here should be changed until a real one exists — a guessed URL in an
-allow-list is an open redirect nobody is watching.
-
-Adding the beta URL does not remove the local one. Both can be in the
-allow-list, and local development keeps working.
+The Site URL is now the beta, and the local development URLs remain in the
+allow-list so local work is unaffected. Adding the beta did not remove them.
 
 Also required at that point:
 
