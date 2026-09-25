@@ -501,6 +501,14 @@ function ServiceRow({
         <Text variant="caption" tone="muted" numberOfLines={1}>
           {summary}
         </Text>
+        {/* What the customer reads under the name on the public page. It is
+            the only thing that distinguishes two similar services, so the
+            professional should see it here too. */}
+        {service.description && (
+          <Text variant="caption" tone="muted" numberOfLines={1}>
+            {service.description}
+          </Text>
+        )}
         {warning && (
           <Text variant="caption" tone="danger" numberOfLines={2}>
             {warning}

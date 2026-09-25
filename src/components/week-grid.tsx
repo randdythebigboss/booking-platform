@@ -226,7 +226,14 @@ export function WeekGrid({
         nestedScrollEnabled
         contentContainerStyle={{ paddingTop: 8, paddingBottom: 8 }}
       >
-        <View style={{ flexDirection: 'row', height }}>
+        {/* Marked so an audit can tell a time-proportional block from an
+            ordinary control: a half-hour booking must not be drawn as tall as
+            an hour one, and the same appointment is reachable at full row
+            height in the day view. */}
+        <View
+          {...({ dataSet: { calendarGrid: 'true' } } as object)}
+          style={{ flexDirection: 'row', height }}
+        >
           {/* The hour gutter. */}
           <View style={{ width: GUTTER }}>
             {[...hours, (hours[hours.length - 1] ?? 0) + 1].map((hour, index) => (
@@ -317,7 +324,6 @@ export function WeekGrid({
                   return (
                     <View
                       key={block.id}
-                      accessibilityLabel={`${t('blocks.title')}: ${format.time(block.startsAt, timezone)}`}
                       style={{
                         position: 'absolute',
                         top: offsetOf(from),
@@ -329,8 +335,15 @@ export function WeekGrid({
                         borderWidth: 1,
                         borderStyle: 'dashed',
                         borderColor: palette.border,
+                        paddingHorizontal: 4,
+                        paddingVertical: 2,
+                        overflow: 'hidden',
                       }}
-                    />
+                    >
+                      <Text variant="caption" tone="muted" numberOfLines={1}>
+                        {t('calendar.legendBlocked')}
+                      </Text>
+                    </View>
                   );
                 })}
 
@@ -340,7 +353,7 @@ export function WeekGrid({
                   const to = minutesInDay(appointment.endsAt, date);
                   const badge = statusBadge(appointment.status);
                   const pending = appointment.status === 'pending';
-                  const blockHeight = Math.max(22, offsetOf(to) - offsetOf(from) - 2);
+                  const blockHeight = Math.max(28, offsetOf(to) - offsetOf(from) - 2);
 
                   return (
                     <Pressable
