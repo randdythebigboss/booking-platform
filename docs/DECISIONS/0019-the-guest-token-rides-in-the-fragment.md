@@ -40,18 +40,18 @@ fallback, and on web it is rewritten to the fragment form with
 stay one Back press away. That rewrite happens in a small inline script in the
 document (`src/app/+html.tsx`), before the bundle mounts: from inside a React
 effect it raced the router, which owns the URL once it has read the query, and
-in a real browser the token ended up in *both* places. The upgrade helper now
+in a real browser the token ended up in _both_ places. The upgrade helper now
 also treats "in both places" as something to clean.
 
 ## Consequences
 
-* The token is not in the document request, so it cannot be logged by a server
+- The token is not in the document request, so it cannot be logged by a server
   that never sees it. Verified in the browser: the confirmation page's own
   `GET` carries no token.
-* Native is unaffected in behaviour but not in code: `useLocalSearchParams`
+- Native is unaffected in behaviour but not in code: `useLocalSearchParams`
   drops a fragment, so the deep link is read through `Linking.useURL()`.
-* Anything that reads the token has to be told where to look, which is why
+- Anything that reads the token has to be told where to look, which is why
   there is exactly one place that knows: `src/features/booking/guest-token.ts`.
-* A fragment is still visible to the page and to whoever holds the link. This
+- A fragment is still visible to the page and to whoever holds the link. This
   is a capability URL and is documented to customers as one ("treat it like a
   ticket"). Nothing here changes that.

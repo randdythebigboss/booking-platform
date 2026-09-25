@@ -1,7 +1,12 @@
+import { readFileSync } from 'node:fs';
+
 import { bookAsGuest, expectNoRawError, signIn } from './support/app';
 import { query } from './support/db';
 import { TENANT_A } from './support/fixtures';
 import { expect, test } from './support/test';
+
+/** Read from the manifest, so a version bump never needs this file edited. */
+const RELEASE = JSON.parse(readFileSync('package.json', 'utf8')).version as string;
 
 /**
  * The other half of the product: somebody signs in and runs their day.
@@ -90,7 +95,7 @@ test.describe('a professional runs their day', () => {
     const body = (await page.textContent('body')) ?? '';
 
     // The version is the reason the screen exists during a beta.
-    expect(body).toContain('0.1.0-beta.1');
+    expect(body).toContain(RELEASE);
     expect(body).toContain('local');
 
     // And these are the reasons it is a curated list rather than a dump.

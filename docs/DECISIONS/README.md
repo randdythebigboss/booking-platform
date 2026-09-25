@@ -21,10 +21,10 @@ decision changes, a new record supersedes the old one.
 | [0014](0014-appointment-lifecycle.md)                    | The appointment lifecycle is a graph, not a column               |
 | [0015](0015-one-event-log-for-appointment-history.md)    | One event log, not a status history table                        |
 | [0016](0016-the-professional-is-not-a-customer.md)       | The published grid binds customers, not the owner                |
-| [0017](0017-spanish-is-the-source-language.md)           | Spanish is the source language, parity enforced by types          |
+| [0017](0017-spanish-is-the-source-language.md)           | Spanish is the source language, parity enforced by types         |
 | [0018](0018-customer-matching-is-deliberately-timid.md)  | Customer matching is deliberately timid                          |
 | [0019](0019-the-guest-token-rides-in-the-fragment.md)    | The guest token rides in the URL fragment                        |
-| [0020](0020-notifications-leave-through-an-outbox.md)     | Notifications leave through an outbox                            |
+| [0020](0020-notifications-leave-through-an-outbox.md)    | Notifications leave through an outbox                            |
 | [0021](0021-an-appointment-remembers-who-booked-it.md)   | An appointment remembers who booked it                           |
-| [0022](0022-the-appointment-is-the-hold.md)               | The appointment is the hold                                      |
+| [0022](0022-the-appointment-is-the-hold.md)              | The appointment is the hold                                      |
 | [0023](0023-cancelling-is-not-refunding.md)              | Cancelling is not refunding                                      |

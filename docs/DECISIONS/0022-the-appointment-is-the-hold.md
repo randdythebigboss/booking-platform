@@ -31,23 +31,23 @@ immediately, occupying the slot through the same GiST exclusion constraint
 that has prevented double booking since the first schema, and carries
 `hold_expires_at`, fifteen minutes out.
 
-* Pay, and the expiry is cleared and the booking becomes what the business's
+- Pay, and the expiry is cleared and the booking becomes what the business's
   own setting says a booking is: confirmed, or waiting to be accepted.
-* Walk away, and it lapses and the slot is somebody else's again.
-* A card is declined, and the hold *stands* until it lapses -- somebody
+- Walk away, and it lapses and the slot is somebody else's again.
+- A card is declined, and the hold _stands_ until it lapses -- somebody
   mistyping a number should not lose their slot while they reach for another
   card. The retry is a new payment row, so the history counts the attempts.
 
 Expiry happens without a scheduler, which is the part that makes this work
 without anything to deploy:
 
-* **Reads** never show a lapsed hold as busy. Availability treats
+- **Reads** never show a lapsed hold as busy. Availability treats
   `hold_expires_at < now()` as free, so the slot comes back the instant the
   hold runs out, whether or not anything has cleaned it up.
-* **Writes** cannot collide with one. `expire_payment_holds` runs inside the
+- **Writes** cannot collide with one. `expire_payment_holds` runs inside the
   advisory lock every booking already takes, so a lapsed hold is cancelled
   before the new booking is checked against it.
-* **Nothing rots.** The availability read that every public booking page makes
+- **Nothing rots.** The availability read that every public booking page makes
   releases what it finds, so the cleanup happens wherever customers are
   looking.
 
@@ -70,13 +70,13 @@ the provider is authoritative about the money, and one function --
 
 ## Consequences
 
-* A slot can be occupied by somebody who never pays, for up to fifteen
+- A slot can be occupied by somebody who never pays, for up to fifteen
   minutes. That is the cost, and it is bounded.
-* A payment arriving after its hold lapsed is **refused**, not taken:
+- A payment arriving after its hold lapsed is **refused**, not taken:
   `PAYMENT_HOLD_EXPIRED`. Taking it would be the exact failure this design
   exists to prevent.
-* Nothing rate-limits how often one person may start a checkout. A determined
+- Nothing rate-limits how often one person may start a checkout. A determined
   visitor could hold successive slots fifteen minutes at a time. Worth
   revisiting before a public beta; not worth building against nobody.
-* Free bookings are untouched. No hold, no payment row, and the behaviour is
+- Free bookings are untouched. No hold, no payment row, and the behaviour is
   exactly what it was.

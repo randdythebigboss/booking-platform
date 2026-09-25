@@ -23,15 +23,15 @@ existed to cover exactly that.
 
 **They are two operations, and one never implies the other.**
 
-* Cancelling an appointment does not touch its payment. An appointment can be
+- Cancelling an appointment does not touch its payment. An appointment can be
   `cancelled` while its payment is `paid`, indefinitely, and that is a valid
   state -- it means "this is not happening, and the question of the money is
   still open".
-* Refunding is an explicit action a member of the business takes, through
+- Refunding is an explicit action a member of the business takes, through
   `refund_payment`, with its own button, its own reason field and its own
   event in the payment history. It does not cancel anything.
-* The only automatic movement of money is in the other direction and is not a
-  refund at all: a hold that lapses cancels the *pending* payment that was
+- The only automatic movement of money is in the other direction and is not a
+  refund at all: a hold that lapses cancels the _pending_ payment that was
   waiting for it, because nothing was ever taken.
 
 The interface says this out loud rather than leaving it to be discovered:
@@ -40,18 +40,18 @@ sentence that says cancelling does not return the money.
 
 ## Consequences
 
-* A business can keep a deposit, refund it, or decide later. The product has
+- A business can keep a deposit, refund it, or decide later. The product has
   an opinion about none of these.
-* Support can always answer "what happened to the money" separately from "what
+- Support can always answer "what happened to the money" separately from "what
   happened to the appointment", because the two histories are separate:
   `appointment_events` and `payment_events`.
-* Partial refunds do not exist. A refund is for the amount that was paid.
+- Partial refunds do not exist. A refund is for the amount that was paid.
   Anything else needs a decision about what a partial refund means for a
   deposit, and that decision has not been made.
-* When a cancellation policy is eventually chosen, it can be built on top of
-  this without unpicking anything: it becomes a rule about *when to call*
+- When a cancellation policy is eventually chosen, it can be built on top of
+  this without unpicking anything: it becomes a rule about _when to call_
   `refund_payment`, not a change to what cancelling means.
-* A refund still needs the provider to agree. With the mock it is immediate;
+- A refund still needs the provider to agree. With the mock it is immediate;
   with a real gateway, `refund_payment` will record the request and the
   provider's callback will move the status, which is why the request is its
   own event.

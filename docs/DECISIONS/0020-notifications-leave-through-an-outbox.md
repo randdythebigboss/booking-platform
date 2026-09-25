@@ -61,21 +61,21 @@ state the transaction actually committed.
 
 ## Consequences
 
-* A provider outage delays messages. It cannot fail a booking, and it cannot
+- A provider outage delays messages. It cannot fail a booking, and it cannot
   produce a message for a booking that did not happen.
-* Everything is inspectable. `notifications` is readable by members of the
+- Everything is inspectable. `notifications` is readable by members of the
   business through RLS, which is what the operational screen runs on -- no
   service key, no SQL client.
-* The dispatcher needs a connection no browser has: `claim_due_notifications`
+- The dispatcher needs a connection no browser has: `claim_due_notifications`
   and its siblings are revoked from `anon` and `authenticated`. In development
   that is `npm run notifications:dispatch`; in production it will be whatever
   runs on an operator's host. That is a deliberate boundary, not a gap.
-* Sending is bounded: five attempts, doubling backoff capped at an hour, and a
+- Sending is bounded: five attempts, doubling backoff capped at an hour, and a
   failure the provider says is permanent is not retried at all. A claim that a
   dispatcher never finished is put back by `requeue_stalled_notifications`
   **without** giving back the attempt it burned -- it may have sent before it
   died, and a crash loop must not become a hundred copies.
-* Today one channel is queued: email, and only when the booking left an
+- Today one channel is queued: email, and only when the booking left an
   address. The enum carries `sms`, `whatsapp`, `push` and `in_app` so that
   adding one is an adapter plus a line in `notification_recipient_for`, not a
   schema change. A booking with no email is still a booking; there is simply

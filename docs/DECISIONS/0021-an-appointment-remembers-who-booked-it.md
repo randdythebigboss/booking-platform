@@ -48,14 +48,14 @@ confirmation page shows. A snapshot nobody reads is not a snapshot.
 
 ## Consequences
 
-* A message says the name the customer gave when they booked, at the address
+- A message says the name the customer gave when they booked, at the address
   they gave then. Editing the customer record later does not rewrite history,
   and cannot redirect a queued message.
-* `get_appointment_by_token` no longer joins `customers` at all, which is one
+- `get_appointment_by_token` no longer joins `customers` at all, which is one
   fewer table a `SECURITY DEFINER` function touches for an anonymous caller.
-* Correcting a customer's name genuinely does not correct it on past
+- Correcting a customer's name genuinely does not correct it on past
   appointments. That is the trade, taken deliberately: a record of what
   happened is worth more than a tidy one.
-* This is still not a CRM. Nothing here tracks a customer's history, merges
+- This is still not a CRM. Nothing here tracks a customer's history, merges
   duplicates or reconciles records. It stops the past from changing, and
   nothing more.

@@ -22,7 +22,7 @@ implementation rather than a change of design.
 - **Azul is a placeholder.** A customer looking at an unpaid booking gets a
   button that, when pressed, says card payment is not available yet and that
   nothing has been charged. A professional in Settings gets a disabled
-  *Connect Azul — coming soon* and a line saying they would need their own
+  _Connect Azul — coming soon_ and a line saying they would need their own
   merchant account. There is no gateway behind either, no merchant account and
   no request.
 - **No taxes, tips, discounts or coupons.**
@@ -48,7 +48,7 @@ implementation rather than a change of design.
   a browser. Expo Go can load it on a phone over the local network.
 - **The public deployment is GitHub Pages, and it is a demo.** It is served
   as a static site from the repository, it asks search engines not to index
-  it, and it talks to the *development* Supabase project. It is not a
+  it, and it talks to the _development_ Supabase project. It is not a
   production environment and nothing about it is sized or monitored as one.
 
 ## Content and language

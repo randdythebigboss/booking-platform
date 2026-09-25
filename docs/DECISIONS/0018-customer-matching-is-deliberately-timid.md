@@ -37,7 +37,7 @@ unique. A migration that tightened the constraint would have to merge whatever
 duplicates already exist -- deciding which name survives and repointing
 appointments -- and would simply fail to apply against data where two rows
 normalise the same. This migration cannot fail that way, because it adds a way
-to *find* a customer rather than a new rule about which may exist.
+to _find_ a customer rather than a new rule about which may exist.
 
 **The business boundary is not crossed to answer the question.** A person who
 books at two shops is two customer rows, on purpose. Merging them would let

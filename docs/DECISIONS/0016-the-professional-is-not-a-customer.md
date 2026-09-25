@@ -24,18 +24,18 @@ mistake however it was created.
 
 Two rule sets, named and separated.
 
-| Rule | Guest | Professional |
-| --- | --- | --- |
-| Tenant authorization | n/a | **always** |
-| Business active | always | **always** |
-| Business published | always | not required |
-| Overlap with another appointment | always | **always** |
-| Blocked time | always | **always** |
-| Service duration and buffers | always | **always** |
-| Working hours and exceptions | always | unless explicitly overridden |
-| Slot interval alignment | always | never |
-| Minimum notice | always | never |
-| Booking horizon | always | never |
+| Rule                             | Guest  | Professional                 |
+| -------------------------------- | ------ | ---------------------------- |
+| Tenant authorization             | n/a    | **always**                   |
+| Business active                  | always | **always**                   |
+| Business published               | always | not required                 |
+| Overlap with another appointment | always | **always**                   |
+| Blocked time                     | always | **always**                   |
+| Service duration and buffers     | always | **always**                   |
+| Working hours and exceptions     | always | unless explicitly overridden |
+| Slot interval alignment          | always | never                        |
+| Minimum notice                   | always | never                        |
+| Booking horizon                  | always | never                        |
 
 The guest path is unchanged and unweakened: `book_appointment` and
 `reschedule_appointment_by_token` enforce every row of the first column, using

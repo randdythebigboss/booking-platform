@@ -14,7 +14,7 @@ https://randdythebigboss.github.io/booking-platform/p/demo-studio
 
 ## Status
 
-**Beta `0.1.0-beta.1`, live at https://randdythebigboss.github.io/booking-platform/**
+**Beta `0.1.0-beta.2`, live at https://randdythebigboss.github.io/booking-platform/**
 
 The product is end to end and speaks two languages. A professional sets up
 their business and hours, a customer books as a guest in under a minute with

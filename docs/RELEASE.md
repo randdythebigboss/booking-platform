@@ -1,6 +1,6 @@
 # Release candidate
 
-**Version: `0.1.0-beta.1`**
+**Version: `0.1.0-beta.2`**
 
 What has to be true before this is put in front of anybody, and what was true
 when it was last checked. Short on purpose: a checklist nobody finishes is
@@ -10,8 +10,8 @@ worse than no checklist.
 
 | Place                           | Value                                                                    |
 | ------------------------------- | ------------------------------------------------------------------------ |
-| `package.json` `version`        | `0.1.0-beta.1`                                                           |
-| `app.json` `expo.extra.release` | `0.1.0-beta.1`                                                           |
+| `package.json` `version`        | `0.1.0-beta.2`                                                           |
+| `app.json` `expo.extra.release` | `0.1.0-beta.2`                                                           |
 | `app.json` `expo.version`       | `0.1.0` — the platform version; Apple and Google reject a prerelease tag |
 | Diagnostics screen              | reads `expo.extra.release`                                               |
 
@@ -80,7 +80,7 @@ Then, by hand, the things a checklist cannot do:
 
 |                                                                      |                                                               |
 | -------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Version                                                              | `0.1.0-beta.1`                                                |
+| Version                                                              | `0.1.0-beta.2`                                                |
 | Branch                                                               | `phase11/release-candidate`                                   |
 | Last code commit verified                                            | `8b2eebb`                                                     |
 | GitHub Actions                                                       | all three jobs green                                          |
@@ -145,8 +145,8 @@ A product pass the Product Owner asked for before inviting anybody:
 A Git tag is the whole ceremony:
 
 ```bash
-git tag -a v0.1.0-beta.1 -m "Release candidate: free beta, no real payments"
-git push origin v0.1.0-beta.1
+git tag -a v0.1.0-beta.2 -m "Beta 2: customer-centred scheduling and the professional week"
+git push origin v0.1.0-beta.2
 ```
 
 **No GitHub Release is published**, because publishing one reads as a
