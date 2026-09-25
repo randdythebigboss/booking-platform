@@ -1,0 +1,122 @@
+name: Deploy beta to GitHub Pages
+
+# Only from main, and only after the same gates CI runs. A deployment that
+# skips the checks is a deployment nobody can trust.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# `pages: write` and `id-token: write` are what the deploy action needs; it
+# does not need write access to the repository.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time, and never cancel one halfway: a cancelled deploy
+# can leave the site on a half-uploaded artifact.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build the beta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # The same gates as CI. Deployment is not a reason to skip them.
+      - name: Lint, types, tests
+        run: npm run verify
+
+      - name: Translation parity
+        run: npm run test:i18n
+
+      # Tells us where this site will live, from GitHub rather than from a
+      # guess. `base_path` is the repository subpath, `base_url` the full
+      # https:// address -- both are what the build has to be told.
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Export the web application
+        env:
+          # A project site is served from https://<user>.github.io/<repo>/, so
+          # every absolute path the build emits needs that prefix.
+          APP_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # Public client configuration, exactly as Supabase intends it for a
+          # browser application: constrained entirely by Row Level Security.
+          # No secret key, no database password, no management token.
+          EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          # What the shareable booking link in the dashboard is built from.
+          EXPO_PUBLIC_SITE_URL: ${{ steps.pages.outputs.base_url }}
+        run: |
+          test -n "$EXPO_PUBLIC_SUPABASE_URL" || { echo "::error::repository variable EXPO_PUBLIC_SUPABASE_URL is not set"; exit 1; }
+          test -n "$EXPO_PUBLIC_SUPABASE_ANON_KEY" || { echo "::error::repository variable EXPO_PUBLIC_SUPABASE_ANON_KEY is not set"; exit 1; }
+          npx expo export --platform web --output-dir dist --clear
+
+      # Unmatched paths have to reach the application, or every public booking
+      # link 404s. On Pages the hook for that is 404.html.
+      - name: Static-host fallback
+        run: node tools/release/make-spa-fallback.cjs dist
+
+      - name: Packaging
+        run: |
+          test -f dist/manifest.webmanifest
+          test -f dist/sw.js
+          test -f dist/404.html
+          test -f dist/robots.txt
+          test -f dist/icons/icon-192.png
+          test -f dist/icons/icon-512.png
+          test -f dist/icons/icon-maskable-512.png
+          grep -q '"display": "standalone"' dist/manifest.webmanifest
+          grep -q 'rel="manifest"' dist/index.html
+          grep -q 'serviceWorker' dist/index.html
+          # A beta of invented people does not belong in a search result.
+          grep -q 'noindex' dist/index.html
+          # Every emitted path has to carry the subpath, or the site 404s.
+          grep -q "${{ steps.pages.outputs.base_path }}/_expo/" dist/index.html
+          grep -q "${{ steps.pages.outputs.base_path }}/manifest.webmanifest" dist/index.html
+
+      # Refuses a bundle that does not name the project it was built for, or
+      # that names a second one. Metro caches EXPO_PUBLIC_* values, and a
+      # mis-targeted build loads perfectly and reaches nothing.
+      - name: Verify the build talks to the intended project
+        env:
+          EXPECT_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+        run: ./tools/release/verify-build.sh dist
+
+      # Cheap insurance: the bundle is about to be public.
+      - name: Refuse to publish a secret
+        run: |
+          if grep -rIlE 'service_role|sb_secret_|SUPABASE_SERVICE_ROLE|-----BEGIN [A-Z ]*PRIVATE KEY' dist; then
+            echo "::error::the built output contains something that looks like a secret"
+            exit 1
+          fi
+          echo "no secret-shaped strings in the built output"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Publish
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

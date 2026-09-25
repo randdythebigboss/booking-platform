@@ -1,0 +1,7 @@
+# This deployment is a beta. Every business, customer and appointment in it is
+# invented, and a search result pointing at a demonstration shop helps nobody.
+#
+# This is not access control. The URL is public; this only asks crawlers to
+# look away. See docs/DEPLOYMENT.md.
+User-agent: *
+Disallow: /

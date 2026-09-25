@@ -63,6 +63,19 @@ window.history.replaceState(null,'',l.pathname+(q?'?'+q:'')+h);
 const BASE = process.env.EXPO_BASE_URL ?? '';
 
 /**
+ * Whether search engines are welcome.
+ *
+ * They are not, by default. The only deployment this has is a beta whose
+ * businesses, customers and appointments are all invented, and a search result
+ * pointing at a demonstration shop is worse than no search result. Opting in
+ * is a deliberate act: set `EXPO_PUBLIC_ALLOW_INDEXING=1` at build time.
+ *
+ * This is not access control and must never be described as such. The URL is
+ * public; this only asks crawlers to look away.
+ */
+const ALLOW_INDEXING = process.env.EXPO_PUBLIC_ALLOW_INDEXING === '1';
+
+/**
  * Registers the service worker, quietly.
  *
  * Wrapped and deferred: nothing about installability is worth delaying the
@@ -90,6 +103,9 @@ export default function Root({ children }: PropsWithChildren) {
 
         {/* The booking link is a credential. Do not hand it to anyone else. */}
         <meta name="referrer" content="same-origin" />
+
+        {/* A beta full of invented people has no business in a search result. */}
+        {!ALLOW_INDEXING && <meta name="robots" content="noindex, nofollow" />}
 
         {/* Before the router can read it: the credential leaves the query. */}
         <script dangerouslySetInnerHTML={{ __html: UPGRADE_LEGACY_TOKEN }} />
