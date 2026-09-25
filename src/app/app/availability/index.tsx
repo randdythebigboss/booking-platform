@@ -126,6 +126,8 @@ export default function AvailabilityScreen() {
     );
   }
 
+  const openDays = new Set((entries ?? []).map((entry) => entry.weekday)).size;
+
   function touch() {
     setSaved(false);
     setFailure(null);
@@ -163,15 +165,22 @@ export default function AvailabilityScreen() {
     });
   }
 
-  /** Gives every other day the hours of this one, closed days included. */
-  function copyToOthers(weekday: Weekday) {
+  /**
+   * Gives the days that are already open the hours of this one.
+   *
+   * Never opens a closed day. Somebody who shut Sunday shut it on purpose, and
+   * a button called "copy my hours" should not be the thing that reopens it --
+   * that is a surprise you only notice after a customer books.
+   */
+  function copyToOpenDays(weekday: Weekday) {
     touch();
     setEntries((current) => {
       const rows = current ?? [];
       const source = rows.filter((entry) => entry.weekday === weekday);
       if (source.length === 0) return rows;
 
-      return WEEKDAY_ORDER.flatMap((day) => source.map((entry) => ({ ...entry, weekday: day })));
+      const open = new Set(rows.map((entry) => entry.weekday));
+      return [...open].flatMap((day) => source.map((entry) => ({ ...entry, weekday: day })));
     });
   }
 
@@ -202,8 +211,6 @@ export default function AvailabilityScreen() {
       setBusy(false);
     }
   }
-
-  const openDays = new Set((entries ?? []).map((entry) => entry.weekday)).size;
 
   return (
     <WorkspaceShell
@@ -285,7 +292,9 @@ export default function AvailabilityScreen() {
                 onChange={update}
                 onAdd={() => addWindow(weekday)}
                 onRemove={removeWindow}
-                onCopyToOthers={windows.length > 0 ? () => copyToOthers(weekday) : undefined}
+                onCopyToOthers={
+                  windows.length > 0 && openDays > 1 ? () => copyToOpenDays(weekday) : undefined
+                }
               />
             );
           })}

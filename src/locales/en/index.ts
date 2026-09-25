@@ -314,7 +314,7 @@ export const en: Translations = {
   availability: {
     unsaved: 'You have unsaved changes.',
     nothingOpenHint: 'Switch on the days you work and set your hours.',
-    copyToOtherDays: 'Copy to the other days',
+    copyToOtherDays: 'Copy to the open days',
     weeklyTotal_one: '{{hours}} h a week, across {{count}} day.',
     weeklyTotal_other: '{{hours}} h a week, across {{count}} days.',
     exceptionsHelp: 'Close a single date, or open it with different hours.',

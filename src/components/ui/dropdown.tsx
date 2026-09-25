@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, ScrollView, View } from 'react-native';
 
 import { TOUCH_TARGET, radius, spacing, useTheme } from '@/theme';
@@ -37,6 +38,7 @@ export function Dropdown<T extends string>({
   error,
 }: DropdownProps<T>) {
   const { palette } = useTheme();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   const chosen = options.find((option) => option.value === value);
@@ -87,7 +89,9 @@ export function Dropdown<T extends string>({
             expects and what a keyboard's Escape does through onRequestClose. */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={label}
+          // Not the control's own name: two things called "Estado" is worse
+          // than one of them being called what it does.
+          accessibilityLabel={t('common.close')}
           onPress={() => setOpen(false)}
           style={{
             flex: 1,

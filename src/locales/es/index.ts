@@ -323,7 +323,7 @@ export const es = {
   availability: {
     unsaved: 'Tienes cambios sin guardar.',
     nothingOpenHint: 'Enciende los días que trabajas y pon tus horas.',
-    copyToOtherDays: 'Copiar a los demás días',
+    copyToOtherDays: 'Copiar a los días abiertos',
     weeklyTotal_one: '{{hours}} h a la semana, en {{count}} día.',
     weeklyTotal_other: '{{hours}} h a la semana, en {{count}} días.',
     exceptionsHelp: 'Cierra una fecha concreta, o ábrela con otro horario.',
