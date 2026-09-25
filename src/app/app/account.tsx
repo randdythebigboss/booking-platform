@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { useRequiredWorkspace, useSession } from '@/components/providers';
-import { Button, Card, Text } from '@/components/ui';
+import { Badge, Button, Card, Text } from '@/components/ui';
 import { WorkspaceShell } from '@/components/workspace-shell';
 import { signOut } from '@/services/auth';
 import { spacing } from '@/theme';
@@ -33,8 +33,11 @@ export default function WorkspaceAccountScreen() {
     >
       <Card>
         <View style={{ gap: spacing.xs }}>
-          <Text variant="overline" tone="muted">
-            {t('nav.workspace')}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            <Badge label={t('account.roleProfessional')} tone="accent" mark="⚙" />
+          </View>
+          <Text variant="caption" tone="muted">
+            {t('account.roleProfessionalHint')}
           </Text>
           <Text variant="heading">{business.name}</Text>
           {professional?.displayName && (

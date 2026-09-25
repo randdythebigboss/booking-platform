@@ -184,3 +184,41 @@ export function parseDaySlotRows(raw: unknown): DaySlot[] {
     };
   });
 }
+
+export const DAY_AVAILABILITY = ['open', 'full', 'closed', 'past', 'beyond'] as const;
+export type DayAvailability = (typeof DAY_AVAILABILITY)[number];
+
+/**
+ * What one day looks like from outside, before anybody taps it.
+ *
+ * `freeCount` counts what is OPEN, never what is taken. See the migration
+ * `a_week_can_be_looked_at_whole` for why an aggregate is the privacy-safe
+ * shape and a per-slot answer is not.
+ */
+export interface DayAvailabilitySummary {
+  date: IsoDate;
+  state: DayAvailability;
+  freeCount: number;
+}
+
+function asDayAvailability(value: unknown, path: string): DayAvailability {
+  if (typeof value === 'string' && (DAY_AVAILABILITY as readonly string[]).includes(value)) {
+    return value as DayAvailability;
+  }
+  throw new MalformedAvailabilityContextError(`${path} is not a day state`);
+}
+
+/** Rows from `get_week_availability`. */
+export function parseWeekAvailabilityRows(raw: unknown): DayAvailabilitySummary[] {
+  return asArray(raw, 'week').map((entry, index) => {
+    const row = asRecord(entry, `week[${index}]`);
+    return {
+      date: asString(row.day ?? row.date, `week[${index}].day`) as IsoDate,
+      state: asDayAvailability(row.state, `week[${index}].state`),
+      freeCount: Math.max(
+        0,
+        Math.trunc(asNumber(row.free_count ?? row.freeCount, `week[${index}].free_count`)),
+      ),
+    };
+  });
+}

@@ -206,3 +206,17 @@ export function formatClockIn(instant: Date, timezone: string, locale: string): 
       .replace(/[\s,:.]+$/u, '')
   );
 }
+
+/** `septiembre de 2026`, for a calendar heading. */
+export function formatMonthAndYear(instant: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: 'UTC',
+    month: 'long',
+    year: 'numeric',
+  }).format(instant);
+}
+
+/** `septiembre` alone, for the left half of a heading that spans two. */
+export function formatMonthOnly(instant: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { timeZone: 'UTC', month: 'long' }).format(instant);
+}

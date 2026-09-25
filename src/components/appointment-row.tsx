@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 
 import { Badge, PressableLink, Text, type BadgeTone } from '@/components/ui';
 import { statusLabelKey } from '@/features/appointments';
@@ -47,6 +47,10 @@ export function statusBadge(status: AppointmentStatus): { tone: BadgeTone; mark:
  */
 export function AppointmentRow({ appointment, timezone, showDate = true }: AppointmentRowProps) {
   const { palette } = useTheme();
+  // At 375px a fixed time column, a name, a service and a status word do not
+  // fit on one line, and what got cut was the customer's name. Below this the
+  // row stacks instead of truncating.
+  const narrow = useWindowDimensions().width < 480;
   const tk = useDynamicT();
   const format = useFormat();
   const service = appointment.items[0];
@@ -64,7 +68,7 @@ export function AppointmentRow({ appointment, timezone, showDate = true }: Appoi
       accessibilityLabel={`${time} · ${appointment.customer.fullName} · ${service?.name ?? ''} · ${status}`}
       style={{
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: narrow ? 'stretch' : 'center',
         gap: spacing.md,
         minHeight: 64,
         paddingVertical: spacing.sm,
@@ -76,30 +80,60 @@ export function AppointmentRow({ appointment, timezone, showDate = true }: Appoi
         opacity: cancelled ? 0.7 : 1,
       }}
     >
-      {/* The time column. Fixed width so every row in a list aligns. */}
-      <View style={{ width: 64, gap: 1 }}>
-        <Text variant="label" style={{ textDecorationLine: cancelled ? 'line-through' : 'none' }}>
-          {time}
-        </Text>
-        {showDate && (
-          <Text variant="caption" tone="muted" numberOfLines={1}>
-            {format.dayAndMonth(appointment.startsAt, timezone)}
+      {narrow ? (
+        <View style={{ flex: 1, gap: 2 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            <Text
+              variant="label"
+              style={{ flex: 1, textDecorationLine: cancelled ? 'line-through' : 'none' }}
+              numberOfLines={1}
+            >
+              {time}
+              {showDate ? ` · ${format.dayAndMonth(appointment.startsAt, timezone)}` : ''}
+            </Text>
+            <Badge label={status} tone={badge.tone} mark={badge.mark} />
+          </View>
+          <Text variant="body" numberOfLines={1}>
+            {appointment.customer.fullName}
           </Text>
-        )}
-      </View>
+          {service && (
+            <Text variant="caption" tone="muted" numberOfLines={1}>
+              {service.name} {'·'} {format.duration(service.durationMinutes)}
+            </Text>
+          )}
+        </View>
+      ) : (
+        <>
+          {/* The time column. Fixed width so every row in a list aligns. */}
+          <View style={{ width: 72, gap: 1 }}>
+            <Text
+              variant="label"
+              style={{ textDecorationLine: cancelled ? 'line-through' : 'none' }}
+              numberOfLines={1}
+            >
+              {time}
+            </Text>
+            {showDate && (
+              <Text variant="caption" tone="muted" numberOfLines={1}>
+                {format.dayAndMonth(appointment.startsAt, timezone)}
+              </Text>
+            )}
+          </View>
 
-      <View style={{ flex: 1, gap: 1 }}>
-        <Text variant="body" numberOfLines={1}>
-          {appointment.customer.fullName}
-        </Text>
-        {service && (
-          <Text variant="caption" tone="muted" numberOfLines={1}>
-            {service.name} {'·'} {format.duration(service.durationMinutes)}
-          </Text>
-        )}
-      </View>
+          <View style={{ flex: 1, gap: 1 }}>
+            <Text variant="body" numberOfLines={1}>
+              {appointment.customer.fullName}
+            </Text>
+            {service && (
+              <Text variant="caption" tone="muted" numberOfLines={1}>
+                {service.name} {'·'} {format.duration(service.durationMinutes)}
+              </Text>
+            )}
+          </View>
 
-      <Badge label={status} tone={badge.tone} mark={badge.mark} />
+          <Badge label={status} tone={badge.tone} mark={badge.mark} />
+        </>
+      )}
     </PressableLink>
   );
 }

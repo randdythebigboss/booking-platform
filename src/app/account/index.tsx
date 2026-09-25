@@ -81,6 +81,17 @@ export default function MyAppointmentsScreen() {
           : t('account.subtitle')
       }
     >
+      {/* Two different products share a sign-in page; a customer who lands
+          here expecting a business panel should know at once. */}
+      <View
+        style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' }}
+      >
+        <Badge label={t('account.roleCustomer')} tone="neutral" mark="•" />
+        <Text variant="caption" tone="muted" style={{ flex: 1, minWidth: 200 }}>
+          {t('account.roleCustomerHint')}
+        </Text>
+      </View>
+
       {appointments.loading && <ActivityIndicator />}
       {appointments.error && <Feedback tone="danger" message={t('common.somethingWentWrong')} />}
 

@@ -6,13 +6,17 @@ export {
   type DaySchedule,
 } from './slots';
 export {
+  DAY_AVAILABILITY,
   parseAvailabilityContext,
+  parseWeekAvailabilityRows,
   parseDaySlotRows,
   parseSlotRows,
   slotsForDate,
   SLOT_STATES,
   MalformedAvailabilityContextError,
   type AvailabilityContext,
+  type DayAvailability,
+  type DayAvailabilitySummary,
   type DaySlot,
   type SlotState,
 } from './context';

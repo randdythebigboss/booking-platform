@@ -111,6 +111,10 @@ export const en: Translations = {
   },
 
   dashboard: {
+    yourWeek: 'Your working week',
+    yourWeekHint_one: 'You work {{count}} day a week. The number is how many periods each day has.',
+    yourWeekHint_other:
+      'You work {{count}} days a week. The number is how many periods each day has.',
     shareLink: 'Share link',
     title: 'Home',
     statToday: 'appointments today',
@@ -250,6 +254,14 @@ export const en: Translations = {
   },
 
   calendar: {
+    view: 'View',
+    viewWeek: 'Week',
+    viewDay: 'Day',
+    legendWorking: 'Working hours',
+    legendBooked: 'Booked',
+    legendBlocked: 'Blocked',
+    shapedBy: 'Is your week missing time, or holding too much?',
+    shapedByHint: 'Your weekly hours, exceptions and blocks decide what you see here.',
     todayIs: 'Today is {{date}}.',
     title: 'Calendar',
     nothingThatDay: 'Nothing booked that day.',
@@ -411,6 +423,12 @@ export const en: Translations = {
   },
 
   preview: {
+    draftNotLive:
+      'This is what is being offered right now. Unsaved changes do not count yet: save the week to see them here.',
+    couldNotLoad: 'We could not load the preview.',
+    whatCustomersSee: 'What a customer sees',
+    whatCustomersSeeHint:
+      'From the same calculation your public page uses: your hours, the exceptions, the blocks and the appointments you already have.',
     notBookable: 'Your account is not set up as a bookable professional in this business yet.',
     checkSchedule:
       'No times available. Check the weekly schedule, exceptions and blocks for this date.',
@@ -686,6 +704,15 @@ export const en: Translations = {
   },
 
   schedule: {
+    dayFree_one: '{{count}} free time',
+    dayFree_other: '{{count}} free times',
+    dayFull: 'No free times',
+    dayClosed: 'Closed',
+    dayGone: 'No longer bookable',
+    weekLegend: 'The number is how many times are free. ✕ none left · — closed.',
+    nextAvailable: 'Next free time',
+    noneInRange: 'No free times left in the next few weeks.',
+    jumpedTo: 'Taken you to {{date}}.',
     morning: 'Morning',
     afternoon: 'Afternoon',
     evening: 'Evening',
@@ -749,6 +776,10 @@ export const en: Translations = {
     openThread: 'Open messages',
   },
   account: {
+    roleProfessional: 'Professional account',
+    roleCustomer: 'Customer account',
+    roleCustomerHint: 'These are your own bookings. This is not a business workspace.',
+    roleProfessionalHint: 'You are managing this business.',
     openBooking: 'Open the booking',
     title: 'My account',
     myAppointments: 'My appointments',

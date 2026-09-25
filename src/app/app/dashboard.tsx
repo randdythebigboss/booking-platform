@@ -11,6 +11,7 @@ import { useRequiredWorkspace } from '@/components/providers';
 import { WorkspaceShell } from '@/components/workspace-shell';
 import { statusLabelKey } from '@/features/appointments';
 import { isoDateIn, zonedInstant } from '@/features/availability';
+import { WEEKDAY_KEYS, WEEKDAY_ORDER } from '@/features/availability/schedule';
 import { shareOrCopy, webShareCapabilities } from '@/features/sharing';
 import { useAsyncData } from '@/hooks/use-async-data';
 import { useDynamicT } from '@/i18n/use-dynamic-t';
@@ -95,6 +96,11 @@ export default function DashboardScreen() {
   const upcomingRows = upcoming.data ?? [];
   const todayRows = todays.data ?? [];
   const next = upcomingRows[0] ?? null;
+  // The same week the setup checklist already asked for: the screen a
+  // professional opens every morning should answer what they said matters
+  // most, and it need not ask twice to do it.
+  const openDayCount = new Set((schedule.data ?? []).map((rule) => rule.weekday)).size;
+
   const pendingCount = upcomingRows.filter((row) => row.status === 'pending').length;
 
   const link = publicBookingUrl(business.slug);
@@ -210,7 +216,70 @@ export default function DashboardScreen() {
         </View>
       </Card>
 
-      {/* 4. The link, findable but not the point of the screen. */}
+      {/* 4. The week, because configuring it is most of running the business. */}
+      <Card>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: spacing.sm,
+          }}
+        >
+          <Text variant="heading">{t('dashboard.yourWeek')}</Text>
+          <Link href="/app/availability" asChild>
+            <Button label={t('nav.availability')} variant="ghost" size="compact" />
+          </Link>
+        </View>
+
+        {schedule.loading && <ActivityIndicator />}
+
+        {!schedule.loading && (
+          <View style={{ flexDirection: 'row', gap: 4 }}>
+            {WEEKDAY_ORDER.map((weekday) => {
+              const windows = (schedule.data ?? []).filter((rule) => rule.weekday === weekday);
+              const open = windows.length > 0;
+              return (
+                <View
+                  key={weekday}
+                  accessibilityLabel={`${tk(WEEKDAY_KEYS[weekday])}: ${
+                    open
+                      ? windows.map((w) => `${w.startTime}–${w.endTime}`).join(', ')
+                      : t('availability.closed')
+                  }`}
+                  style={{
+                    flex: 1,
+                    alignItems: 'center',
+                    gap: 2,
+                    paddingVertical: spacing.xs,
+                    borderRadius: radius.sm,
+                    backgroundColor: open ? palette.accentMuted : palette.surfaceMuted,
+                  }}
+                >
+                  <Text
+                    variant="caption"
+                    style={{ color: open ? palette.accent : palette.textMuted }}
+                  >
+                    {tk(WEEKDAY_KEYS[weekday]).slice(0, 1)}
+                  </Text>
+                  <Text
+                    variant="caption"
+                    style={{ fontWeight: '700', color: open ? palette.accent : palette.textMuted }}
+                  >
+                    {open ? windows.length : '—'}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        <Text variant="caption" tone="muted">
+          {t('dashboard.yourWeekHint', { count: openDayCount })}
+        </Text>
+      </Card>
+
+      {/* 5. The link, findable but not the point of the screen. */}
       <Card>
         <Text variant="heading">{t('dashboard.yourBookingLink')}</Text>
         <Text variant="caption" tone="muted" selectable numberOfLines={2}>

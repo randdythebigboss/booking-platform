@@ -6,11 +6,16 @@ import { useLocale } from '@/components/providers';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { BookingProgress } from '@/components/booking-progress';
-import { DatePicker } from '@/components/date-picker';
+import { WeekAvailability } from '@/components/week-availability';
 import { DaySchedule } from '@/components/day-schedule';
 import { OfflineNotice } from '@/components/offline-notice';
 import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
-import { addDays, isoDateIn, type DaySlot } from '@/features/availability';
+import {
+  addDays,
+  isoDateIn,
+  type DayAvailabilitySummary,
+  type DaySlot,
+} from '@/features/availability';
 import {
   BOOKING_STEPS,
   EMPTY_SELECTION,
@@ -28,7 +33,7 @@ import { useBookingErrorText } from '@/i18n/use-error-text';
 import { useFormat } from '@/i18n/use-format';
 import { useIssueText } from '@/i18n/use-issue-text';
 import { useAsyncData } from '@/hooks/use-async-data';
-import { fetchDaySchedule } from '@/services/availability';
+import { fetchDaySchedule, fetchWeekAvailability } from '@/services/availability';
 import { bookAppointment } from '@/services/booking';
 import { fetchPublicBusiness, type PublicBusiness } from '@/services/catalog';
 import { fetchPaymentCapabilities } from '@/services/payments';
@@ -59,6 +64,16 @@ export default function BookScreen() {
   const [professionalId, setProfessionalId] = useState<string | null>(null);
   const [selection, setSelection] = useState<BookingSelection>(EMPTY_SELECTION);
 
+  // The week the strip is showing. Separate from the chosen day, because
+  // looking at next week is not the same as choosing a day in it.
+  const [weekStart, setWeekStart] = useState<string | null>(null);
+  const [week, setWeek] = useState<DayAvailabilitySummary[]>([]);
+  const [weekLoading, setWeekLoading] = useState(false);
+  const [seeking, setSeeking] = useState(false);
+  const [seekNote, setSeekNote] = useState<string | null>(null);
+  // Consumed once by the slot loader, so "next free time" lands on a time.
+  const [autoPickFirstFree, setAutoPickFirstFree] = useState(false);
+
   const [slots, setSlots] = useState<DaySlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotsError, setSlotsError] = useState<string | null>(null);
@@ -81,10 +96,9 @@ export default function BookScreen() {
         }
         setPage({ kind: 'ready', business });
         setProfessionalId(business.professionals[0]?.id ?? null);
-        setSelection((current) => ({
-          ...current,
-          date: current.date ?? isoDateIn(new Date(), business.timezone),
-        }));
+        const startOfToday = isoDateIn(new Date(), business.timezone);
+        setWeekStart((current) => current ?? startOfToday);
+        setSelection((current) => ({ ...current, date: current.date ?? startOfToday }));
       })
       .catch(() => {
         if (cancelled) return;
@@ -95,6 +109,40 @@ export default function BookScreen() {
       cancelled = true;
     };
   }, [slug]);
+
+  // The shape of the week, so the strip can say which days are worth tapping
+  // before any of them is tapped.
+  useEffect(() => {
+    if (!professionalId || !selection.serviceId || !weekStart) {
+      setWeek([]);
+      return;
+    }
+
+    let cancelled = false;
+    setWeekLoading(true);
+
+    fetchWeekAvailability({
+      professionalId,
+      serviceId: selection.serviceId,
+      from: weekStart,
+      days: 7,
+    })
+      .then((result) => {
+        if (!cancelled) setWeek(result);
+      })
+      .catch(() => {
+        // The strip is a hint. Losing it must never stop somebody booking, so
+        // the chips fall back to plain days and the day view still works.
+        if (!cancelled) setWeek([]);
+      })
+      .finally(() => {
+        if (!cancelled) setWeekLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [professionalId, selection.serviceId, weekStart, slotsNonce]);
 
   // Availability always comes from the backend, and the chosen time is
   // re-checked against it every time the list is refreshed.
@@ -118,12 +166,13 @@ export default function BookScreen() {
         setSlots(result);
         // A time that was free when the page loaded may not be now, so the
         // chosen one is re-checked against what just came back.
-        setSelection((current) =>
-          reconcileSlot(
-            current,
-            result.filter((slot) => slot.state === 'available'),
-          ),
-        );
+        const free = result.filter((slot) => slot.state === 'available');
+        setSelection((current) => {
+          const reconciled = reconcileSlot(current, free);
+          if (!autoPickFirstFree || !free[0]) return reconciled;
+          return { ...reconciled, slotStartsAt: free[0].startsAt.toISOString() };
+        });
+        if (autoPickFirstFree) setAutoPickFirstFree(false);
       })
       .catch(() => {
         if (cancelled) return;
@@ -137,7 +186,7 @@ export default function BookScreen() {
     return () => {
       cancelled = true;
     };
-  }, [professionalId, selection.serviceId, selection.date, slotsNonce, t]);
+  }, [professionalId, selection.serviceId, selection.date, slotsNonce, autoPickFirstFree, t]);
 
   if (page.kind === 'loading') {
     return (
@@ -173,6 +222,54 @@ export default function BookScreen() {
     target: BookingSelection extends never ? never : (typeof BOOKING_STEPS)[number],
   ) => BOOKING_STEPS.indexOf(target) <= BOOKING_STEPS.indexOf(step);
   const customerErrors = showErrors ? validateCustomer(selection.customer) : {};
+
+  /**
+   * The fast path, for somebody who just wants the soonest appointment.
+   *
+   * Walks forward a week at a time -- the same aggregate the strip already
+   * draws -- and stops on the first day with something free, then lets the
+   * slot loader pick the earliest time on it. Bounded by the business's own
+   * booking horizon, so it cannot spin.
+   */
+  async function seekNextAvailable() {
+    if (!professionalId || !selection.serviceId) return;
+
+    setSeeking(true);
+    setSeekNote(null);
+    try {
+      const horizon = addDays(today, business.bookingHorizonDays);
+      let cursor = today;
+
+      for (let hop = 0; hop < 12 && cursor <= horizon; hop += 1) {
+        const days = await fetchWeekAvailability({
+          professionalId,
+          serviceId: selection.serviceId,
+          from: cursor,
+          days: 7,
+        });
+
+        const hit = days.find((day) => day.state === 'open' && day.date >= today);
+        if (hit) {
+          setWeekStart(cursor);
+          setAutoPickFirstFree(true);
+          setSelection((current) => ({ ...current, date: hit.date, slotStartsAt: null }));
+          setSeekNote(
+            t('schedule.jumpedTo', {
+              date: format.date(new Date(`${hit.date}T12:00:00Z`), 'UTC'),
+            }),
+          );
+          return;
+        }
+        cursor = addDays(cursor, 7);
+      }
+
+      setSeekNote(t('schedule.noneInRange'));
+    } catch {
+      setSeekNote(t('booking.couldNotLoadTimes'));
+    } finally {
+      setSeeking(false);
+    }
+  }
 
   async function confirm() {
     if (!professionalId || !selection.serviceId || !selection.slotStartsAt) return;
@@ -343,15 +440,22 @@ export default function BookScreen() {
       {reached('date') && (
         <Card>
           <Text variant="heading">{t('booking.chooseDate')}</Text>
-          <DatePicker
+          <WeekAvailability
             label={t('common.chooseADay')}
             value={selection.date ?? today}
-            minDate={today}
+            weekStart={weekStart ?? today}
+            onWeekStart={setWeekStart}
+            today={today}
             maxDate={addDays(today, business.bookingHorizonDays)}
+            days={week}
+            loading={weekLoading}
+            onNextAvailable={() => void seekNextAvailable()}
+            nextAvailableBusy={seeking}
             onChange={(date) =>
               setSelection((current) => ({ ...current, date, slotStartsAt: null }))
             }
           />
+          {seekNote && <Feedback tone="muted" message={seekNote} />}
           <Text variant="caption" tone="muted">
             {t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
           </Text>

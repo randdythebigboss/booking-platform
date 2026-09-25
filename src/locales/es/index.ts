@@ -115,6 +115,11 @@ export const es = {
   },
 
   dashboard: {
+    yourWeek: 'Tu semana de trabajo',
+    yourWeekHint_one:
+      'Trabajas {{count}} día a la semana. El número es cuántos tramos tiene cada día.',
+    yourWeekHint_other:
+      'Trabajas {{count}} días a la semana. El número es cuántos tramos tiene cada día.',
     shareLink: 'Compartir enlace',
     title: 'Inicio',
     statToday: 'citas hoy',
@@ -259,6 +264,14 @@ export const es = {
   },
 
   calendar: {
+    view: 'Vista',
+    viewWeek: 'Semana',
+    viewDay: 'Día',
+    legendWorking: 'Horario de trabajo',
+    legendBooked: 'Reservado',
+    legendBlocked: 'Bloqueado',
+    shapedBy: '¿Falta o sobra tiempo en tu semana?',
+    shapedByHint: 'Tu horario semanal, las excepciones y los bloqueos deciden lo que ves aquí.',
     todayIs: 'Hoy es {{date}}.',
     title: 'Calendario',
     nothingThatDay: 'No hay nada reservado ese día.',
@@ -422,6 +435,12 @@ export const es = {
   },
 
   preview: {
+    draftNotLive:
+      'Esto es lo que se ofrece ahora mismo. Tus cambios sin guardar todavía no cuentan: guarda la semana para verlos aquí.',
+    couldNotLoad: 'No pudimos cargar la vista previa.',
+    whatCustomersSee: 'Lo que ve un cliente',
+    whatCustomersSeeHint:
+      'Sale del mismo cálculo que usa tu página pública: tu horario, las excepciones, los bloqueos y las citas que ya tienes.',
     notBookable:
       'Tu cuenta todavía no está configurada como profesional con reservas en este negocio.',
     checkSchedule:
@@ -703,6 +722,15 @@ export const es = {
   },
 
   schedule: {
+    dayFree_one: '{{count}} hora libre',
+    dayFree_other: '{{count}} horas libres',
+    dayFull: 'Sin horas libres',
+    dayClosed: 'Cerrado',
+    dayGone: 'Ya no se puede reservar',
+    weekLegend: 'El número son las horas libres. ✕ sin horas · — cerrado.',
+    nextAvailable: 'Próxima hora libre',
+    noneInRange: 'No quedan horas libres en las próximas semanas.',
+    jumpedTo: 'Te llevamos al {{date}}.',
     morning: 'Mañana',
     afternoon: 'Tarde',
     evening: 'Noche',
@@ -766,6 +794,10 @@ export const es = {
     openThread: 'Abrir mensajes',
   },
   account: {
+    roleProfessional: 'Cuenta profesional',
+    roleCustomer: 'Cuenta de cliente',
+    roleCustomerHint: 'Aquí ves tus propias reservas. No es el panel de un negocio.',
+    roleProfessionalHint: 'Estás gestionando este negocio.',
     openBooking: 'Abrir la reserva',
     title: 'Mi cuenta',
     myAppointments: 'Mis citas',

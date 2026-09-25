@@ -4,6 +4,7 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { DayHoursRow, type DayWindow } from '@/components/day-hours-row';
 import { useRequiredWorkspace } from '@/components/providers';
+import { SchedulePreview } from '@/components/schedule-preview';
 import { Button, Card, EmptyState, Feedback, PressableLink, Text } from '@/components/ui';
 import { WorkspaceShell } from '@/components/workspace-shell';
 import { parseClockTime } from '@/features/availability';
@@ -312,6 +313,20 @@ export default function AvailabilityScreen() {
 
       {failure && <Feedback tone="danger" message={failure} />}
       {saved && <Feedback tone="success" message={t('availability.saved')} />}
+
+      {/* The answer to "what did that do?", on the screen that did it. */}
+      <Card>
+        <Text variant="heading">{t('preview.whatCustomersSee')}</Text>
+        <Text variant="caption" tone="muted">
+          {t('preview.whatCustomersSeeHint')}
+        </Text>
+        <SchedulePreview
+          businessId={business.id}
+          professionalId={professionalId}
+          timezone={business.timezone}
+          dirty={dirty}
+        />
+      </Card>
 
       <Card>
         <Text variant="heading">{t('availability.dateSpecific')}</Text>

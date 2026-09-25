@@ -8,6 +8,8 @@ import {
   formatDateTimeIn,
   formatDayAndMonthIn,
   formatDuration,
+  formatMonthAndYear,
+  formatMonthOnly,
   formatMoney,
   formatTimeIn,
   formatWeekdayIn,
@@ -31,6 +33,9 @@ export interface Formatters {
   duration: (minutes: number) => string;
   /** The mark a currency is written with, for a form label. */
   currencyMark: (currency: string) => string;
+  /** `septiembre de 2026`, for a calendar heading. Always read in UTC. */
+  monthAndYear: (instant: Date) => string;
+  monthOnly: (instant: Date) => string;
   /** The word for today, for an accessible label. */
   todayWord: () => string;
 }
@@ -60,6 +65,8 @@ export function useFormat(): Formatters {
       money: (amount, currency) => formatMoney(amount, currency, intlLocale),
       duration: (minutes) => formatDuration(minutes, intlLocale),
       currencyMark: (currency) => currencySymbol(currency, intlLocale),
+      monthAndYear: (instant) => formatMonthAndYear(instant, intlLocale),
+      monthOnly: (instant) => formatMonthOnly(instant, intlLocale),
       todayWord: () => (intlLocale.startsWith('es') ? 'hoy' : 'today'),
     }),
     [intlLocale],
