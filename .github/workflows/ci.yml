@@ -124,6 +124,11 @@ jobs:
       - name: Payments
         run: psql "$LOCAL_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/payments.sql
 
+      # Phase 12: who may read and write an appointment's conversation, and
+      # what a stranger learns from a day that is fully booked.
+      - name: Messaging and customer accounts
+        run: psql "$LOCAL_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/messaging.sql
+
       # The grant classification: adding a function to public fails this
       # until it is deliberately placed in one of the three groups.
       - name: Function grants

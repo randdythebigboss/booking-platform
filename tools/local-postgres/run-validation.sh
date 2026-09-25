@@ -56,6 +56,7 @@ run "appointment_lifecycle.sql" -f "$REPO_ROOT/supabase/tests/appointment_lifecy
 run "customer_identity.sql" -f "$REPO_ROOT/supabase/tests/customer_identity.sql"
 run "notification_outbox.sql" -f "$REPO_ROOT/supabase/tests/notification_outbox.sql"
 run "payments.sql" -f "$REPO_ROOT/supabase/tests/payments.sql"
+run "messaging.sql" -f "$REPO_ROOT/supabase/tests/messaging.sql"
 run "function_grants.sql" -f "$REPO_ROOT/supabase/tests/function_grants.sql"
 
 printf '\nAll database validation passed.\n'

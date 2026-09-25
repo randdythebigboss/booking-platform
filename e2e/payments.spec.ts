@@ -139,7 +139,8 @@ test.describe('with the demo provider switched on', () => {
   test('takes a full payment for a service that asks for one', async ({ page }) => {
     await reachCheckout(page, TENANT_A.services.full);
 
-    await page.getByRole('button', { name: /^Pagar / }).click();
+    // Named by the amount, so it is not the Azul placeholder that sits beside it.
+    await page.getByRole('button', { name: /^Pagar [A-Z]/ }).click();
     await expect(page.getByText(/Pago de demostración completado/)).toBeVisible();
 
     expect(query('select amount::numeric(12,2)::text from public.payments limit 1')).toBe(

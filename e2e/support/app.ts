@@ -36,6 +36,7 @@ export const TEXT = {
     demoPayment: 'Pago de demostración',
     noRealCharge: 'no se realizará ningún cargo real',
     offline: 'Sin conexión',
+    messages: 'Mensajes',
   },
   en: {
     chooseService: '1. Choose a service',
@@ -56,6 +57,7 @@ export const TEXT = {
     demoPayment: 'Demo payment',
     noRealCharge: 'no real charge will be made',
     offline: 'No connection',
+    messages: 'Messages',
   },
 } as const;
 
