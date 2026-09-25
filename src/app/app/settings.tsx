@@ -10,9 +10,9 @@ import {
   Button,
   Card,
   Feedback,
+  Dropdown,
   Field,
   SearchableSelect,
-  Select,
   Text,
   ToggleRow,
 } from '@/components/ui';
@@ -116,8 +116,7 @@ export default function SettingsScreen() {
       email !== (business.email ?? '') ||
       address !== (business.address ?? '') ||
       timezone !== business.timezone,
-    profile:
-      displayName !== (professional?.displayName ?? '') || bio !== (professional?.bio ?? ''),
+    profile: displayName !== (professional?.displayName ?? '') || bio !== (professional?.bio ?? ''),
     rules:
       slotInterval !== String(business.slotIntervalMinutes) ||
       minimumNotice !== String(business.minimumNoticeMinutes) ||
@@ -389,7 +388,7 @@ export default function SettingsScreen() {
         {/* A short list rather than a number field: "how long before" is a
             choice between a handful of sensible answers, and a box that accepts
             37 minutes invites somebody to type 37 minutes. */}
-        <Select
+        <Dropdown
           label={t('settings.reminderLeadLabel')}
           value={reminderLead}
           options={REMINDER_CHOICES.map((minutes) => ({
@@ -405,11 +404,7 @@ export default function SettingsScreen() {
         <Feedback tone="muted" message={t('settings.remindersNotDelivered')} />
         <View style={{ flexDirection: 'row' }}>
           <Link href="/app/notifications" asChild>
-            <Button
-              label={t('settings.seeNotifications')}
-              variant="secondary"
-              size="compact"
-            />
+            <Button label={t('settings.seeNotifications')} variant="secondary" size="compact" />
           </Link>
         </View>
       </SettingsSection>

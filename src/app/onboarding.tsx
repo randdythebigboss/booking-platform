@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { useSession, useWorkspace } from '@/components/providers';
-import { Button, Card, Feedback, Field, Screen, Select, Text } from '@/components/ui';
+import { Button, Card, Feedback, Field, Screen, SearchableSelect, Text } from '@/components/ui';
 import { slugify, validateSlug } from '@/features/business/slug';
 import {
   COMMON_TIMEZONES,
@@ -125,11 +125,13 @@ export default function OnboardingScreen() {
           hint={t('onboarding.displayNamePicked')}
         />
 
-        <Select
+        <SearchableSelect
           label={t('onboarding.timezone')}
           value={timezone}
           options={timezoneOptions}
           onChange={setTimezone}
+          searchLabel={t('settings.searchTimezone')}
+          emptyLabel={t('settings.noTimezoneMatch')}
           hint={t('onboarding.timezoneShown')}
         />
 

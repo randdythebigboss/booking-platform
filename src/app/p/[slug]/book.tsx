@@ -230,11 +230,7 @@ export default function BookScreen() {
                   : ''}
               </Text>
             </View>
-            <Button
-              label={t('booking.confirm')}
-              loading={booking}
-              onPress={() => void confirm()}
-            />
+            <Button label={t('booking.confirm')} loading={booking} onPress={() => void confirm()} />
           </View>
         ) : undefined
       }

@@ -1,6 +1,7 @@
 export { Badge, type BadgeProps, type BadgeTone } from './badge';
 export { Button, type ButtonProps } from './button';
 export { Card } from './card';
+export { Dropdown, type DropdownProps } from './dropdown';
 export { EmptyState, type EmptyStateProps } from './empty-state';
 export { Feedback, type FeedbackProps } from './feedback';
 export { Field, type FieldProps } from './field';
@@ -8,7 +9,7 @@ export { Initials, initialsOf, type InitialsProps } from './initials';
 export { PressableLink, type PressableLinkProps } from './pressable-link';
 export { Screen, type ScreenProps } from './screen';
 export { SearchableSelect, type SearchableSelectProps } from './searchable-select';
-export { Select, type SelectOption, type SelectProps } from './select';
+export type { SelectOption } from './option';
 export { Segmented, type SegmentedOption, type SegmentedProps } from './segmented';
 export { Stat, type StatProps } from './stat';
 export { Text, type TextProps } from './text';

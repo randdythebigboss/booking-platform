@@ -171,9 +171,7 @@ export default function AvailabilityScreen() {
       const source = rows.filter((entry) => entry.weekday === weekday);
       if (source.length === 0) return rows;
 
-      return WEEKDAY_ORDER.flatMap((day) =>
-        source.map((entry) => ({ ...entry, weekday: day })),
-      );
+      return WEEKDAY_ORDER.flatMap((day) => source.map((entry) => ({ ...entry, weekday: day })));
     });
   }
 
@@ -238,12 +236,7 @@ export default function AvailabilityScreen() {
             <Text variant="caption" style={{ flex: 1, color: palette.warning }}>
               {t('availability.unsaved')}
             </Text>
-            <Button
-              label={t('common.discard')}
-              variant="ghost"
-              size="compact"
-              onPress={discard}
-            />
+            <Button label={t('common.discard')} variant="ghost" size="compact" onPress={discard} />
           </View>
         ) : undefined
       }

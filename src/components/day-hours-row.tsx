@@ -112,11 +112,7 @@ export function DayHoursRow({
         >
           <View style={{ flex: 1, gap: 1 }}>
             <Text variant="label">{label}</Text>
-            <Text
-              variant="caption"
-              tone={broken ? 'danger' : 'muted'}
-              numberOfLines={2}
-            >
+            <Text variant="caption" tone={broken ? 'danger' : 'muted'} numberOfLines={2}>
               {summary}
             </Text>
           </View>

@@ -10,7 +10,7 @@ import {
   EmptyState,
   Feedback,
   Field,
-  Select,
+  Segmented,
   Text,
   ToggleRow,
 } from '@/components/ui';
@@ -309,7 +309,7 @@ export default function ServicesScreen() {
           {/* What a customer has to pay before this is booked. Three answers,
               and the deposit box only exists for the one that needs it. */}
           {canAskForMoney ? (
-            <Select
+            <Segmented
               label={t('payments.title')}
               value={draft.paymentRequirement}
               options={PAYMENT_REQUIREMENTS.map((requirement) => ({
@@ -353,12 +353,7 @@ export default function ServicesScreen() {
         {failure && <Feedback tone="danger" message={failure} />}
 
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          <Button
-            label={t('services.save')}
-            onPress={submit}
-            loading={busy}
-            style={{ flex: 1 }}
-          />
+          <Button label={t('services.save')} onPress={submit} loading={busy} style={{ flex: 1 }} />
           <Button
             label={t('common.cancel')}
             variant="ghost"

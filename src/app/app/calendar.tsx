@@ -139,9 +139,7 @@ export default function CalendarScreen() {
               {t('calendar.appointmentsThatDay', { count: active.length })}
             </Text>
           </View>
-          {date === today && (
-            <Badge label={t('common.today')} tone="accent" mark="•" />
-          )}
+          {date === today && <Badge label={t('common.today')} tone="accent" mark="•" />}
         </View>
 
         {day.loading && <ActivityIndicator />}

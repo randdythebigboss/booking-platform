@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
-import { Button, Card, Feedback, Field, Screen, Select, Text } from '@/components/ui';
+import { Button, Card, Feedback, Field, Screen, Segmented, Text } from '@/components/ui';
 import {
   addDays,
   describeException,
@@ -110,15 +110,18 @@ export default function DateExceptionsScreen() {
             error={issueText(errors.date)}
           />
 
-          <Select
-            label={t('exceptions.whatChanges')}
-            value={kind}
-            options={[
-              { value: 'closed' as const, label: t('exceptions.kindClosed') },
-              { value: 'custom-hours' as const, label: t('exceptions.kindCustom') },
-            ]}
-            onChange={setKind}
-          />
+          <View style={{ gap: spacing.xs }}>
+            <Text variant="label">{t('exceptions.whatChanges')}</Text>
+            <Segmented
+              label={t('exceptions.whatChanges')}
+              value={kind}
+              options={[
+                { value: 'closed' as const, label: t('exceptions.kindClosed') },
+                { value: 'custom-hours' as const, label: t('exceptions.kindCustom') },
+              ]}
+              onChange={setKind}
+            />
+          </View>
 
           {kind === 'custom-hours' && (
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>

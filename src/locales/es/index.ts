@@ -451,13 +451,15 @@ export const es = {
     publicationSection: 'Publicación',
     searchTimezone: 'Busca una ciudad o una zona',
     noTimezoneMatch: 'Ninguna zona coincide con esa búsqueda.',
-    slugChanging: 'Vas a cambiar tu enlace de /p/{{from}} a /p/{{to}}. Los enlaces antiguos dejarán de funcionar.',
+    slugChanging:
+      'Vas a cambiar tu enlace de /p/{{from}} a /p/{{to}}. Los enlaces antiguos dejarán de funcionar.',
     remindersNotDelivered:
       'En esta beta los recordatorios se registran pero no se envían: no hay correo, SMS ni WhatsApp conectados. Puedes verlos en Avisos.',
     seeNotifications: 'Ver Avisos',
     statusLive: 'Cualquiera con tu enlace puede reservar ahora mismo.',
     statusUnpublished: 'Tu página está oculta. Nadie puede verla ni reservar.',
-    statusNotAccepting: 'Tu página se ve, pero no aceptas reservas, así que no hay horas disponibles.',
+    statusNotAccepting:
+      'Tu página se ve, pero no aceptas reservas, así que no hay horas disponibles.',
     publishedLabel: 'Página pública visible',
     diagnosticsHint: 'Datos técnicos para una consulta de soporte. No incluye datos de clientes.',
     reminderLeadLabel: 'Recordatorio al cliente',

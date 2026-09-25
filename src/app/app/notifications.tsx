@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
-import { Card, Screen, Select, Text } from '@/components/ui';
+import { Card, Dropdown, Screen, Text } from '@/components/ui';
 import { NOTIFICATION_STATUSES, type NotificationStatus } from '@/features/notifications';
 import { useDynamicT } from '@/i18n/use-dynamic-t';
 import { useFormat } from '@/i18n/use-format';
@@ -59,7 +59,7 @@ export default function NotificationsScreen() {
 
   return (
     <Screen title={t('notifications.title')} subtitle={t('notifications.subtitle')}>
-      <Select
+      <Dropdown
         label={t('appointments.status')}
         value={status}
         options={statuses}

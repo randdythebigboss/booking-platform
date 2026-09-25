@@ -439,13 +439,15 @@ export const en: Translations = {
     publicationSection: 'Publication',
     searchTimezone: 'Search a city or a zone',
     noTimezoneMatch: 'No zone matches that search.',
-    slugChanging: 'You are changing your link from /p/{{from}} to /p/{{to}}. Old links will stop working.',
+    slugChanging:
+      'You are changing your link from /p/{{from}} to /p/{{to}}. Old links will stop working.',
     remindersNotDelivered:
       'In this beta reminders are recorded but not sent: no email, SMS or WhatsApp is connected. You can see them under Notices.',
     seeNotifications: 'See Notices',
     statusLive: 'Anyone with your link can book right now.',
     statusUnpublished: 'Your page is hidden. Nobody can see it or book.',
-    statusNotAccepting: 'Your page is visible, but you are not accepting bookings, so no times are offered.',
+    statusNotAccepting:
+      'Your page is visible, but you are not accepting bookings, so no times are offered.',
     publishedLabel: 'Public page visible',
     diagnosticsHint: 'Technical details for a support conversation. No customer data.',
     reminderLeadLabel: 'Customer reminder',

@@ -5,15 +5,7 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { AppointmentRow } from '@/components/appointment-row';
 import { useRequiredWorkspace } from '@/components/providers';
-import {
-  Button,
-  Card,
-  EmptyState,
-  Feedback,
-  Segmented,
-  Select,
-  Text,
-} from '@/components/ui';
+import { Button, Card, Dropdown, EmptyState, Feedback, Segmented, Text } from '@/components/ui';
 import { WorkspaceShell } from '@/components/workspace-shell';
 import { statusLabelKey } from '@/features/appointments';
 import { isoDateIn, zonedInstant } from '@/features/availability';
@@ -97,11 +89,7 @@ export default function AppointmentsScreen() {
   // `Próximas` with no status chosen means "still happening". Choosing a
   // status explicitly always wins, so cancelled bookings stay reachable.
   const requested: AppointmentStatus[] | undefined =
-    status !== 'all'
-      ? [status]
-      : scope === 'upcoming'
-        ? ['pending', 'confirmed']
-        : undefined;
+    status !== 'all' ? [status] : scope === 'upcoming' ? ['pending', 'confirmed'] : undefined;
 
   const appointments = useAsyncData(
     () =>
@@ -159,15 +147,14 @@ export default function AppointmentsScreen() {
         </View>
       }
     >
-      {/* The status filter is a real dropdown rather than a permanently open
-          list: the pair of them used to push the first appointment four
-          hundred pixels down the page. */}
-      <Select
+      {/* A real dropdown rather than a permanently open list: the pair of
+          filters used to push the first appointment four hundred pixels down
+          the page, and the fifth status was cut off by the scroll cap. */}
+      <Dropdown
         label={t('appointments.status')}
         value={status}
         options={statuses}
         onChange={(value) => setFilters({ status: value })}
-        maxHeight={200}
       />
 
       {appointments.loading && <ActivityIndicator />}

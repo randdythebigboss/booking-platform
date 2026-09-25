@@ -5,7 +5,7 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { useLocale, useRequiredWorkspace } from '@/components/providers';
 import { SlotPicker } from '@/components/slot-picker';
-import { Button, Card, Feedback, Field, Screen, Select, Text, ToggleRow } from '@/components/ui';
+import { Button, Card, Dropdown, Feedback, Field, Screen, Text, ToggleRow } from '@/components/ui';
 import { isoDateIn, parseClockTime, zonedInstant } from '@/features/availability';
 import { useWorkspaceErrorText } from '@/i18n/use-error-text';
 import { useFormat } from '@/i18n/use-format';
@@ -117,7 +117,7 @@ export default function NewAppointmentScreen() {
         )}
 
         {active.length > 0 && (
-          <Select
+          <Dropdown
             label={t('manualBooking.service')}
             value={serviceId ?? ''}
             options={active.map((service) => ({
@@ -128,7 +128,6 @@ export default function NewAppointmentScreen() {
               setServiceId(value);
               setSlot(null);
             }}
-            maxHeight={220}
           />
         )}
       </Card>

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
-import { Button, Card, Feedback, Field, Screen, Select, Text } from '@/components/ui';
+import { Button, Card, Dropdown, Feedback, Field, Screen, Text } from '@/components/ui';
 import { addDays, isoDateIn } from '@/features/availability';
 import { useAsyncData } from '@/hooks/use-async-data';
 import { useFormat } from '@/i18n/use-format';
@@ -67,7 +67,7 @@ export default function SchedulePreviewScreen() {
       )}
 
       {activeServices.length > 0 && (
-        <Select
+        <Dropdown
           label={t('preview.service')}
           value={selectedId ?? ''}
           options={activeServices.map((service) => ({

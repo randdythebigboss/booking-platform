@@ -3,7 +3,7 @@ import { Pressable, ScrollView, TextInput, View } from 'react-native';
 
 import { TOUCH_TARGET, radius, spacing, typography, useTheme } from '@/theme';
 import { Text } from './text';
-import type { SelectOption } from './select';
+import type { SelectOption } from './option';
 
 export interface SearchableSelectProps<T extends string> {
   label: string;

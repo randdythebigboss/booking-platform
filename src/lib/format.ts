@@ -96,9 +96,7 @@ export function formatTimeIn(instant: Date, timezone: string, locale: string): s
   }).formatToParts(instant);
 
   return parts
-    .map((part) =>
-      part.type === 'dayPeriod' ? part.value.replace(/\s+/gu, '') : part.value,
-    )
+    .map((part) => (part.type === 'dayPeriod' ? part.value.replace(/\s+/gu, '') : part.value))
     .join('')
     .replace(/\s+/gu, ' ')
     .trim();
@@ -112,7 +110,6 @@ export function formatDateIn(instant: Date, timezone: string, locale: string): s
     month: 'long',
   }).format(instant);
 }
-
 
 /**
  * A day and its month, short: `26 sept`.
@@ -187,11 +184,13 @@ export function formatClockIn(instant: Date, timezone: string, locale: string): 
     minute: '2-digit',
   }).formatToParts(instant);
 
-  return parts
-    .filter((part) => part.type === 'hour' || part.type === 'minute' || part.type === 'literal')
-    .map((part) => part.value)
-    .join('')
-    .trim()
-    // A trailing separator is what is left where the day period used to be.
-    .replace(/[\s,:.]+$/u, '');
+  return (
+    parts
+      .filter((part) => part.type === 'hour' || part.type === 'minute' || part.type === 'literal')
+      .map((part) => part.value)
+      .join('')
+      .trim()
+      // A trailing separator is what is left where the day period used to be.
+      .replace(/[\s,:.]+$/u, '')
+  );
 }

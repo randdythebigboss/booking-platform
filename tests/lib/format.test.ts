@@ -114,7 +114,11 @@ describe('formatDateIn', () => {
 
 describe('formatDateTimeIn', () => {
   it('carries the day, because a move can cross one', () => {
-    const rendered = formatDateTimeIn(new Date('2026-09-28T14:00:00.000Z'), 'America/Santo_Domingo', ES);
+    const rendered = formatDateTimeIn(
+      new Date('2026-09-28T14:00:00.000Z'),
+      'America/Santo_Domingo',
+      ES,
+    );
     expect(rendered).toMatch(/28/);
     expect(rendered).toMatch(/10/);
   });

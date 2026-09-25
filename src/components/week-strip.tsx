@@ -100,10 +100,7 @@ export function WeekStrip({
             >
               {format.weekday(date, 'UTC')}
             </Text>
-            <Text
-              variant="label"
-              style={{ color: selected ? palette.accentText : palette.text }}
-            >
+            <Text variant="label" style={{ color: selected ? palette.accentText : palette.text }}>
               {date.getUTCDate()}
             </Text>
 

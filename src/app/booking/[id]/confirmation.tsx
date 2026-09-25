@@ -300,9 +300,7 @@ export default function ConfirmationScreen() {
             <Text variant="label" tone={cancelled ? 'danger' : closed ? 'muted' : 'success'}>
               {tk(guestStatusKey(appointment.status))}
             </Text>
-            <Text variant="title">
-              {format.time(appointment.startsAt, appointment.timezone)}
-            </Text>
+            <Text variant="title">{format.time(appointment.startsAt, appointment.timezone)}</Text>
             <Text variant="body" tone="muted">
               {format.date(appointment.startsAt, appointment.timezone)}
             </Text>
