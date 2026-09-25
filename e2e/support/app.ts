@@ -104,6 +104,14 @@ export function option(page: Page, name: string | RegExp): Locator {
   return page.getByRole('radio', { name });
 }
 
+/** Reveals the times that are not free, which the page folds away. */
+export async function showUnavailableTimes(page: Page): Promise<void> {
+  const toggle = page.getByRole('button', {
+    name: /Ver \d+ horas? no disponibles?|Show \d+ unavailable/,
+  });
+  if ((await toggle.count()) > 0) await toggle.click();
+}
+
 /** The first free time on the chosen day, whatever it happens to be. */
 export function firstSlot(page: Page): Locator {
   // Times are the only radios that appear after a date is chosen, and they are
@@ -155,7 +163,10 @@ export async function bookAsGuest(page: Page, options: BookOptions = {}): Promis
     await page.getByRole('textbox', { name: text.email }).fill(guest.email);
   }
 
-  await page.getByRole('button', { name: text.confirm }).click();
+  // Two of them once the review step is reached: the one in the card and the
+  // one pinned to the bottom of the viewport. The pinned one is what a person
+  // on a phone actually presses.
+  await page.getByRole('button', { name: text.confirm }).last().click();
 
   await expect(page.getByText(text.booked)).toBeVisible();
   return page.url();

@@ -24,7 +24,7 @@ test.describe('losing the network', () => {
     const before = count('public.appointments', 'true');
 
     await context.setOffline(true);
-    await page.getByRole('button', { name: TEXT.es.confirm }).click();
+    await page.getByRole('button', { name: TEXT.es.confirm }).last().click();
 
     // Something honest is said, and it is said in Spanish.
     await expect(page.getByText(TEXT.es.booked)).toHaveCount(0);
@@ -35,7 +35,7 @@ test.describe('losing the network', () => {
 
     // And it recovers rather than needing a reload.
     await context.setOffline(false);
-    await page.getByRole('button', { name: TEXT.es.confirm }).click();
+    await page.getByRole('button', { name: TEXT.es.confirm }).last().click();
     await expect(page.getByText(TEXT.es.booked)).toBeVisible();
     expect(count('public.appointments', 'true')).toBe(before + 1);
   });
@@ -66,7 +66,10 @@ test.describe('pressing the button more than once', () => {
 
     const before = count('public.appointments', 'true');
 
-    await page.getByRole('button', { name: TEXT.es.confirm }).click({ clickCount: 3, delay: 30 });
+    await page
+      .getByRole('button', { name: TEXT.es.confirm })
+      .last()
+      .click({ clickCount: 3, delay: 30 });
 
     await expect(page.getByText(TEXT.es.booked)).toBeVisible();
     expect(count('public.appointments', 'true')).toBe(before + 1);

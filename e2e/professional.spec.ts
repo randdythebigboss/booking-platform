@@ -74,7 +74,11 @@ test.describe('a professional runs their day', () => {
     await expectNoRawError(page);
 
     await page.goto('/app/availability');
-    await expect(page.getByRole('textbox', { name: 'Abre' }).first()).toHaveValue('09:00');
+    // The week is seven collapsed summaries; the boxes belong to the day you
+    // open. Monday is the one the seed gives hours to.
+    await expect(page.getByRole('button', { name: /^Lunes\./ })).toContainText('09:00');
+    await page.getByRole('button', { name: /^Lunes\./ }).click();
+    await expect(page.getByRole('textbox', { name: 'Desde' }).first()).toHaveValue('09:00');
     await expectNoRawError(page);
   });
 

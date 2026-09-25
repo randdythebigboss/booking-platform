@@ -55,7 +55,7 @@ test.describe('with no payment provider at all', () => {
     await firstSlot(page).click();
     await page.getByRole('textbox', { name: TEXT.es.fullName }).fill(GUEST.name);
     await page.getByRole('textbox', { name: TEXT.es.phone }).fill(GUEST.phone);
-    await page.getByRole('button', { name: TEXT.es.confirm }).click();
+    await page.getByRole('button', { name: TEXT.es.confirm }).last().click();
 
     await expect(page.getByText(TEXT.es.booked)).toBeVisible();
 
@@ -88,7 +88,7 @@ test.describe('with the demo provider switched on', () => {
     await firstSlot(page).click();
     await page.getByRole('textbox', { name: TEXT.es.fullName }).fill(GUEST.name);
     await page.getByRole('textbox', { name: TEXT.es.phone }).fill(GUEST.phone);
-    await page.getByRole('button', { name: TEXT.es.confirm }).click();
+    await page.getByRole('button', { name: TEXT.es.confirm }).last().click();
   }
 
   test('says in Spanish that the payment is a demonstration', async ({ page }) => {
@@ -112,7 +112,7 @@ test.describe('with the demo provider switched on', () => {
     await firstSlot(page).click();
     await page.getByRole('textbox', { name: TEXT.en.fullName }).fill(GUEST.name);
     await page.getByRole('textbox', { name: TEXT.en.phone }).fill(GUEST.phone);
-    await page.getByRole('button', { name: TEXT.en.confirm }).click();
+    await page.getByRole('button', { name: TEXT.en.confirm }).last().click();
 
     await expect(page.getByText(TEXT.en.demoPayment)).toBeVisible();
     await expect(page.getByText(new RegExp(TEXT.en.noRealCharge, 'i'))).toBeVisible();

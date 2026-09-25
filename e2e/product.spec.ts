@@ -1,4 +1,12 @@
-import { bookAsGuest, chooseDay, expectNoRawError, option, signIn, TEXT } from './support/app';
+import {
+  bookAsGuest,
+  chooseDay,
+  expectNoRawError,
+  option,
+  showUnavailableTimes,
+  signIn,
+  TEXT,
+} from './support/app';
 import { count, query } from './support/db';
 import { openDateISO } from './support/dates';
 import { GUEST, TENANT_A } from './support/fixtures';
@@ -108,16 +116,25 @@ test.describe('the language toggle', () => {
 });
 
 test.describe('what a customer can see of a day', () => {
-  test('shows the whole day, not only the gaps', async ({ page }) => {
+  test('leads with the free times and keeps the rest one press away', async ({ page }) => {
     await page.goto(`/p/${TENANT_A.slug}/book`);
     await option(page, TENANT_A.services.free).click();
     await chooseDay(page, openDateISO());
 
-    const all = await page.getByRole('radio', { name: /^\d{1,2}:\d{2}/ }).count();
-    const free = await page.getByRole('radio', { name: /\d{1,2}:\d{2}.*Libre/ }).count();
+    // Folded: what is offered is what can be pressed.
+    const offered = await page.getByRole('radio', { name: /\d{1,2}:\d{2}.*Libre/ }).count();
+    expect(offered).toBeGreaterThan(0);
+    expect(
+      await page.getByRole('radio', { name: /\d{1,2}:\d{2}.*(Ocupado|Ya pasó)/ }).count(),
+    ).toBe(0);
 
-    expect(all).toBeGreaterThan(0);
-    expect(free).toBeLessThanOrEqual(all);
+    // Grouped the way people describe a day.
+    await expect(page.getByText('Mañana', { exact: true })).toBeVisible();
+
+    await showUnavailableTimes(page);
+
+    const all = await page.getByRole('radio', { name: /\d{1,2}:\d{2}/ }).count();
+    expect(all).toBeGreaterThan(offered);
     // The legend, because shading alone never carries meaning.
     await expect(page.getByText('Ocupado', { exact: true })).toBeVisible();
   });
@@ -158,24 +175,28 @@ test.describe('the professional setup path', () => {
   });
 });
 
-test.describe('the Azul button', () => {
-  test('says plainly that it is not a payment @mobile', async ({ page }) => {
+test.describe('the Azul placeholder', () => {
+  /**
+   * On Settings the reader is the professional, not a customer. What they want
+   * to know is whether they can connect their own merchant account yet, and
+   * the honest answer is a roadmap item they cannot press. "Pay with Azul" was
+   * a customer's button on a professional's screen.
+   */
+  test('offers a professional a connection that is not there yet @mobile', async ({ page }) => {
     await signIn(page, TENANT_A.email, TENANT_A.password);
     await page.goto('/app/settings');
-    await expect(page.getByText('Pagos con tarjeta (Azul)')).toBeVisible();
-    await expect(page.getByText('Todavía no disponible')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Pagar con Azul' }).first().click();
-    await expect(page.getByText(/no se ha cobrado nada/i)).toBeVisible();
-    await expect(page.getByText(/todavía no está disponible/i)).toBeVisible();
+    const connect = page.getByRole('button', { name: /Conectar Azul/ });
+    await expect(connect).toBeVisible();
+    await expect(connect).toBeDisabled();
+    await expect(page.getByText(/tu propia cuenta de comercio con Azul/i)).toBeVisible();
   });
 
-  test('takes no payment and creates nothing', async ({ page }) => {
+  test('creates nothing at all', async ({ page }) => {
     const before = count('public.payments', 'true');
 
     await signIn(page, TENANT_A.email, TENANT_A.password);
     await page.goto('/app/settings');
-    await page.getByRole('button', { name: 'Pagar con Azul' }).first().click();
     await page.waitForTimeout(1200);
 
     expect(count('public.payments', 'true')).toBe(before);
