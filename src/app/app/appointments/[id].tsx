@@ -43,15 +43,9 @@ export default function AppointmentDetailScreen() {
   const errorText = useWorkspaceErrorText();
   const timezone = business.timezone;
 
-  const appointment = useAsyncData(
-    () => (id ? fetchAppointment(id) : Promise.resolve(null)),
-    [id],
-  );
+  const appointment = useAsyncData(() => (id ? fetchAppointment(id) : Promise.resolve(null)), [id]);
 
-  const history = useAsyncData(
-    () => (id ? fetchAppointmentEvents(id) : Promise.resolve([])),
-    [id],
-  );
+  const history = useAsyncData(() => (id ? fetchAppointmentEvents(id) : Promise.resolve([])), [id]);
 
   // What the customer has been, or is about to be, told. Read-only: the
   // outbox is written by the database, never from here.
@@ -497,10 +491,7 @@ export default function AppointmentDetailScreen() {
                 {tk(`notifications.kind.${notification.kind}`)} {'·'}{' '}
                 {tk(`notifications.channel.${notification.channel}`)}
               </Text>
-              <Text
-                variant="caption"
-                tone={notification.status === 'failed' ? 'danger' : 'muted'}
-              >
+              <Text variant="caption" tone={notification.status === 'failed' ? 'danger' : 'muted'}>
                 {tk(`notifications.status.${notification.status}`)} {'·'}{' '}
                 {notification.sentAt
                   ? t('notifications.sentAt', {
@@ -525,11 +516,7 @@ export default function AppointmentDetailScreen() {
         )}
         <View style={{ gap: spacing.sm }}>
           {events.map((event) => {
-            const described = describeEvent(
-              event,
-              (at) => format.dateTime(at, timezone),
-              tk,
-            );
+            const described = describeEvent(event, (at) => format.dateTime(at, timezone), tk);
             return (
               <View key={event.id} style={{ gap: 2 }}>
                 <Text variant="body">{tk(described.key, described.values)}</Text>

@@ -1,4 +1,4 @@
-import { bookAsGuest, expectNoRawError, firstSlot, option, TEXT } from './support/app';
+import { bookAsGuest, chooseDay, expectNoRawError, firstSlot, option, TEXT } from './support/app';
 import { count } from './support/db';
 import { openDateISO } from './support/dates';
 import { GUEST, TENANT_A } from './support/fixtures';
@@ -16,7 +16,7 @@ test.describe('losing the network', () => {
   test('says so, and does not invent an appointment @mobile', async ({ page, context }) => {
     await page.goto(`/p/${TENANT_A.slug}/book`);
     await option(page, TENANT_A.services.free).click();
-    await page.getByRole('textbox', { name: TEXT.es.date }).fill(openDateISO());
+    await chooseDay(page, openDateISO());
     await firstSlot(page).click();
     await page.getByRole('textbox', { name: TEXT.es.fullName }).fill(GUEST.name);
     await page.getByRole('textbox', { name: TEXT.es.phone }).fill(GUEST.phone);
@@ -59,7 +59,7 @@ test.describe('pressing the button more than once', () => {
   test('books once however many times confirm is pressed', async ({ page }) => {
     await page.goto(`/p/${TENANT_A.slug}/book`);
     await option(page, TENANT_A.services.free).click();
-    await page.getByRole('textbox', { name: TEXT.es.date }).fill(openDateISO());
+    await chooseDay(page, openDateISO());
     await firstSlot(page).click();
     await page.getByRole('textbox', { name: TEXT.es.fullName }).fill(GUEST.name);
     await page.getByRole('textbox', { name: TEXT.es.phone }).fill(GUEST.phone);
@@ -77,7 +77,7 @@ test.describe('pressing the button more than once', () => {
     const id = url.split('/booking/')[1]?.split('/')[0] ?? '';
 
     await page.getByRole('button', { name: TEXT.es.reschedule }).click();
-    await page.getByRole('textbox', { name: TEXT.es.rescheduleDate }).fill(openDateISO(8));
+    await chooseDay(page, openDateISO(8));
     await firstSlot(page).click();
 
     await page.getByRole('button', { name: TEXT.es.move }).click({ clickCount: 3, delay: 30 });
@@ -143,7 +143,13 @@ test.describe('the back button', () => {
 
     await expect(page.getByText(TEXT.es.chooseService)).toBeVisible();
     await option(page, TENANT_A.services.free).click();
-    await expect(page.getByRole('textbox', { name: TEXT.es.date })).toBeVisible();
+    await expect(
+      page
+        .getByRole('radio', {
+          name: /de (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)/,
+        })
+        .first(),
+    ).toBeVisible();
     await expectNoRawError(page);
   });
 });

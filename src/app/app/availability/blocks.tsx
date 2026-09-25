@@ -80,10 +80,7 @@ export default function BlockedTimeScreen() {
   }
 
   return (
-    <Screen
-      title={t('blocks.title')}
-      subtitle={t('blocks.subtitle')}
-    >
+    <Screen title={t('blocks.title')} subtitle={t('blocks.subtitle')}>
       <Card>
         <Text variant="heading">{t('blocks.add')}</Text>
         <Text variant="caption" tone="muted">

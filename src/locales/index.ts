@@ -23,6 +23,18 @@ export const LOCALE_NAMES: Record<Locale, string> = {
 };
 
 /**
+ * Two letters, for the corner of a screen where the full name will not fit.
+ *
+ * Uppercase and language-neutral, so the control reads the same whichever
+ * language the interface is in. The full name is still what the control
+ * announces to a screen reader; see LanguageToggle.
+ */
+export const LOCALE_SHORT_NAMES: Record<Locale, string> = {
+  es: 'ES',
+  en: 'EN',
+};
+
+/**
  * The BCP 47 tag handed to Intl for dates, times and currency.
  *
  * Deliberately regional. `es` alone leaves the region to the platform, and

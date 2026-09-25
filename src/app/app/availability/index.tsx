@@ -99,10 +99,7 @@ export default function AvailabilityScreen() {
   }
 
   return (
-    <Screen
-      title={t('availability.title')}
-      subtitle={t('availability.subtitle')}
-    >
+    <Screen title={t('availability.title')} subtitle={t('availability.subtitle')}>
       {loaded.loading && !entries && <ActivityIndicator />}
       {loaded.error && <Feedback tone="danger" message={loaded.error} />}
 

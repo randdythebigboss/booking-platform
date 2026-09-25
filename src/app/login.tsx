@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
-import { LanguageSwitcher } from '@/components/language-switcher';
 import { useSession } from '@/components/providers';
 import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
 import { MIN_PASSWORD_LENGTH, validateCredentials } from '@/features/auth/validation';
@@ -120,9 +119,7 @@ export default function LoginScreen() {
           autoComplete={signingIn ? 'current-password' : 'new-password'}
           error={issueText(errors.password)}
           hint={
-            signingIn
-              ? undefined
-              : t('validation.password.tooShort', { min: MIN_PASSWORD_LENGTH })
+            signingIn ? undefined : t('validation.password.tooShort', { min: MIN_PASSWORD_LENGTH })
           }
         />
 
@@ -144,10 +141,6 @@ export default function LoginScreen() {
           }}
         />
       </View>
-
-      <Card>
-        <LanguageSwitcher />
-      </Card>
     </Screen>
   );
 }

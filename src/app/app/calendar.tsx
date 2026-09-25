@@ -59,9 +59,7 @@ export default function CalendarScreen() {
       subtitle={t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
     >
       <Card>
-        <Text variant="heading">
-          {format.date(new Date(`${date}T12:00:00Z`), timezone)}
-        </Text>
+        <Text variant="heading">{format.date(new Date(`${date}T12:00:00Z`), timezone)}</Text>
         {date !== today && (
           <Text variant="caption" tone="muted">
             {t('calendar.todayIs', { date: format.date(new Date(), timezone) })}

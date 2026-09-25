@@ -1,4 +1,11 @@
-import { expectNoRawError, firstSlot, option, TEXT, switchLanguage } from './support/app';
+import {
+  chooseDay,
+  expectNoRawError,
+  firstSlot,
+  option,
+  TEXT,
+  switchLanguage,
+} from './support/app';
 import { count, query, setPaymentSimulation } from './support/db';
 import { openDateISO } from './support/dates';
 import { GUEST, TENANT_A } from './support/fixtures';
@@ -44,7 +51,7 @@ test.describe('with no payment provider at all', () => {
   test('has no path to a pay button anywhere in the booking flow', async ({ page }) => {
     await page.goto(`/p/${TENANT_A.slug}/book`);
     await option(page, TENANT_A.services.free).click();
-    await page.getByRole('textbox', { name: TEXT.es.date }).fill(openDateISO());
+    await chooseDay(page, openDateISO());
     await firstSlot(page).click();
     await page.getByRole('textbox', { name: TEXT.es.fullName }).fill(GUEST.name);
     await page.getByRole('textbox', { name: TEXT.es.phone }).fill(GUEST.phone);
@@ -77,7 +84,7 @@ test.describe('with the demo provider switched on', () => {
   async function reachCheckout(page: Parameters<typeof firstSlot>[0], service: string) {
     await page.goto(`/p/${TENANT_A.slug}/book`);
     await option(page, service).click();
-    await page.getByRole('textbox', { name: TEXT.es.date }).fill(openDateISO());
+    await chooseDay(page, openDateISO());
     await firstSlot(page).click();
     await page.getByRole('textbox', { name: TEXT.es.fullName }).fill(GUEST.name);
     await page.getByRole('textbox', { name: TEXT.es.phone }).fill(GUEST.phone);
@@ -101,7 +108,7 @@ test.describe('with the demo provider switched on', () => {
     await page.goto(`/p/${TENANT_A.slug}/book`);
     await switchLanguage(page, 'en');
     await option(page, TENANT_A.services.deposit).click();
-    await page.getByRole('textbox', { name: TEXT.en.date }).fill(openDateISO());
+    await chooseDay(page, openDateISO(), 'en');
     await firstSlot(page).click();
     await page.getByRole('textbox', { name: TEXT.en.fullName }).fill(GUEST.name);
     await page.getByRole('textbox', { name: TEXT.en.phone }).fill(GUEST.phone);
@@ -123,7 +130,9 @@ test.describe('with the demo provider switched on', () => {
     await expectNoRawError(page);
 
     // The deposit is the deposit, and the arithmetic came from the database.
-    expect(query("select amount::numeric(12,2)::text from public.payments limit 1")).toBe('1000.00');
+    expect(query('select amount::numeric(12,2)::text from public.payments limit 1')).toBe(
+      '1000.00',
+    );
     expect(query('select status from public.payments limit 1')).toBe('paid');
   });
 
@@ -133,7 +142,9 @@ test.describe('with the demo provider switched on', () => {
     await page.getByRole('button', { name: /^Pagar / }).click();
     await expect(page.getByText(/Pago de demostración completado/)).toBeVisible();
 
-    expect(query("select amount::numeric(12,2)::text from public.payments limit 1")).toBe('3500.00');
+    expect(query('select amount::numeric(12,2)::text from public.payments limit 1')).toBe(
+      '3500.00',
+    );
     expect(query('select status from public.payments limit 1')).toBe('paid');
   });
 

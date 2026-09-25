@@ -93,10 +93,7 @@ export default function DateExceptionsScreen() {
   }
 
   return (
-    <Screen
-      title={t('exceptions.title')}
-      subtitle={t('exceptions.subtitle')}
-    >
+    <Screen title={t('exceptions.title')} subtitle={t('exceptions.subtitle')}>
       <Card>
         <Text variant="heading">{t('exceptions.add')}</Text>
         <Text variant="caption" tone="muted">

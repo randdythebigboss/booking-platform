@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
-import { LanguageSwitcher } from '@/components/language-switcher';
 import { SlotPicker } from '@/components/slot-picker';
 import { Button, Card, Feedback, Screen, Text } from '@/components/ui';
 import { isoDateIn } from '@/features/availability';
@@ -123,9 +122,6 @@ export default function ConfirmationScreen() {
             {t('confirmation.needTheLink')} {t('confirmation.needTheLinkBody')}
           </Text>
         </Card>
-        <Card>
-          <LanguageSwitcher />
-        </Card>
       </Screen>
     );
   }
@@ -137,9 +133,6 @@ export default function ConfirmationScreen() {
           <Text variant="body" tone="muted">
             {t('confirmation.notFoundBody')}
           </Text>
-        </Card>
-        <Card>
-          <LanguageSwitcher />
         </Card>
       </Screen>
     );
@@ -274,8 +267,7 @@ export default function ConfirmationScreen() {
 
           {payment.remaining && Number(payment.remaining) > 0 && (
             <Text variant="caption" tone="muted">
-              {t('payments.remaining')}:{' '}
-              {format.money(payment.remaining, payment.currency ?? '')}
+              {t('payments.remaining')}: {format.money(payment.remaining, payment.currency ?? '')}
             </Text>
           )}
 
@@ -348,9 +340,7 @@ export default function ConfirmationScreen() {
       {(appointment.businessAddress || appointment.businessPhone) && (
         <Card>
           <Text variant="heading">{t('publicPage.whereToGo')}</Text>
-          {appointment.businessAddress && (
-            <Text variant="body">{appointment.businessAddress}</Text>
-          )}
+          {appointment.businessAddress && <Text variant="body">{appointment.businessAddress}</Text>}
           {appointment.businessPhone && (
             <Text variant="body" tone="muted" selectable>
               {appointment.businessPhone}
@@ -424,10 +414,6 @@ export default function ConfirmationScreen() {
         <Text variant="caption" tone="muted">
           {t('confirmation.keepThisLink')}
         </Text>
-      </Card>
-
-      <Card>
-        <LanguageSwitcher />
       </Card>
 
       {appointment.canCancel && (

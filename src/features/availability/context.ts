@@ -148,3 +148,39 @@ export function parseSlotRows(raw: unknown): Slot[] {
     };
   });
 }
+
+/**
+ * Why a slot is or is not bookable.
+ *
+ * `taken` and `unavailable` are distinct in the data and are deliberately
+ * shown identically to the public: telling a persistent observer which of the
+ * two a slot is tells them whether somebody has an appointment. The
+ * professional's own preview is where the difference is worth seeing.
+ */
+export const SLOT_STATES = ['available', 'taken', 'unavailable', 'past'] as const;
+export type SlotState = (typeof SLOT_STATES)[number];
+
+export interface DaySlot {
+  startsAt: Date;
+  endsAt: Date;
+  state: SlotState;
+}
+
+function asSlotState(value: unknown, path: string): SlotState {
+  if (typeof value === 'string' && (SLOT_STATES as readonly string[]).includes(value)) {
+    return value as SlotState;
+  }
+  throw new MalformedAvailabilityContextError(`${path} is not a slot state`);
+}
+
+/** Rows from `get_day_schedule`. */
+export function parseDaySlotRows(raw: unknown): DaySlot[] {
+  return asArray(raw, 'day').map((entry, index) => {
+    const row = asRecord(entry, `day[${index}]`);
+    return {
+      startsAt: asDate(row.starts_at ?? row.startsAt, `day[${index}].starts_at`),
+      endsAt: asDate(row.ends_at ?? row.endsAt, `day[${index}].ends_at`),
+      state: asSlotState(row.state, `day[${index}].state`),
+    };
+  });
+}

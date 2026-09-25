@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
-import { LanguageSwitcher } from '@/components/language-switcher';
 import { useRequiredWorkspace, useWorkspace } from '@/components/providers';
 import { Link } from 'expo-router';
 
@@ -190,12 +189,7 @@ export default function SettingsScreen() {
           autoCapitalize="none"
           keyboardType="email-address"
         />
-        <Field
-          label={t('settings.address')}
-          value={address}
-          onChangeText={setAddress}
-          multiline
-        />
+        <Field label={t('settings.address')} value={address} onChangeText={setAddress} multiline />
 
         <Select
           label={t('settings.timezone')}
@@ -262,12 +256,7 @@ export default function SettingsScreen() {
               onChangeText={setDisplayName}
               error={issueText(errors.displayName)}
             />
-            <Field
-              label={t('settings.shortBio')}
-              value={bio}
-              onChangeText={setBio}
-              multiline
-            />
+            <Field label={t('settings.shortBio')} value={bio} onChangeText={setBio} multiline />
             <ToggleRow
               label={t('settings.acceptingBookings')}
               description={t('settings.acceptingBookingsHint')}
@@ -301,7 +290,6 @@ export default function SettingsScreen() {
         </Link>
 
         <Card>
-          <LanguageSwitcher />
           <Text variant="caption" tone="muted">
             {t('language.hint')}
           </Text>

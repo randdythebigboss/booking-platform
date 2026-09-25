@@ -2,7 +2,6 @@ import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
-import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button, Card, Screen, Text } from '@/components/ui';
 import { isConfigured } from '@/lib/env';
 import { spacing } from '@/theme';
@@ -34,10 +33,6 @@ export default function LandingScreen() {
         <Text variant="body" tone="muted">
           {t('landing.forCustomersBody')}
         </Text>
-      </Card>
-
-      <Card>
-        <LanguageSwitcher />
       </Card>
 
       {!configured && (

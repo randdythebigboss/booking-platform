@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
-import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button, Card, Screen, Text } from '@/components/ui';
 import { useFormat } from '@/i18n/use-format';
 import { isConfigured } from '@/lib/env';
@@ -79,9 +78,6 @@ export default function PublicBusinessScreen() {
             {t('publicPage.notFoundBody')}
           </Text>
         </Card>
-        <Card>
-          <LanguageSwitcher />
-        </Card>
       </Screen>
     );
   }
@@ -153,10 +149,6 @@ export default function PublicBusinessScreen() {
       <Link href={`/p/${business.slug}/book`} asChild>
         <Button label={t('publicPage.book')} />
       </Link>
-
-      <Card>
-        <LanguageSwitcher />
-      </Card>
     </Screen>
   );
 }

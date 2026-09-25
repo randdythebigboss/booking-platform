@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
-import { Button, Feedback, Field, Text } from '@/components/ui';
-import { addDays, type Slot } from '@/features/availability';
-import { useFormat } from '@/i18n/use-format';
-import { fetchAvailableSlots } from '@/services/availability';
-import { radius, spacing, useTheme } from '@/theme';
+import { DatePicker } from '@/components/date-picker';
+import { DaySchedule } from '@/components/day-schedule';
+import { Feedback, Text } from '@/components/ui';
+import { addDays, isoDateIn, type DaySlot } from '@/features/availability';
+import { fetchDaySchedule } from '@/services/availability';
+import { spacing } from '@/theme';
 import type { IsoDate } from '@/types/domain';
 
 export interface SlotPickerProps {
@@ -19,21 +20,33 @@ export interface SlotPickerProps {
   /** ISO instant of the chosen slot, or null. */
   selected: string | null;
   onSelect: (startsAt: string) => void;
+  /** How far ahead this business lets people book. */
+  horizonDays?: number;
   /**
    * Bump to re-ask. A list fetched a minute ago may be offering a time that
    * has since gone, and the caller finds that out when a write is refused.
    */
   reloadKey?: number;
+  /**
+   * The professional's own screens may see *why* a time is unavailable. The
+   * public may not; see DaySchedule.
+   */
+  revealReason?: boolean;
 }
 
 /**
- * A day, and the times available on it.
+ * A day, and every time on it.
  *
- * Extracted because three screens now ask the same question -- a guest
- * booking, a guest moving their booking, a professional moving somebody
- * else's -- and the answer has to come from the same place each time. The
- * list is whatever `get_available_slots` returns and nothing else: the client
- * never computes availability, it only draws it.
+ * Extracted because three screens ask the same question -- a guest booking, a
+ * guest moving their booking, a professional moving somebody else's -- and the
+ * answer has to come from the same place each time. The list is whatever
+ * `get_day_schedule` returns and nothing else: the client never computes
+ * availability, it only draws it.
+ *
+ * It used to show only the free times, which made a quiet Tuesday and a nearly
+ * full one look identical, and it used to ask for the day as typed text. Both
+ * are now controls: a week of days you tap, and a day of times where the ones
+ * you cannot have are visibly there rather than silently absent.
  */
 export function SlotPicker({
   professionalId,
@@ -43,13 +56,13 @@ export function SlotPicker({
   onDateChange,
   selected,
   onSelect,
+  horizonDays = 60,
   reloadKey = 0,
+  revealReason = false,
 }: SlotPickerProps) {
-  const { palette } = useTheme();
   const { t } = useTranslation();
-  const format = useFormat();
 
-  const [slots, setSlots] = useState<Slot[]>([]);
+  const [slots, setSlots] = useState<DaySlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -58,7 +71,7 @@ export function SlotPicker({
     setLoading(true);
     setFailure(null);
 
-    fetchAvailableSlots({ professionalId, serviceId, date })
+    fetchDaySchedule({ professionalId, serviceId, date })
       .then((result) => {
         if (!cancelled) setSlots(result);
       })
@@ -76,75 +89,50 @@ export function SlotPicker({
     };
   }, [professionalId, serviceId, date, reloadKey, t]);
 
-  // The time the appointment already holds is never in this list: it is
-  // occupied, so the engine does not offer it. Every option here is a move.
+  // The time the appointment already holds shows as taken, not as free: the
+  // engine counts it as occupied, which it is. Every bookable option is a move.
+  const today = isoDateIn(new Date(), timezone);
+  const free = slots.filter((slot) => slot.state === 'available').length;
 
   return (
-    <View style={{ gap: spacing.sm }}>
-      <Field
-        label={t('reschedule.day')}
+    <View style={{ gap: spacing.md }}>
+      <DatePicker
+        label={t('common.chooseADay')}
         value={date}
-        onChangeText={onDateChange}
-        placeholder="2026-09-28"
-        autoCapitalize="none"
-        hint={t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
+        minDate={today}
+        maxDate={addDays(today, horizonDays)}
+        onChange={onDateChange}
       />
 
-      <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-        <Button
-          label={t('common.previousDay')}
-          variant="secondary"
-          style={{ flex: 1 }}
-          onPress={() => onDateChange(addDays(date, -1))}
-        />
-        <Button
-          label={t('common.nextDay')}
-          variant="secondary"
-          style={{ flex: 1 }}
-          onPress={() => onDateChange(addDays(date, 1))}
-        />
-      </View>
-
       <Text variant="caption" tone="muted">
-        {format.date(new Date(`${date}T12:00:00Z`), timezone)}
+        {t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
       </Text>
 
       {loading && <ActivityIndicator />}
       {failure && <Feedback tone="danger" message={failure} />}
 
       {!loading && !failure && slots.length === 0 && (
+        <Feedback tone="muted" message={t('schedule.nothingOpenThatDay')} />
+      )}
+
+      {!loading && !failure && slots.length > 0 && free === 0 && (
         <Feedback tone="muted" message={t('reschedule.noTimesThatDay')} />
       )}
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-        {slots.map((slot) => {
-          const iso = slot.startsAt.toISOString();
-          const chosen = iso === selected;
-          return (
-            <Pressable
-              key={iso}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: chosen, checked: chosen }}
-              aria-checked={chosen}
-              onPress={() => onSelect(iso)}
-              style={{
-                minWidth: 92,
-                alignItems: 'center',
-                paddingVertical: spacing.sm,
-                paddingHorizontal: spacing.md,
-                borderRadius: radius.md,
-                borderWidth: 1,
-                borderColor: chosen ? palette.accent : palette.border,
-                backgroundColor: chosen ? palette.accent : 'transparent',
-              }}
-            >
-              <Text variant="label" style={chosen ? { color: palette.accentText } : undefined}>
-                {format.time(slot.startsAt, timezone)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      {!loading && !failure && slots.length > 0 && (
+        <>
+          <Text variant="caption" tone="muted">
+            {t('schedule.freeCount', { count: free })}
+          </Text>
+          <DaySchedule
+            slots={slots}
+            selected={selected}
+            onSelect={onSelect}
+            timezone={timezone}
+            revealReason={revealReason}
+          />
+        </>
+      )}
     </View>
   );
 }

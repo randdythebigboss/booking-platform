@@ -49,9 +49,17 @@ test.describe('the installable web application', () => {
     await page.goto('/');
 
     await expect
-      .poll(async () => page.evaluate(() => navigator.serviceWorker.controller !== null || navigator.serviceWorker.getRegistrations().then((r) => r.length > 0)), {
-        timeout: 15_000,
-      })
+      .poll(
+        async () =>
+          page.evaluate(
+            () =>
+              navigator.serviceWorker.controller !== null ||
+              navigator.serviceWorker.getRegistrations().then((r) => r.length > 0),
+          ),
+        {
+          timeout: 15_000,
+        },
+      )
       .toBeTruthy();
   });
 

@@ -90,10 +90,7 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <Screen
-      title={t('onboarding.title')}
-      subtitle={t('onboarding.whatCustomersSee')}
-    >
+    <Screen title={t('onboarding.title')} subtitle={t('onboarding.whatCustomersSee')}>
       <View style={{ gap: spacing.md }}>
         <Field
           label={t('onboarding.businessName')}

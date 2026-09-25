@@ -19,12 +19,15 @@ import { recordErrorCode } from '@/lib/last-error';
  */
 export function useBookingErrorText(): (error: unknown) => string {
   const { t } = useTranslation();
-  return useCallback((error: unknown) => {
-    const { code } = toBookingError(error);
-    // Remembered for the diagnostics panel: a code, never the words.
-    recordErrorCode(code);
-    return t(`errors.booking.${code}`);
-  }, [t]);
+  return useCallback(
+    (error: unknown) => {
+      const { code } = toBookingError(error);
+      // Remembered for the diagnostics panel: a code, never the words.
+      recordErrorCode(code);
+      return t(`errors.booking.${code}`);
+    },
+    [t],
+  );
 }
 
 export function useWorkspaceErrorText(): (error: unknown) => string {

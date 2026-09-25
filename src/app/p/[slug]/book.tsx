@@ -5,10 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { useLocale } from '@/components/providers';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { DatePicker } from '@/components/date-picker';
+import { DaySchedule } from '@/components/day-schedule';
 import { OfflineNotice } from '@/components/offline-notice';
 import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
-import { isoDateIn, type Slot } from '@/features/availability';
+import { addDays, isoDateIn, type DaySlot } from '@/features/availability';
 import {
   BOOKING_STEPS,
   EMPTY_SELECTION,
@@ -26,7 +27,7 @@ import { useBookingErrorText } from '@/i18n/use-error-text';
 import { useFormat } from '@/i18n/use-format';
 import { useIssueText } from '@/i18n/use-issue-text';
 import { useAsyncData } from '@/hooks/use-async-data';
-import { fetchAvailableSlots } from '@/services/availability';
+import { fetchDaySchedule } from '@/services/availability';
 import { bookAppointment } from '@/services/booking';
 import { fetchPublicBusiness, type PublicBusiness } from '@/services/catalog';
 import { fetchPaymentCapabilities } from '@/services/payments';
@@ -57,7 +58,7 @@ export default function BookScreen() {
   const [professionalId, setProfessionalId] = useState<string | null>(null);
   const [selection, setSelection] = useState<BookingSelection>(EMPTY_SELECTION);
 
-  const [slots, setSlots] = useState<Slot[]>([]);
+  const [slots, setSlots] = useState<DaySlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotsError, setSlotsError] = useState<string | null>(null);
   const [slotsNonce, setSlotsNonce] = useState(0);
@@ -106,7 +107,7 @@ export default function BookScreen() {
     setSlotsLoading(true);
     setSlotsError(null);
 
-    fetchAvailableSlots({
+    fetchDaySchedule({
       professionalId,
       serviceId: selection.serviceId,
       date: selection.date,
@@ -114,11 +115,18 @@ export default function BookScreen() {
       .then((result) => {
         if (cancelled) return;
         setSlots(result);
-        setSelection((current) => reconcileSlot(current, result));
+        // A time that was free when the page loaded may not be now, so the
+        // chosen one is re-checked against what just came back.
+        setSelection((current) =>
+          reconcileSlot(
+            current,
+            result.filter((slot) => slot.state === 'available'),
+          ),
+        );
       })
       .catch(() => {
         if (cancelled) return;
-        setSlotsError('We could not load the available times. Please try again.');
+        setSlotsError(t('booking.couldNotLoadTimes'));
         setSlots([]);
       })
       .finally(() => {
@@ -128,7 +136,7 @@ export default function BookScreen() {
     return () => {
       cancelled = true;
     };
-  }, [professionalId, selection.serviceId, selection.date, slotsNonce]);
+  }, [professionalId, selection.serviceId, selection.date, slotsNonce, t]);
 
   if (page.kind === 'loading') {
     return (
@@ -139,9 +147,7 @@ export default function BookScreen() {
   }
 
   if (page.kind === 'missing') {
-    return (
-      <Screen title={t('publicPage.notFound')} subtitle={t('publicPage.linkNotAvailable')} />
-    );
+    return <Screen title={t('publicPage.notFound')} subtitle={t('publicPage.linkNotAvailable')} />;
   }
 
   if (page.kind === 'error') {
@@ -154,24 +160,18 @@ export default function BookScreen() {
 
   const business = page.business;
   const timezone = business.timezone;
+  // Today where the shop is, not where the phone is. A customer five time
+  // zones away must not be offered a day that has already ended there.
+  const today = isoDateIn(new Date(), timezone);
+  const freeCount = slots.filter((slot) => slot.state === 'available').length;
   const service = business.services.find((entry) => entry.id === selection.serviceId) ?? null;
-  const professional =
-    business.professionals.find((entry) => entry.id === professionalId) ?? null;
+  const professional = business.professionals.find((entry) => entry.id === professionalId) ?? null;
 
   const step = currentStep(selection);
-  const reached = (target: BookingSelection extends never ? never : (typeof BOOKING_STEPS)[number]) =>
-    BOOKING_STEPS.indexOf(target) <= BOOKING_STEPS.indexOf(step);
+  const reached = (
+    target: BookingSelection extends never ? never : (typeof BOOKING_STEPS)[number],
+  ) => BOOKING_STEPS.indexOf(target) <= BOOKING_STEPS.indexOf(step);
   const customerErrors = showErrors ? validateCustomer(selection.customer) : {};
-
-  function shiftDate(days: number) {
-    setSelection((current) => {
-      if (!current.date) return current;
-      const next = new Date(`${current.date}T12:00:00Z`);
-      next.setUTCDate(next.getUTCDate() + days);
-      const iso = next.toISOString().slice(0, 10);
-      return iso === current.date ? current : { ...current, date: iso, slotStartsAt: null };
-    });
-  }
 
   async function confirm() {
     if (!professionalId || !selection.serviceId || !selection.slotStartsAt) return;
@@ -302,30 +302,18 @@ export default function BookScreen() {
       {reached('date') && (
         <Card>
           <Text variant="heading">{t('booking.chooseDate')}</Text>
-          <Field
-            label={t('booking.date')}
-            value={selection.date ?? ''}
-            onChangeText={(value) =>
-              setSelection((current) => ({ ...current, date: value, slotStartsAt: null }))
+          <DatePicker
+            label={t('common.chooseADay')}
+            value={selection.date ?? today}
+            minDate={today}
+            maxDate={addDays(today, business.bookingHorizonDays)}
+            onChange={(date) =>
+              setSelection((current) => ({ ...current, date, slotStartsAt: null }))
             }
-            placeholder="2026-09-28"
-            autoCapitalize="none"
-            hint={t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
           />
-          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-            <Button
-              label={t('common.previousDay')}
-              variant="secondary"
-              style={{ flex: 1 }}
-              onPress={() => shiftDate(-1)}
-            />
-            <Button
-              label={t('common.nextDay')}
-              variant="secondary"
-              style={{ flex: 1 }}
-              onPress={() => shiftDate(1)}
-            />
-          </View>
+          <Text variant="caption" tone="muted">
+            {t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
+          </Text>
         </Card>
       )}
 
@@ -340,38 +328,26 @@ export default function BookScreen() {
           {slotsError && <Feedback tone="danger" message={slotsError} />}
 
           {!slotsLoading && !slotsError && slots.length === 0 && (
+            <Feedback tone="muted" message={t('schedule.nothingOpenThatDay')} />
+          )}
+
+          {!slotsLoading && !slotsError && slots.length > 0 && freeCount === 0 && (
             <Feedback tone="muted" message={t('booking.noTimesThatDay')} />
           )}
 
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-            {slots.map((slot) => {
-              const iso = slot.startsAt.toISOString();
-              const chosen = iso === selection.slotStartsAt;
-              return (
-                <Pressable
-                  key={iso}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: chosen, checked: chosen }}
-                  aria-checked={chosen}
-                  onPress={() => setSelection((current) => selectSlot(current, iso))}
-                  style={{
-                    minWidth: 92,
-                    alignItems: 'center',
-                    paddingVertical: spacing.sm,
-                    paddingHorizontal: spacing.md,
-                    borderRadius: radius.md,
-                    borderWidth: 1,
-                    borderColor: chosen ? palette.accent : palette.border,
-                    backgroundColor: chosen ? palette.accent : 'transparent',
-                  }}
-                >
-                  <Text variant="label" style={chosen ? { color: palette.accentText } : undefined}>
-                    {format.time(slot.startsAt, timezone)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          {!slotsLoading && !slotsError && slots.length > 0 && (
+            <>
+              <Text variant="caption" tone="muted">
+                {t('schedule.freeCount', { count: freeCount })}
+              </Text>
+              <DaySchedule
+                slots={slots}
+                selected={selection.slotStartsAt}
+                onSelect={(iso) => setSelection((current) => selectSlot(current, iso))}
+                timezone={timezone}
+              />
+            </>
+          )}
         </Card>
       )}
 
@@ -500,10 +476,6 @@ export default function BookScreen() {
         <Text variant="caption" tone="muted">
           {t('booking.livePromise', { business: business.name })}
         </Text>
-      </Card>
-
-      <Card>
-        <LanguageSwitcher />
       </Card>
     </Screen>
   );

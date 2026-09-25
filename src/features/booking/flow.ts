@@ -30,10 +30,7 @@ export const EMPTY_SELECTION: BookingSelection = {
 };
 
 /** Availability differs per service, so the chosen time cannot survive. */
-export function selectService(
-  selection: BookingSelection,
-  serviceId: string,
-): BookingSelection {
+export function selectService(selection: BookingSelection, serviceId: string): BookingSelection {
   if (selection.serviceId === serviceId) return selection;
   return { ...selection, serviceId, slotStartsAt: null };
 }

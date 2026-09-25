@@ -113,7 +113,7 @@ const es: Record<TemplateKey, Template> = {
       .filter((line) => line !== null)
       .join('\n'),
   }),
-'payment.received': (context) => ({
+  'payment.received': (context) => ({
     subject: `Recibimos tu pago para ${context.businessName}`,
     body: [
       `Hola ${context.customerName}:`,
@@ -246,7 +246,7 @@ const en: Record<TemplateKey, Template> = {
       .filter((line) => line !== null)
       .join('\n'),
   }),
-'payment.received': (context) => ({
+  'payment.received': (context) => ({
     subject: `We received your payment for ${context.businessName}`,
     body: [
       `Hello ${context.customerName},`,

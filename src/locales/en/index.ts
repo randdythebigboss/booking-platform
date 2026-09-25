@@ -26,6 +26,9 @@ export const en: Translations = {
     previousDay: 'Previous day',
     nextDay: 'Next day',
     timesShownIn: 'Times are shown in {{timezone}}.',
+    previousWeek: 'Previous week',
+    nextWeek: 'Next week',
+    chooseADay: 'Choose a day',
   },
 
   language: {
@@ -46,8 +49,7 @@ export const en: Translations = {
     forProfessionalsBody:
       'Barbers, stylists, manicurists, trainers, tutors, photographers, consultants, masseurs or technicians. One person or a team.',
     forCustomers: 'For customers',
-    forCustomersBody:
-      'Open the link, pick a service and a time, done. No account to create.',
+    forCustomersBody: 'Open the link, pick a service and a time, done. No account to create.',
   },
 
   auth: {
@@ -71,7 +73,8 @@ export const en: Translations = {
 
   onboarding: {
     whatCustomersSee: 'This is what customers see when you share your link.',
-    nothingPublicYet: 'Nothing is public yet. Your page goes live only when you publish it from Settings.',
+    nothingPublicYet:
+      'Nothing is public yet. Your page goes live only when you publish it from Settings.',
     timezoneShown: 'Every appointment time is shown in this zone.',
     displayNamePicked: 'Customers pick this person when they book.',
     displayNameLabel: 'Your name as a professional',
@@ -274,7 +277,8 @@ export const en: Translations = {
 
   availability: {
     exceptionsHelp: 'Close a single date, or open it with different hours.',
-    dateSpecificBody: 'The weekly schedule above is the norm. Everything else is an exception to it.',
+    dateSpecificBody:
+      'The weekly schedule above is the norm. Everything else is an exception to it.',
     dateSpecific: 'Date-specific changes',
     saveWeekly: 'Save weekly hours',
     savedWeekly: 'Your weekly hours are saved.',
@@ -320,7 +324,8 @@ export const en: Translations = {
     reasonExample: 'Personal appointment',
     upcoming: 'Upcoming blocks',
     blocked: 'That period is blocked.',
-    useExceptionInstead: 'To close a whole day instead, use Exceptions: that changes what your schedule says, rather than carving a hole in it.',
+    useExceptionInstead:
+      'To close a whole day instead, use Exceptions: that changes what your schedule says, rather than carving a hole in it.',
     title: 'Blocks',
     subtitle: 'Periods inside a day when you are not available.',
     add: 'Block a period',
@@ -331,8 +336,7 @@ export const en: Translations = {
     reasonPlaceholder: 'Equipment delivery',
     empty: 'You have no blocks.',
     remove: 'Remove',
-    wholeDayHint:
-      'For a whole day off use an exception, not a block from midnight to midnight.',
+    wholeDayHint: 'For a whole day off use an exception, not a block from midnight to midnight.',
   },
 
   exceptions: {
@@ -340,7 +344,8 @@ export const en: Translations = {
     openFromTo: 'Open {{start}} to {{end}}',
     noneApplyWeekly: 'No exceptions. Your weekly schedule applies to every date.',
     holidayExample: 'Holiday',
-    customHoursNote: 'Custom hours replace that day\'s normal hours entirely. To take a couple of hours out of an otherwise normal day, use Blocks instead.',
+    customHoursNote:
+      "Custom hours replace that day's normal hours entirely. To take a couple of hours out of an otherwise normal day, use Blocks instead.",
     whatChanges: 'What changes',
     save: 'Save exception',
     closedAllDay: 'Closed all day',
@@ -366,7 +371,8 @@ export const en: Translations = {
 
   preview: {
     notBookable: 'Your account is not set up as a bookable professional in this business yet.',
-    checkSchedule: 'No times available. Check the weekly schedule, exceptions and blocks for this date.',
+    checkSchedule:
+      'No times available. Check the weekly schedule, exceptions and blocks for this date.',
     noActiveServices: 'No active services yet, so there is nothing to offer.',
     title: 'Preview',
     subtitle: 'Exactly the times your public page would offer.',
@@ -420,8 +426,7 @@ export const en: Translations = {
     minimumNotice: 'Minimum notice (minutes)',
     bookingHorizon: 'Bookable this far ahead (days)',
     autoConfirm: 'Confirm bookings automatically',
-    autoConfirmHint:
-      'Turn this off and every booking arrives as pending until you confirm it.',
+    autoConfirmHint: 'Turn this off and every booking arrives as pending until you confirm it.',
     published: 'Public page published',
     publishedHint: 'While this is off, nobody can book with you.',
     profile: 'Your profile',
@@ -434,14 +439,14 @@ export const en: Translations = {
   publicPage: {
     linkNotAvailable: 'This booking link is not available.',
     noPublishedBusiness: 'No published business at /p/{{slug}}.',
-    unconfiguredBody: 'This page reads live data. Copy .env.example to .env.local, point it at a Supabase project with the migrations applied, and reload.',
+    unconfiguredBody:
+      'This page reads live data. Copy .env.example to .env.local, point it at a Supabase project with the migrations applied, and reload.',
     bookWithUs: 'Book an appointment. No account needed.',
     services: 'Services',
     professionals: 'Who with',
     book: 'Book',
     notFound: 'We could not find this page',
-    notFoundBody:
-      'The link may be wrong, or the business may have stopped publishing its page.',
+    notFoundBody: 'The link may be wrong, or the business may have stopped publishing its page.',
     couldNotLoad: 'We could not load this page. Please try again.',
     whereToGo: 'Where to go',
   },
@@ -514,8 +519,7 @@ export const en: Translations = {
     failedAt: 'Failed {{when}}',
     attempts_one: '{{count}} attempt',
     attempts_other: '{{count}} attempts',
-    developmentDelivery:
-      'Nothing leaves here yet: in development a mock provider delivers them.',
+    developmentDelivery: 'Nothing leaves here yet: in development a mock provider delivers them.',
     kind: {
       booking_created: 'New booking',
       payment_received: 'Payment received',
@@ -546,8 +550,10 @@ export const en: Translations = {
     demoNotice: 'Demo payment — no real charge will be made.',
     demoCompleted: 'Demo payment completed.',
     unavailableService: 'Cannot be booked online',
-    unavailableExplainer: 'This service asks for a payment up front and we cannot take one right now. Contact the business to book it.',
-    policyLocked: 'Payments are not available in this environment, so a service cannot ask to be paid up front.',
+    unavailableExplainer:
+      'This service asks for a payment up front and we cannot take one right now. Contact the business to book it.',
+    policyLocked:
+      'Payments are not available in this environment, so a service cannot ask to be paid up front.',
     title: 'Payment',
     dueNow: 'Due now',
     servicePrice: 'Service price',
@@ -609,6 +615,98 @@ export const en: Translations = {
     privacyNote: 'This screen shows no customer data, no passwords, no keys and no booking links.',
   },
 
+  schedule: {
+    legendTitle: 'What each time means',
+    available: 'Free',
+    taken: 'Taken',
+    past: 'Gone',
+    closed: 'Closed',
+    showFullDay: 'Show the whole day',
+    showOnlyFree: 'Show only free times',
+    fullDayHint: 'A taken time never says whose it is.',
+    nothingOpenThatDay: 'No hours that day. Try another one.',
+    freeCount_one: '{{count}} free time',
+    freeCount_other: '{{count}} free times',
+  },
+  setup: {
+    title: 'Get your business running',
+    subtitle: 'Five steps. You can come back to any of them.',
+    stepBusiness: 'Business details',
+    stepBusinessHint: 'Name, address, timezone and currency.',
+    stepServices: 'Your services',
+    stepServicesHint: 'What you offer, how long it takes and what it costs.',
+    stepSchedule: 'Your hours',
+    stepScheduleHint: 'The days and times you work.',
+    stepReview: 'Check your availability',
+    stepReviewHint: 'See what a customer will see before you publish it.',
+    stepShare: 'Share your link',
+    stepShareHint: 'One address people book you with.',
+    done: 'Done',
+    pending: 'To do',
+    allDone: 'All set. Your page is published and ready to take bookings.',
+    progress: '{{done}} of {{total}} steps',
+    hide: 'Hide this guide',
+    show: 'Show the setup guide',
+  },
+  messages: {
+    title: 'Messages',
+    withCustomer: 'Messages with {{name}}',
+    withBusiness: 'Messages with {{name}}',
+    subtitle: 'Everything either of you writes about this appointment stays here.',
+    empty: 'No messages yet.',
+    emptyHintProfessional: 'Write if you need to move the appointment or tell them something.',
+    emptyHintCustomer: 'Write if you need to say something about your appointment.',
+    placeholder: 'Write a message',
+    send: 'Send',
+    sending: 'Sending',
+    you: 'You',
+    fromProfessional: '{{name}} (the business)',
+    fromCustomer: '{{name}} (customer)',
+    unread_one: '{{count}} unread message',
+    unread_other: '{{count}} unread messages',
+    couldNotSend: 'We could not send your message. Please try again.',
+    couldNotLoad: 'We could not load the messages.',
+    stayInApp: 'Messages stay in here. Nothing is sent by email or WhatsApp.',
+    openThread: 'Open messages',
+  },
+  account: {
+    title: 'My account',
+    myAppointments: 'My appointments',
+    subtitle: 'All your appointments, in one place.',
+    none: 'You have no appointments yet.',
+    noneHint: 'Once you book, they will show up here.',
+    signInTitle: 'Sign in',
+    signInSubtitle: 'To see your appointments and your messages.',
+    signUpTitle: 'Create your account',
+    signUpSubtitle: 'Optional. You do not need one to book.',
+    createOne: 'No account yet? Create one',
+    haveOne: 'Already have an account? Sign in',
+    continueAsGuest: 'Continue without an account',
+    guestExplainer:
+      'You can book without an account. An account only helps you find your appointments later.',
+    saveThisBooking: 'Save this appointment to my account',
+    saved: 'Saved to your account.',
+    couldNotSave: 'We could not save it to your account.',
+    alreadyClaimed: 'This appointment already belongs to another account.',
+    viewAppointment: 'View the appointment',
+    signedInAs: 'Signed in as {{email}}',
+    forProfessionals: 'Are you a professional? Sign in here',
+    forCustomers: 'Are you a customer? Sign in here',
+    upcoming: 'Upcoming',
+    pastAppointments: 'Past',
+  },
+  azul: {
+    payWithAzul: 'Pay with Azul',
+    title: 'Azul — coming soon',
+    body: 'Card payment through Azul is not available yet. It is a premium capability that will arrive later.',
+    noCharge: 'Nothing has been charged and no payment is in progress.',
+    forNow: 'For now, arrange payment directly with the business.',
+    settingsTitle: 'Card payments (Azul)',
+    settingsBody:
+      'When it is available you will be able to connect your own Azul account and take payment online. Each business uses its own account; the platform never collects on your behalf or holds your money.',
+    settingsStatus: 'Not available yet',
+    understood: 'Got it',
+  },
   validation: {
     'policy.horizon': 'Use a whole number of days, between 0 and 365.',
     'policy.minimumNotice': 'Use a whole number of minutes, zero or more.',
@@ -668,7 +766,8 @@ export const en: Translations = {
       APPOINTMENT_ALREADY_STARTED: 'This appointment has already started.',
       APPOINTMENT_NOT_RESCHEDULABLE: 'This appointment can no longer be changed.',
       CARD_DECLINED: 'The bank declined that card. Try another one.',
-      PAYMENT_HOLD_EXPIRED: 'The time to pay ran out and the slot was released. Please pick another time.',
+      PAYMENT_HOLD_EXPIRED:
+        'The time to pay ran out and the slot was released. Please pick another time.',
       PAYMENT_PROVIDER_UNAVAILABLE: 'We could not reach the payment processor. Please try again.',
       PAYMENT_SIMULATION_DISABLED: 'Simulated payments are not enabled here.',
       NO_PAYMENT_DUE: 'This appointment has nothing left to pay.',
@@ -706,8 +805,7 @@ export const en: Translations = {
       CUSTOMER_NAME_REQUIRED: 'Enter the customer name.',
       CUSTOMER_PHONE_REQUIRED: 'Enter a phone number.',
       SLOT_TAKEN: 'There is already an appointment at that time.',
-      SLOT_BLOCKED:
-        'You blocked that period. Remove the block first if you want to book over it.',
+      SLOT_BLOCKED: 'You blocked that period. Remove the block first if you want to book over it.',
       OUTSIDE_AVAILABILITY:
         'That falls outside your working hours. Allow it explicitly if you meant to.',
       INVALID_TIMEZONE: 'That is not a timezone we recognise.',

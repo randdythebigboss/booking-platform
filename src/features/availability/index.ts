@@ -7,10 +7,14 @@ export {
 } from './slots';
 export {
   parseAvailabilityContext,
+  parseDaySlotRows,
   parseSlotRows,
   slotsForDate,
+  SLOT_STATES,
   MalformedAvailabilityContextError,
   type AvailabilityContext,
+  type DaySlot,
+  type SlotState,
 } from './context';
 export { contains, normalize, overlaps, subtract, type Interval } from './intervals';
 export {

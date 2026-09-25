@@ -32,11 +32,7 @@
  *     currency: DOP and USD get two, JPY gets none, KWD gets three. Hardcoding
  *     two would be right until the first business that is not in this region.
  */
-export function formatMoney(
-  amount: string | number,
-  currency: string,
-  locale: string,
-): string {
+export function formatMoney(amount: string | number, currency: string, locale: string): string {
   // Parsed once, for display only. Any amount this product will see is far
   // inside the range a double represents exactly, and nothing downstream does
   // arithmetic with it.

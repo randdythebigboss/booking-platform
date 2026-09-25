@@ -1,8 +1,4 @@
-import {
-  parseGuestAppointment,
-  toBookingError,
-  type GuestAppointment,
-} from '@/features/booking';
+import { parseGuestAppointment, toBookingError, type GuestAppointment } from '@/features/booking';
 import { getSupabase } from '@/lib/supabase';
 import type { AppointmentStatus } from '@/types/domain';
 

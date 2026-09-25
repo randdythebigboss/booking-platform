@@ -22,6 +22,14 @@ declare
     'get_availability_context',
     'get_payment_by_token',
     'get_available_slots',
+    -- The whole shape of a day, with a state per slot and nothing about the
+    -- appointment behind a busy one.
+    'get_day_schedule',
+    -- The guest's own conversation. The booking credential is the guest's
+    -- only identity, and each of these checks it before doing anything.
+    'get_appointment_messages_by_token',
+    'send_appointment_message_by_token',
+    'mark_messages_read_by_token',
     'is_business_public',
     'payment_capabilities',
     'payments_are_available',
@@ -37,6 +45,9 @@ declare
   -- ...and a signed-in professional, these as well.
   c_professional constant text[] := array[
     'can_manage_professional',
+    -- Both answer questions about auth.uid(), which anon does not have.
+    'claim_appointment',
+    'my_appointments',
     'create_business',
     'create_manual_appointment',
     'is_business_manager',

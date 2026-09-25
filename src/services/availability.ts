@@ -1,7 +1,9 @@
 import {
   parseAvailabilityContext,
+  parseDaySlotRows,
   parseSlotRows,
   type AvailabilityContext,
+  type DaySlot,
   type Slot,
 } from '@/features/availability';
 import { getSupabase } from '@/lib/supabase';
@@ -51,4 +53,31 @@ export async function fetchAvailableSlots(params: {
 
   if (error) throw error;
   return parseSlotRows(data ?? []);
+}
+
+/**
+ * Every slot in a day, each with why it can or cannot be booked.
+ *
+ * `fetchAvailableSlots` answers "what may I book?"; this answers "what does
+ * this day look like?". A customer shown four times out of an eight-hour day
+ * cannot tell whether the shop is busy or barely open, and the difference
+ * changes what they do next.
+ *
+ * The database returns a state and nothing else about a busy slot -- no name,
+ * no service, no id, not even a count. That is deliberate and is the only
+ * privacy-safe way to show a full calendar to the public.
+ */
+export async function fetchDaySchedule(params: {
+  professionalId: string;
+  serviceId: string;
+  date: IsoDate;
+}): Promise<DaySlot[]> {
+  const { data, error } = await getSupabase().rpc('get_day_schedule', {
+    p_professional_id: params.professionalId,
+    p_service_id: params.serviceId,
+    p_date: params.date,
+  });
+
+  if (error) throw error;
+  return parseDaySlotRows(data);
 }

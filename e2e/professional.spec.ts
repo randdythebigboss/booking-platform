@@ -39,7 +39,10 @@ test.describe('a professional runs their day', () => {
 
   test('changes an appointment status, and the database agrees', async ({ page }) => {
     await page.goto('/app/appointments');
-    await page.getByRole('link', { name: /\d{1,2}:\d{2}/ }).first().click();
+    await page
+      .getByRole('link', { name: /\d{1,2}:\d{2}/ })
+      .first()
+      .click();
     await page.waitForURL(/\/app\/appointments\/[0-9a-f-]+/);
 
     const id = page.url().split('/appointments/')[1]?.split(/[?#]/)[0] ?? '';

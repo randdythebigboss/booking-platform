@@ -29,6 +29,9 @@ export const es = {
     previousDay: 'Día anterior',
     nextDay: 'Día siguiente',
     timesShownIn: 'Las horas se muestran en {{timezone}}.',
+    previousWeek: 'Semana anterior',
+    nextWeek: 'Semana siguiente',
+    chooseADay: 'Elige un día',
   },
 
   language: {
@@ -67,16 +70,15 @@ export const es = {
     signInSubtitle: 'Gestiona tus servicios, tus horarios y tus citas.',
     signUpSubtitle: 'Empieza a recibir reservas con un solo enlace.',
     checkYourEmail: 'Revisa tu correo',
-    confirmationSent:
-      'Te enviamos un enlace de confirmación. Ábrelo y después inicia sesión.',
+    confirmationSent: 'Te enviamos un enlace de confirmación. Ábrelo y después inicia sesión.',
     notConfigured: 'Supabase no está configurado',
-    notConfiguredBody:
-      'Copia .env.example a .env.local y reinicia el servidor de desarrollo.',
+    notConfiguredBody: 'Copia .env.example a .env.local y reinicia el servidor de desarrollo.',
   },
 
   onboarding: {
     whatCustomersSee: 'Esto es lo que ven tus clientes cuando compartes tu enlace.',
-    nothingPublicYet: 'Todavía no hay nada público. Tu página se publica solo cuando la publiques desde Ajustes.',
+    nothingPublicYet:
+      'Todavía no hay nada público. Tu página se publica solo cuando la publiques desde Ajustes.',
     timezoneShown: 'Todas las horas de las citas se muestran en esta zona.',
     displayNamePicked: 'Tus clientes eligen a esta persona al reservar.',
     displayNameLabel: 'Tu nombre como profesional',
@@ -150,8 +152,7 @@ export const es = {
     cancelledSlotReleased: 'Esta cita está cancelada y su hora quedó libre.',
     reasonOptional: 'Motivo (opcional)',
     reasonPlaceholder: 'El cliente llamó para cancelar',
-    afterStartHint:
-      'Completada y no asistió se habilitan cuando la cita ya haya empezado.',
+    afterStartHint: 'Completada y no asistió se habilitan cuando la cita ya haya empezado.',
     status_pending: 'Pendiente',
     status_confirmed: 'Confirmada',
     status_completed: 'Completada',
@@ -300,7 +301,8 @@ export const es = {
     noWindows: 'Cerrado ese día.',
     removeWindow: 'Quitar',
     addWindow: 'Añadir tramo',
-    notBookable: 'Tu cuenta todavía no está configurada como profesional con reservas en este negocio.',
+    notBookable:
+      'Tu cuenta todavía no está configurada como profesional con reservas en este negocio.',
     title: 'Disponibilidad',
     subtitle: 'Tu horario semanal, y las excepciones.',
     weekly: 'Horario semanal',
@@ -327,11 +329,13 @@ export const es = {
   },
 
   blocks: {
-    notBookable: 'Tu cuenta todavía no está configurada como profesional con reservas en este negocio.',
+    notBookable:
+      'Tu cuenta todavía no está configurada como profesional con reservas en este negocio.',
     reasonExample: 'Cita personal',
     upcoming: 'Próximos bloqueos',
     blocked: 'Ese rato quedó bloqueado.',
-    useExceptionInstead: 'Para cerrar un día entero usa las Excepciones: eso cambia lo que dice tu horario, en lugar de abrir un hueco en él.',
+    useExceptionInstead:
+      'Para cerrar un día entero usa las Excepciones: eso cambia lo que dice tu horario, en lugar de abrir un hueco en él.',
     title: 'Bloqueos',
     subtitle: 'Ratos en los que no estás disponible dentro de un día.',
     add: 'Bloquear un rato',
@@ -342,8 +346,7 @@ export const es = {
     reasonPlaceholder: 'Entrega de material',
     empty: 'No tienes ningún bloqueo.',
     remove: 'Quitar',
-    wholeDayHint:
-      'Para un día entero usa una excepción, no un bloqueo de medianoche a medianoche.',
+    wholeDayHint: 'Para un día entero usa una excepción, no un bloqueo de medianoche a medianoche.',
   },
 
   exceptions: {
@@ -351,11 +354,13 @@ export const es = {
     openFromTo: 'Abierto de {{start}} a {{end}}',
     noneApplyWeekly: 'No hay excepciones. Tu horario semanal se aplica a todas las fechas.',
     holidayExample: 'Día festivo',
-    customHoursNote: 'Un horario distinto sustituye por completo el horario normal de ese día. Para quitar un par de horas de un día por lo demás normal, usa los Bloqueos.',
+    customHoursNote:
+      'Un horario distinto sustituye por completo el horario normal de ese día. Para quitar un par de horas de un día por lo demás normal, usa los Bloqueos.',
     whatChanges: 'Qué cambia',
     save: 'Guardar excepción',
     closedAllDay: 'Cerrado todo el día',
-    notBookable: 'Tu cuenta todavía no está configurada como profesional con reservas en este negocio.',
+    notBookable:
+      'Tu cuenta todavía no está configurada como profesional con reservas en este negocio.',
     upcoming: 'Próximas excepciones',
     saved: 'Excepción guardada.',
     title: 'Excepciones',
@@ -376,8 +381,10 @@ export const es = {
   },
 
   preview: {
-    notBookable: 'Tu cuenta todavía no está configurada como profesional con reservas en este negocio.',
-    checkSchedule: 'No hay horas disponibles. Revisa el horario semanal, las excepciones y los bloqueos de esa fecha.',
+    notBookable:
+      'Tu cuenta todavía no está configurada como profesional con reservas en este negocio.',
+    checkSchedule:
+      'No hay horas disponibles. Revisa el horario semanal, las excepciones y los bloqueos de esa fecha.',
     noActiveServices: 'No tienes servicios activos, así que no hay nada que ofrecer.',
     title: 'Vista previa',
     subtitle: 'Exactamente las horas que ofrecería tu página pública.',
@@ -412,7 +419,8 @@ export const es = {
     bookingHorizonHint: 'Con cuánta antelación pueden reservar tus clientes.',
     minimumNoticeHint: 'Con cuánta antelación como mínimo se puede reservar.',
     slotIntervalHint: 'Cada cuánto se ofrecen las horas de inicio.',
-    timezoneKeepsMoment: 'Las citas que ya existen conservan el momento exacto para el que se reservaron.',
+    timezoneKeepsMoment:
+      'Las citas que ya existen conservan el momento exacto para el que se reservaron.',
     descriptionPlaceholder: 'Lo que haces, en una frase.',
     slugWarning: 'Si lo cambias, cualquier enlace que ya hayas compartido dejará de funcionar.',
     save: 'Guardar cambios',
@@ -445,7 +453,8 @@ export const es = {
   publicPage: {
     linkNotAvailable: 'Este enlace de reservas no está disponible.',
     noPublishedBusiness: 'No hay ningún negocio publicado en /p/{{slug}}.',
-    unconfiguredBody: 'Esta página lee datos en vivo. Copia .env.example a .env.local, apúntalo a un proyecto de Supabase con las migraciones aplicadas y recarga.',
+    unconfiguredBody:
+      'Esta página lee datos en vivo. Copia .env.example a .env.local, apúntalo a un proyecto de Supabase con las migraciones aplicadas y recarga.',
     bookWithUs: 'Reservar una cita. Sin cuenta.',
     services: 'Servicios',
     professionals: 'Con quién',
@@ -557,8 +566,10 @@ export const es = {
     demoNotice: 'Pago de demostración — no se realizará ningún cargo real.',
     demoCompleted: 'Pago de demostración completado.',
     unavailableService: 'No se puede reservar en línea',
-    unavailableExplainer: 'Este servicio pide un pago por adelantado y ahora mismo no podemos cobrarlo. Escríbele al negocio para reservarlo.',
-    policyLocked: 'Los pagos no están disponibles en este entorno, así que no puedes pedir un pago por adelantado.',
+    unavailableExplainer:
+      'Este servicio pide un pago por adelantado y ahora mismo no podemos cobrarlo. Escríbele al negocio para reservarlo.',
+    policyLocked:
+      'Los pagos no están disponibles en este entorno, así que no puedes pedir un pago por adelantado.',
     title: 'Pago',
     dueNow: 'A pagar ahora',
     servicePrice: 'Precio del servicio',
@@ -617,9 +628,102 @@ export const es = {
     timezone: 'Zona horaria',
     lastError: 'Último error',
     noErrors: 'Ninguno en esta sesión',
-    privacyNote: 'Esta pantalla no muestra datos de clientes, ni contraseñas, ni claves, ni enlaces de reserva.',
+    privacyNote:
+      'Esta pantalla no muestra datos de clientes, ni contraseñas, ni claves, ni enlaces de reserva.',
   },
 
+  schedule: {
+    legendTitle: 'Qué significa cada hora',
+    available: 'Libre',
+    taken: 'Ocupado',
+    past: 'Ya pasó',
+    closed: 'Cerrado',
+    showFullDay: 'Ver el día completo',
+    showOnlyFree: 'Ver solo las horas libres',
+    fullDayHint: 'Las horas ocupadas no dicen de quién son.',
+    nothingOpenThatDay: 'Ese día no hay horario. Prueba con otro.',
+    freeCount_one: '{{count}} hora libre',
+    freeCount_other: '{{count}} horas libres',
+  },
+  setup: {
+    title: 'Pon tu negocio en marcha',
+    subtitle: 'Cinco pasos. Puedes volver a cualquiera cuando quieras.',
+    stepBusiness: 'Datos del negocio',
+    stepBusinessHint: 'Nombre, dirección, zona horaria y moneda.',
+    stepServices: 'Tus servicios',
+    stepServicesHint: 'Qué ofreces, cuánto dura y cuánto cuesta.',
+    stepSchedule: 'Tu horario',
+    stepScheduleHint: 'Los días y las horas en que atiendes.',
+    stepReview: 'Revisa tu disponibilidad',
+    stepReviewHint: 'Mira lo que verá un cliente antes de publicarlo.',
+    stepShare: 'Comparte tu enlace',
+    stepShareHint: 'Una sola dirección para que te reserven.',
+    done: 'Listo',
+    pending: 'Pendiente',
+    allDone: 'Todo listo. Tu página está publicada y lista para recibir reservas.',
+    progress: '{{done}} de {{total}} pasos',
+    hide: 'Ocultar esta guía',
+    show: 'Ver la guía de configuración',
+  },
+  messages: {
+    title: 'Mensajes',
+    withCustomer: 'Mensajes con {{name}}',
+    withBusiness: 'Mensajes con {{name}}',
+    subtitle: 'Todo lo que se escriban sobre esta cita queda aquí.',
+    empty: 'Todavía no hay mensajes.',
+    emptyHintProfessional: 'Escríbele si necesitas mover la cita o avisarle algo.',
+    emptyHintCustomer: 'Escribe si necesitas avisar algo sobre tu cita.',
+    placeholder: 'Escribe un mensaje',
+    send: 'Enviar',
+    sending: 'Enviando',
+    you: 'Tú',
+    fromProfessional: '{{name}} (el negocio)',
+    fromCustomer: '{{name}} (cliente)',
+    unread_one: '{{count}} mensaje sin leer',
+    unread_other: '{{count}} mensajes sin leer',
+    couldNotSend: 'No pudimos enviar el mensaje. Inténtalo de nuevo.',
+    couldNotLoad: 'No pudimos cargar los mensajes.',
+    stayInApp: 'Los mensajes se quedan aquí dentro. No se envía nada por correo ni por WhatsApp.',
+    openThread: 'Abrir mensajes',
+  },
+  account: {
+    title: 'Mi cuenta',
+    myAppointments: 'Mis citas',
+    subtitle: 'Todas tus citas, en un solo lugar.',
+    none: 'Todavía no tienes citas.',
+    noneHint: 'Cuando reserves, aparecerán aquí.',
+    signInTitle: 'Entra a tu cuenta',
+    signInSubtitle: 'Para ver tus citas y tus mensajes.',
+    signUpTitle: 'Crea tu cuenta',
+    signUpSubtitle: 'Opcional. Reservar no la necesita.',
+    createOne: '¿No tienes cuenta? Créala',
+    haveOne: '¿Ya tienes cuenta? Entra',
+    continueAsGuest: 'Seguir sin cuenta',
+    guestExplainer:
+      'Puedes reservar sin cuenta. La cuenta solo sirve para encontrar tus citas después.',
+    saveThisBooking: 'Guardar esta cita en mi cuenta',
+    saved: 'Guardada en tu cuenta.',
+    couldNotSave: 'No pudimos guardarla en tu cuenta.',
+    alreadyClaimed: 'Esta cita ya está en otra cuenta.',
+    viewAppointment: 'Ver la cita',
+    signedInAs: 'Tu sesión: {{email}}',
+    forProfessionals: '¿Eres profesional? Entra por aquí',
+    forCustomers: '¿Eres cliente? Entra por aquí',
+    upcoming: 'Próximas',
+    pastAppointments: 'Pasadas',
+  },
+  azul: {
+    payWithAzul: 'Pagar con Azul',
+    title: 'Azul — próximamente',
+    body: 'El pago con tarjeta a través de Azul todavía no está disponible. Es una función premium que llegará más adelante.',
+    noCharge: 'No se ha cobrado nada y no hay ningún pago en curso.',
+    forNow: 'Por ahora, acuerda el pago directamente con el negocio.',
+    settingsTitle: 'Pagos con tarjeta (Azul)',
+    settingsBody:
+      'Cuando esté disponible, podrás conectar tu propia cuenta de Azul y cobrar en línea. Cada negocio usa su propia cuenta; la plataforma no cobra por ti ni guarda tu dinero.',
+    settingsStatus: 'Todavía no disponible',
+    understood: 'Entendido',
+  },
   validation: {
     'policy.horizon': 'Usa un número entero de días, entre 0 y 365.',
     'policy.minimumNotice': 'Usa un número entero de minutos, cero o más.',
@@ -665,7 +769,8 @@ export const es = {
    * something a person can act on.
    */
   errors: {
-    appCrashed: 'La aplicación tuvo un problema y no pudo mostrar esta pantalla. Vuelve a intentarlo.',
+    appCrashed:
+      'La aplicación tuvo un problema y no pudo mostrar esta pantalla. Vuelve a intentarlo.',
     booking: {
       SLOT_TAKEN: 'Alguien acaba de reservar esa hora. Elige otra, por favor.',
       SLOT_BLOCKED: 'Esa hora ya no está disponible. Elige otra, por favor.',
@@ -684,8 +789,10 @@ export const es = {
       APPOINTMENT_ALREADY_STARTED: 'Esta cita ya empezó.',
       APPOINTMENT_NOT_RESCHEDULABLE: 'Esta cita ya no se puede cambiar.',
       CARD_DECLINED: 'El banco rechazó la tarjeta. Prueba con otra.',
-      PAYMENT_HOLD_EXPIRED: 'Se acabó el tiempo para pagar y la hora volvió a quedar libre. Elige otra hora.',
-      PAYMENT_PROVIDER_UNAVAILABLE: 'No pudimos contactar al procesador de pagos. Inténtalo de nuevo.',
+      PAYMENT_HOLD_EXPIRED:
+        'Se acabó el tiempo para pagar y la hora volvió a quedar libre. Elige otra hora.',
+      PAYMENT_PROVIDER_UNAVAILABLE:
+        'No pudimos contactar al procesador de pagos. Inténtalo de nuevo.',
       PAYMENT_SIMULATION_DISABLED: 'Los pagos simulados no están habilitados aquí.',
       NO_PAYMENT_DUE: 'Esta cita no tiene ningún pago pendiente.',
       PAYMENT_NOT_RETRYABLE: 'Ese pago ya no se puede reintentar.',

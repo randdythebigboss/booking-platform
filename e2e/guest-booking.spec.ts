@@ -1,4 +1,4 @@
-import { bookAsGuest, expectNoRawError, firstSlot, option, TEXT } from './support/app';
+import { bookAsGuest, chooseDay, expectNoRawError, firstSlot, option, TEXT } from './support/app';
 import { count, query } from './support/db';
 import { openDateISO } from './support/dates';
 import { GUEST, TENANT_A } from './support/fixtures';
@@ -44,7 +44,7 @@ test.describe('a guest books, moves and cancels', () => {
     );
 
     await page.getByRole('button', { name: TEXT.es.reschedule }).click();
-    await page.getByRole('textbox', { name: TEXT.es.rescheduleDate }).fill(openDateISO(8));
+    await chooseDay(page, openDateISO(8));
 
     const slot = firstSlot(page);
     await expect(slot).toBeVisible();
@@ -95,7 +95,7 @@ test.describe('a guest books, moves and cancels', () => {
     // later message about it is written in that language and not in whichever
     // one somebody happens to be reading in.
     expect(
-      query("select customer_locale from public.appointments order by created_at desc limit 1"),
+      query('select customer_locale from public.appointments order by created_at desc limit 1'),
     ).toBe('en');
   });
 

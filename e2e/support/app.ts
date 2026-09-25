@@ -20,7 +20,7 @@ export const TEXT = {
   es: {
     chooseService: '1. Elige un servicio',
     date: 'Fecha',
-    rescheduleDate: 'Día',
+    nextWeek: 'Semana siguiente',
     fullName: 'Nombre completo',
     phone: 'Teléfono',
     email: 'Correo (opcional)',
@@ -40,7 +40,7 @@ export const TEXT = {
   en: {
     chooseService: '1. Choose a service',
     date: 'Date',
-    rescheduleDate: 'Day',
+    nextWeek: 'Next week',
     fullName: 'Full name',
     phone: 'Phone',
     email: 'Email (optional)',
@@ -66,6 +66,37 @@ export async function switchLanguage(page: Page, language: Language): Promise<vo
   await expect(page.getByText(TEXT[language].chooseService)).toBeVisible();
 }
 
+/**
+ * Picks a day from the week strip that replaced the date text field.
+ *
+ * The strip shows seven days starting from whatever is currently chosen, so
+ * reaching a date further out means stepping forward a week at a time -- the
+ * same thing a person does. Each day is addressed by its full spoken date,
+ * which is the accessible name the control carries in both languages.
+ */
+export async function chooseDay(page: Page, iso: string, language: Language = 'es'): Promise<void> {
+  const spoken = new Intl.DateTimeFormat(language === 'es' ? 'es-DO' : 'en-US', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'UTC',
+  }).format(new Date(`${iso}T12:00:00Z`));
+
+  const day = page.getByRole('radio', { name: spoken, exact: true });
+
+  // Ten weeks of stepping more than covers the 60-day booking horizon.
+  for (let attempt = 0; attempt < 10; attempt++) {
+    if ((await day.count()) > 0) {
+      await day.click();
+      return;
+    }
+    await page.getByRole('button', { name: TEXT[language].nextWeek }).click();
+    await page.waitForTimeout(250);
+  }
+
+  throw new Error(`the day strip never reached ${iso} (${spoken})`);
+}
+
 /** A service, a slot, a professional: all radios with an accessible name. */
 export function option(page: Page, name: string | RegExp): Locator {
   return page.getByRole('radio', { name });
@@ -76,7 +107,7 @@ export function firstSlot(page: Page): Locator {
   // Times are the only radios that appear after a date is chosen, and they are
   // named by the clock. Matching the shape rather than a particular hour keeps
   // this working when the seeded opening hours change.
-  return page.getByRole('radio', { name: /\d{1,2}:\d{2}/ }).first();
+  return page.getByRole('radio', { name: /\d{1,2}:\d{2}.*(Libre|Free)/ }).first();
 }
 
 interface BookOptions {
@@ -110,7 +141,7 @@ export async function bookAsGuest(page: Page, options: BookOptions = {}): Promis
   await expect(page.getByText(text.chooseService)).toBeVisible();
   await option(page, service).click();
 
-  await page.getByRole('textbox', { name: text.date }).fill(date);
+  await chooseDay(page, date, language);
 
   const slot = firstSlot(page);
   await expect(slot).toBeVisible();

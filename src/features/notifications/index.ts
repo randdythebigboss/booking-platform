@@ -26,8 +26,4 @@ export { redactEmail, redactPhone, redactRecipient, safeErrorReason } from './re
 
 export { InMemoryNotificationStore, type NotificationStore } from './store';
 
-export {
-  dispatchDueNotifications,
-  type DispatchOptions,
-  type DispatchSummary,
-} from './dispatcher';
+export { dispatchDueNotifications, type DispatchOptions, type DispatchSummary } from './dispatcher';

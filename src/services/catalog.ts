@@ -12,6 +12,8 @@ export interface PublicBusiness {
   address: string | null;
   logoUrl: string | null;
   currency: string;
+  /** How far ahead this business lets people book. */
+  bookingHorizonDays: number;
   professionals: PublicProfessional[];
   services: PublicService[];
 }
@@ -49,6 +51,7 @@ export async function fetchPublicBusiness(slug: string): Promise<PublicBusiness 
     .from('businesses')
     .select(
       `id, name, slug, description, timezone, phone, address, logo_url, currency,
+       booking_horizon_days,
        professional_profiles ( id, display_name, bio, avatar_url, sort_order ),
        services ( id, name, description, duration_minutes, price, currency, sort_order,
                   payment_requirement, deposit_amount, amount_due_now, amount_due_later )`,
@@ -71,6 +74,7 @@ export async function fetchPublicBusiness(slug: string): Promise<PublicBusiness 
     address: row.address,
     logoUrl: row.logo_url,
     currency: row.currency,
+    bookingHorizonDays: Number(row.booking_horizon_days ?? 60),
     professionals: (row.professional_profiles ?? [])
       .sort((a: any, b: any) => a.sort_order - b.sort_order)
       .map((p: any) => ({

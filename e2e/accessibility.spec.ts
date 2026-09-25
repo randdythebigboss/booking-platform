@@ -1,7 +1,7 @@
 import { AxeBuilder } from '@axe-core/playwright';
 import type { Page } from '@playwright/test';
 
-import { bookAsGuest, option, signIn, TEXT } from './support/app';
+import { bookAsGuest, chooseDay, option, signIn, TEXT } from './support/app';
 import { openDateISO } from './support/dates';
 import { TENANT_A } from './support/fixtures';
 import { expect, test } from './support/test';
@@ -44,8 +44,10 @@ test.describe('the pages a customer sees', () => {
   test('the booking page with every step open', async ({ page }) => {
     await page.goto(`/p/${TENANT_A.slug}/book`);
     await option(page, TENANT_A.services.free).click();
-    await page.getByRole('textbox', { name: TEXT.es.date }).fill(openDateISO());
-    await expect(page.getByRole('radio', { name: /\d{1,2}:\d{2}/ }).first()).toBeVisible();
+    await chooseDay(page, openDateISO());
+    await expect(
+      page.getByRole('radio', { name: /\d{1,2}:\d{2}.*(Libre|Free)/ }).first(),
+    ).toBeVisible();
     await audit(page);
   });
 

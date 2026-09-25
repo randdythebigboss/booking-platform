@@ -39,9 +39,7 @@ test.describe('one business cannot see another', () => {
     await expectNoRawError(page);
   });
 
-  test('cannot see the other business’s customers through its own screens', async ({
-    page,
-  }) => {
+  test('cannot see the other business’s customers through its own screens', async ({ page }) => {
     await signIn(page, TENANT_A.email, TENANT_A.password);
     await page.goto('/app/appointments');
 

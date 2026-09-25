@@ -89,10 +89,7 @@ export default function NotificationsScreen() {
                   {notification.customerName}
                 </Text>
               )}
-              <Text
-                variant="caption"
-                tone={notification.status === 'failed' ? 'danger' : 'muted'}
-              >
+              <Text variant="caption" tone={notification.status === 'failed' ? 'danger' : 'muted'}>
                 {tk(`notifications.status.${notification.status}`)} {'·'}{' '}
                 {notification.sentAt
                   ? t('notifications.sentAt', {
