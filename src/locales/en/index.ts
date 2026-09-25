@@ -514,6 +514,12 @@ export const en: Translations = {
   },
 
   booking: {
+    stepOf: 'Step {{current}} of {{total}}',
+    step_service: 'Choose a service',
+    step_date: 'Choose a day',
+    step_slot: 'Choose a time',
+    step_details: 'Your details',
+    step_review: 'Review and confirm',
     at: '{{date}} at {{time}}',
     nothingCharged: 'Nothing is charged now. Payment is handled directly with the business.',
     bookingFor: 'Booking for {{name}} · {{phone}}',
@@ -678,6 +684,12 @@ export const en: Translations = {
   },
 
   schedule: {
+    morning: 'Morning',
+    afternoon: 'Afternoon',
+    evening: 'Evening',
+    showUnavailable_one: 'Show {{count}} unavailable time',
+    showUnavailable_other: 'Show {{count}} unavailable times',
+    hideUnavailable: 'Hide unavailable times',
     legendTitle: 'What each time means',
     available: 'Free',
     taken: 'Taken',

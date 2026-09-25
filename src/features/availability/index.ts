@@ -20,6 +20,7 @@ export { contains, normalize, overlaps, subtract, type Interval } from './interv
 export {
   addDays,
   formatClockTime,
+  hourIn,
   isDateWithin,
   isoDateIn,
   normalizeClockInput,

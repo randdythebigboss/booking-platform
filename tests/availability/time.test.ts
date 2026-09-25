@@ -5,6 +5,7 @@ import {
   addDays,
   formatClockTime,
   isDateWithin,
+  hourIn,
   isoDateIn,
   normalizeClockInput,
   parseClockTime,
@@ -114,5 +115,22 @@ describe('normalizeClockInput', () => {
     expect(normalizeClockInput('abc')).toBeNull();
     expect(normalizeClockInput('0970')).toBeNull();
     expect(normalizeClockInput('12345')).toBeNull();
+  });
+});
+
+describe('hourIn', () => {
+  it('reads the hour where the business is, not where the device is', () => {
+    const instant = new Date('2026-09-28T02:00:00.000Z');
+    expect(hourIn(instant, 'UTC')).toBe(2);
+    expect(hourIn(instant, 'America/Santo_Domingo')).toBe(22);
+  });
+
+  it('renders midnight as zero rather than as twenty-four', () => {
+    expect(hourIn(new Date('2026-09-28T00:00:00.000Z'), 'UTC')).toBe(0);
+  });
+
+  it('puts noon in the afternoon and eleven in the morning', () => {
+    expect(hourIn(new Date('2026-09-28T12:00:00.000Z'), 'UTC')).toBe(12);
+    expect(hourIn(new Date('2026-09-28T11:30:00.000Z'), 'UTC')).toBe(11);
   });
 });

@@ -136,3 +136,20 @@ export function normalizeClockInput(raw: string): ClockTime | null {
 
   return formatClockTime(hours * 60 + minutes);
 }
+
+/**
+ * The hour of the day an instant falls on, where the business is.
+ *
+ * Used to split a day's times into morning, afternoon and evening. `h23` is
+ * asked for explicitly because the alternative cycles render midnight as `24`
+ * or as `12 am`, and both would put the first slot of the day in the wrong
+ * half of it.
+ */
+export function hourIn(instant: Date, timezone: string): number {
+  const text = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    hour: '2-digit',
+    hourCycle: 'h23',
+  }).format(instant);
+  return Number(text);
+}

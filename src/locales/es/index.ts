@@ -529,6 +529,12 @@ export const es = {
   },
 
   booking: {
+    stepOf: 'Paso {{current}} de {{total}}',
+    step_service: 'Elige un servicio',
+    step_date: 'Elige un día',
+    step_slot: 'Elige una hora',
+    step_details: 'Tus datos',
+    step_review: 'Revisa y confirma',
     at: '{{date}} a las {{time}}',
     nothingCharged: 'No se cobra nada ahora. El pago se hace directamente con el negocio.',
     bookingFor: 'A nombre de {{name}} · {{phone}}',
@@ -695,6 +701,12 @@ export const es = {
   },
 
   schedule: {
+    morning: 'Mañana',
+    afternoon: 'Tarde',
+    evening: 'Noche',
+    showUnavailable_one: 'Ver {{count}} hora no disponible',
+    showUnavailable_other: 'Ver {{count}} horas no disponibles',
+    hideUnavailable: 'Ocultar las horas no disponibles',
     legendTitle: 'Qué significa cada hora',
     available: 'Libre',
     taken: 'Ocupado',

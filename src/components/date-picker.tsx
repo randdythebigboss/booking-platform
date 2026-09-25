@@ -85,12 +85,23 @@ export function DatePicker({ value, onChange, minDate, maxDate, label }: DatePic
       }),
     [format.intlLocale],
   );
+  const monthOnly = useMemo(
+    () => new Intl.DateTimeFormat(format.intlLocale, { month: 'long', timeZone: 'UTC' }),
+    [format.intlLocale],
+  );
 
   // Midday UTC, so a day never slides into its neighbour while being formatted.
   const asDate = (iso: string) => {
     const { year, month, day } = parseIsoDate(iso);
     return new Date(Date.UTC(year, month - 1, day, 12));
   };
+
+  const first = asDate(days[0] ?? value);
+  const last = asDate(days[days.length - 1] ?? value);
+  const heading =
+    first.getUTCMonth() === last.getUTCMonth()
+      ? monthName.format(first)
+      : `${monthOnly.format(first)} – ${monthName.format(last)}`;
 
   const previous = addDays(value, -WEEK);
   const next = addDays(value, WEEK);
@@ -128,7 +139,10 @@ export function DatePicker({ value, onChange, minDate, maxDate, label }: DatePic
           </Text>
         </Pressable>
 
-        <Text variant="label">{monthName.format(asDate(value))}</Text>
+        {/* A strip that runs from 28 September to 4 October is not "September",
+            and a heading that says so is a heading that lies four times a
+            year. */}
+        <Text variant="label">{heading}</Text>
 
         <Pressable
           accessibilityRole="button"

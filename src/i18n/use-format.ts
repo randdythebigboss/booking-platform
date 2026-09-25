@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import {
   currencySymbol,
+  formatClockIn,
   formatDateIn,
   formatDateTimeIn,
   formatDayAndMonthIn,
@@ -17,6 +18,8 @@ export interface Formatters {
   /** The BCP 47 tag Intl is using, exposed for anything formatting inline. */
   intlLocale: string;
   time: (instant: Date, timezone: string) => string;
+  /** The clock alone, with no am/pm, for a grid under a Morning heading. */
+  clock: (instant: Date, timezone: string) => string;
   date: (instant: Date, timezone: string) => string;
   /** `26 sept` — for a narrow column beside a time. */
   dayAndMonth: (instant: Date, timezone: string) => string;
@@ -49,6 +52,7 @@ export function useFormat(): Formatters {
     () => ({
       intlLocale,
       time: (instant, timezone) => formatTimeIn(instant, timezone, intlLocale),
+      clock: (instant, timezone) => formatClockIn(instant, timezone, intlLocale),
       date: (instant, timezone) => formatDateIn(instant, timezone, intlLocale),
       dayAndMonth: (instant, timezone) => formatDayAndMonthIn(instant, timezone, intlLocale),
       weekday: (instant, timezone) => formatWeekdayIn(instant, timezone, intlLocale),

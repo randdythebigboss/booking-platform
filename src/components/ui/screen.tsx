@@ -20,6 +20,11 @@ export interface ScreenProps {
   hideLanguage?: boolean;
   /** Sits under the title: a back link, a status, a small action. */
   header?: ReactNode;
+  /**
+   * Pinned to the bottom of the viewport, outside the scroll. For the one
+   * action a page exists for, on a page long enough to lose it.
+   */
+  footer?: ReactNode;
 }
 
 /**
@@ -38,6 +43,7 @@ export function Screen({
   scroll = true,
   hideLanguage = false,
   header,
+  footer,
 }: ScreenProps) {
   const { palette } = useTheme();
   const insets = useSafeAreaInsets();
@@ -75,18 +81,36 @@ export function Screen({
     paddingHorizontal: spacing.md,
   };
 
+  const pinned = footer ? (
+    <View
+      style={{
+        borderTopWidth: 1,
+        borderTopColor: palette.border,
+        backgroundColor: palette.surface,
+        paddingHorizontal: spacing.md,
+        paddingTop: spacing.sm,
+        paddingBottom: insets.bottom + spacing.sm,
+      }}
+    >
+      <View style={{ width: '100%', maxWidth: 720, alignSelf: 'center' }}>{footer}</View>
+    </View>
+  ) : null;
+
   if (!scroll) {
     return (
-      <View style={[{ flex: 1, backgroundColor: palette.background }, padding]}>{content}</View>
+      <View style={{ flex: 1, backgroundColor: palette.background }}>
+        <View style={[{ flex: 1 }, padding]}>{content}</View>
+        {pinned}
+      </View>
     );
   }
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: palette.background }}
-      contentContainerStyle={padding}
-    >
-      {content}
-    </ScrollView>
+    <View style={{ flex: 1, backgroundColor: palette.background }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={padding}>
+        {content}
+      </ScrollView>
+      {pinned}
+    </View>
   );
 }

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocale } from '@/components/providers';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
+import { BookingProgress } from '@/components/booking-progress';
 import { DatePicker } from '@/components/date-picker';
 import { DaySchedule } from '@/components/day-schedule';
 import { OfflineNotice } from '@/components/offline-notice';
@@ -208,7 +209,38 @@ export default function BookScreen() {
   }
 
   return (
-    <Screen title={business.name} subtitle={t('publicPage.bookWithUs')}>
+    <Screen
+      title={business.name}
+      subtitle={t('publicPage.bookWithUs')}
+      /* Once everything is chosen, Confirm stops being something to scroll
+         back to. The summary beside it is what is about to be booked, so
+         pressing it is never a guess. */
+      footer={
+        step === 'review' ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <View style={{ flex: 1, gap: 1 }}>
+              <Text variant="label" numberOfLines={1}>
+                {service?.name}
+              </Text>
+              <Text variant="caption" tone="muted" numberOfLines={1}>
+                {/* Short enough to survive a 320px bar: the long date is
+                    in the card above, and the strip is on screen anyway. */}
+                {selection.slotStartsAt
+                  ? `${format.dayAndMonth(new Date(selection.slotStartsAt), timezone)} · ${format.time(new Date(selection.slotStartsAt), timezone)}`
+                  : ''}
+              </Text>
+            </View>
+            <Button
+              label={t('booking.confirm')}
+              loading={booking}
+              onPress={() => void confirm()}
+            />
+          </View>
+        ) : undefined
+      }
+    >
+      <BookingProgress step={step} />
+
       {business.professionals.length > 1 && (
         <Card>
           <Text variant="label">{t('booking.whoWouldYouLikeToSee')}</Text>
@@ -271,13 +303,26 @@ export default function BookScreen() {
                   opacity: unavailable ? 0.55 : 1,
                 }}
               >
-                <Text variant="label" tone={chosen ? 'accent' : 'default'}>
-                  {entry.name}
-                </Text>
-                <Text variant="caption" tone="muted">
-                  {format.duration(entry.durationMinutes)} {'·'}{' '}
-                  {format.money(entry.price, entry.currency)}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md }}>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text variant="label" tone={chosen ? 'accent' : 'default'}>
+                      {entry.name}
+                    </Text>
+                    {entry.description && (
+                      <Text variant="caption" tone="muted">
+                        {entry.description}
+                      </Text>
+                    )}
+                  </View>
+                  {/* Price and length right-aligned, so a list of services
+                      reads down as a menu instead of as four paragraphs. */}
+                  <View style={{ alignItems: 'flex-end', gap: 2 }}>
+                    <Text variant="label">{format.money(entry.price, entry.currency)}</Text>
+                    <Text variant="caption" tone="muted">
+                      {format.duration(entry.durationMinutes)}
+                    </Text>
+                  </View>
+                </View>
                 {unavailable && (
                   <Text variant="caption" tone="danger">
                     {t('payments.unavailableService')}
@@ -372,6 +417,7 @@ export default function BookScreen() {
                 setSelection((current) => updateCustomer(current, { phone: value }))
               }
               keyboardType="phone-pad"
+              inputMode="tel"
               autoComplete="tel"
               error={issueText(customerErrors.phone)}
             />
@@ -383,6 +429,7 @@ export default function BookScreen() {
               }
               autoCapitalize="none"
               keyboardType="email-address"
+              inputMode="email"
               autoComplete="email"
               error={issueText(customerErrors.email)}
               hint={t('booking.emailHint')}

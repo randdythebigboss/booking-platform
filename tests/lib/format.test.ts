@@ -5,6 +5,7 @@ import {
   formatDateTimeIn,
   formatDuration,
   currencySymbol,
+  formatClockIn,
   formatMoney,
   formatTimeIn,
 } from '@/lib/format';
@@ -163,5 +164,23 @@ describe('currencySymbol', () => {
 
   it('falls back to the code rather than throwing on an unknown currency', () => {
     expect(currencySymbol('XXXX', 'es-DO')).toBe('XXXX');
+  });
+});
+
+describe('formatClockIn', () => {
+  it('drops the day period, which the heading above the grid already says', () => {
+    const morning = new Date('2026-09-25T13:00:00.000Z'); // 09:00 in Santo Domingo
+    expect(formatClockIn(morning, 'America/Santo_Domingo', ES)).toBe('9:00');
+    expect(formatClockIn(morning, 'America/Santo_Domingo', EN)).toBe('9:00');
+  });
+
+  it('keeps the two halves of the day apart from each other', () => {
+    const afternoon = new Date('2026-09-25T21:30:00.000Z'); // 17:30 in Santo Domingo
+    expect(formatClockIn(afternoon, 'America/Santo_Domingo', ES)).toBe('5:30');
+  });
+
+  it('leaves a 24-hour locale alone', () => {
+    const afternoon = new Date('2026-09-25T17:30:00.000Z');
+    expect(formatClockIn(afternoon, 'UTC', 'es-ES')).toBe('17:30');
   });
 });

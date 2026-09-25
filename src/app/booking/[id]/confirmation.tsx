@@ -25,7 +25,7 @@ import {
   simulatePayment,
   type GuestPaymentSummary,
 } from '@/services/payments';
-import { spacing } from '@/theme';
+import { radius, spacing, useTheme } from '@/theme';
 import {
   fetchMessagesByToken,
   markMessagesReadByToken,
@@ -79,6 +79,7 @@ export default function ConfirmationScreen() {
     void loadMessages();
   }, [loadMessages]);
   const { t } = useTranslation();
+  const { palette } = useTheme();
   const format = useFormat();
   const tk = useDynamicT();
   const errorText = useBookingErrorText();
@@ -266,28 +267,70 @@ export default function ConfirmationScreen() {
       }
       subtitle={`${appointment.businessName} · ${appointment.professionalName}`}
     >
+      {/* The first thing on the page answers the only question somebody has
+          arriving here: did it work, and when am I expected? A status word in
+          small type above a time did not, so the time is the headline and the
+          outcome carries a mark as well as a colour. */}
       <Card>
-        <Text variant="label" tone={cancelled ? 'danger' : closed ? 'muted' : 'success'}>
-          {tk(guestStatusKey(appointment.status))}
-        </Text>
-        <Text variant="title">{format.time(appointment.startsAt, appointment.timezone)}</Text>
-        <Text variant="body">{format.date(appointment.startsAt, appointment.timezone)}</Text>
-        <Text variant="caption" tone="muted">
-          {t('common.timesShownIn', { timezone: appointment.timezone.replace(/_/g, ' ') })}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: radius.pill,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: cancelled
+                ? palette.dangerMuted
+                : closed
+                  ? palette.surfaceMuted
+                  : palette.successMuted,
+            }}
+          >
+            <Text
+              variant="heading"
+              style={{
+                color: cancelled ? palette.danger : closed ? palette.textMuted : palette.success,
+              }}
+            >
+              {cancelled ? '✕' : closed ? '–' : '✓'}
+            </Text>
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text variant="label" tone={cancelled ? 'danger' : closed ? 'muted' : 'success'}>
+              {tk(guestStatusKey(appointment.status))}
+            </Text>
+            <Text variant="title">
+              {format.time(appointment.startsAt, appointment.timezone)}
+            </Text>
+            <Text variant="body" tone="muted">
+              {format.date(appointment.startsAt, appointment.timezone)}
+            </Text>
+          </View>
+        </View>
 
-        <View style={{ gap: spacing.xs, marginTop: spacing.sm }}>
+        <View
+          style={{
+            gap: spacing.xs,
+            marginTop: spacing.sm,
+            paddingTop: spacing.sm,
+            borderTopWidth: 1,
+            borderTopColor: palette.borderSubtle,
+          }}
+        >
           {appointment.items.map((item) => (
             <Text key={item.name} variant="body">
               {item.name} {'·'} {format.duration(item.durationMinutes)} {'·'}{' '}
               {format.money(item.price, item.currency)}
             </Text>
           ))}
+          <Text variant="caption" tone="muted">
+            {t('confirmation.bookedFor', { name: appointment.customerName })}
+          </Text>
+          <Text variant="caption" tone="muted">
+            {t('common.timesShownIn', { timezone: appointment.timezone.replace(/_/g, ' ') })}
+          </Text>
         </View>
-
-        <Text variant="caption" tone="muted">
-          {t('confirmation.bookedFor', { name: appointment.customerName })}
-        </Text>
       </Card>
 
       {payment?.required && payment.status && (

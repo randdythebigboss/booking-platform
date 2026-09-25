@@ -4,6 +4,7 @@ export { Card } from './card';
 export { EmptyState, type EmptyStateProps } from './empty-state';
 export { Feedback, type FeedbackProps } from './feedback';
 export { Field, type FieldProps } from './field';
+export { Initials, initialsOf, type InitialsProps } from './initials';
 export { PressableLink, type PressableLinkProps } from './pressable-link';
 export { Screen, type ScreenProps } from './screen';
 export { SearchableSelect, type SearchableSelectProps } from './searchable-select';

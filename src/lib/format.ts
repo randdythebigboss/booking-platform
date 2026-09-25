@@ -144,3 +144,31 @@ export function currencySymbol(currency: string, locale: string): string {
     return currency;
   }
 }
+
+/**
+ * A clock reading with no am/pm: `9:00`, `12:15`, `5:30`.
+ *
+ * For a grid of times that already sits under a heading saying *Morning* or
+ * *Afternoon*. Repeating "a. m." on every one of forty chips costs half the
+ * width of each and tells the reader nothing the heading has not already said.
+ * The spoken label beside them keeps the full time, because a screen reader
+ * user reaches a chip without the heading in the same breath.
+ *
+ * Built from parts rather than by cutting up a formatted string: the separator
+ * between hour and minute is a locale's business, and some are not a colon.
+ */
+export function formatClockIn(instant: Date, timezone: string, locale: string): string {
+  const parts = new Intl.DateTimeFormat(locale, {
+    timeZone: timezone,
+    hour: 'numeric',
+    minute: '2-digit',
+  }).formatToParts(instant);
+
+  return parts
+    .filter((part) => part.type === 'hour' || part.type === 'minute' || part.type === 'literal')
+    .map((part) => part.value)
+    .join('')
+    .trim()
+    // A trailing separator is what is left where the day period used to be.
+    .replace(/[\s,:.]+$/u, '');
+}
