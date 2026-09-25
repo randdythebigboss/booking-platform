@@ -3,13 +3,27 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useSession } from '@/components/providers';
-import { Button, Card, Feedback, Screen, Text } from '@/components/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  Feedback,
+  Initials,
+  PressableLink,
+  Screen,
+  Text,
+} from '@/components/ui';
+import { statusBadge } from '@/components/appointment-row';
 import { confirmationPath } from '@/features/booking';
 import { useAsyncData } from '@/hooks/use-async-data';
+import { useDynamicT } from '@/i18n/use-dynamic-t';
 import { useFormat } from '@/i18n/use-format';
 import { signOut } from '@/services/auth';
 import { fetchMyAppointments } from '@/services/customer-account';
 import { radius, spacing, useTheme } from '@/theme';
+
+type Row = Awaited<ReturnType<typeof fetchMyAppointments>>[number];
 
 /**
  * A customer's own appointments, across every business they have booked with.
@@ -21,11 +35,9 @@ import { radius, spacing, useTheme } from '@/theme';
  * worth adding.
  */
 export default function MyAppointmentsScreen() {
-  const { palette } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
   const session = useSession();
-  const format = useFormat();
 
   const appointments = useAsyncData(
     () => (session.status === 'signed-in' ? fetchMyAppointments() : Promise.resolve([])),
@@ -61,59 +73,44 @@ export default function MyAppointmentsScreen() {
   const past = rows.filter((row) => row.startsAt.getTime() < now);
 
   return (
-    <Screen title={t('account.myAppointments')} subtitle={t('account.subtitle')}>
-      {session.user?.email && (
-        <Text variant="caption" tone="muted">
-          {t('account.signedInAs', { email: session.user.email })}
-        </Text>
-      )}
-
+    <Screen
+      title={t('account.myAppointments')}
+      subtitle={
+        session.user?.email
+          ? t('account.signedInAs', { email: session.user.email })
+          : t('account.subtitle')
+      }
+    >
       {appointments.loading && <ActivityIndicator />}
+      {appointments.error && <Feedback tone="danger" message={t('common.somethingWentWrong')} />}
 
       {!appointments.loading && rows.length === 0 && (
         <Card>
-          <Text variant="body" tone="muted">
-            {t('account.none')}
-          </Text>
-          <Text variant="caption" tone="muted">
-            {t('account.noneHint')}
-          </Text>
+          <EmptyState mark="◷" title={t('account.none')} body={t('account.noneHint')} />
         </Card>
       )}
 
       {upcoming.length > 0 && (
-        <Card>
+        <View style={{ gap: spacing.sm }}>
           <Text variant="heading">{t('account.upcoming')}</Text>
           <View style={{ gap: spacing.sm }}>
             {upcoming.map((row) => (
-              <AppointmentLink
-                key={row.appointmentId}
-                row={row}
-                format={format}
-                palette={palette}
-              />
+              <BookingLink key={row.appointmentId} row={row} />
             ))}
           </View>
-        </Card>
+        </View>
       )}
 
       {past.length > 0 && (
-        <Card>
+        <View style={{ gap: spacing.sm }}>
           <Text variant="heading">{t('account.pastAppointments')}</Text>
           <View style={{ gap: spacing.sm }}>
             {past.map((row) => (
-              <AppointmentLink
-                key={row.appointmentId}
-                row={row}
-                format={format}
-                palette={palette}
-              />
+              <BookingLink key={row.appointmentId} row={row} past />
             ))}
           </View>
-        </Card>
+        </View>
       )}
-
-      {appointments.error && <Feedback tone="danger" message={t('common.somethingWentWrong')} />}
 
       <Button
         label={t('auth.signOut')}
@@ -127,41 +124,59 @@ export default function MyAppointmentsScreen() {
   );
 }
 
-function AppointmentLink({
-  row,
-  format,
-  palette,
-}: {
-  row: Awaited<ReturnType<typeof fetchMyAppointments>>[number];
-  format: ReturnType<typeof useFormat>;
-  palette: ReturnType<typeof useTheme>['palette'];
-}) {
+/**
+ * One booking, at one business.
+ *
+ * A real link rather than a `View` wearing the role: the old one could not be
+ * reached with a keyboard at all, which made the whole list unusable without a
+ * mouse. The business's mark leads, because a customer's list is sorted by
+ * time but read by *who* -- "the barber" and "the dentist" is how people find
+ * the row they want.
+ */
+function BookingLink({ row, past = false }: { row: Row; past?: boolean }) {
+  const { palette } = useTheme();
   const { t } = useTranslation();
+  const tk = useDynamicT();
+  const format = useFormat();
+
+  const status = tk(`appointments.status_${row.status}` as 'appointments.status_confirmed');
+  const badge = statusBadge(row.status);
+  const when = format.dateTime(row.startsAt, row.businessTimezone);
 
   return (
-    <Link href={confirmationPath(row.appointmentId, row.accessToken)} asChild>
-      <View
-        accessibilityRole="link"
-        accessibilityLabel={`${row.businessName} — ${format.dateTime(
-          row.startsAt,
-          row.businessTimezone,
-        )} — ${t(`appointments.status_${row.status}` as 'appointments.status_confirmed')}`}
-        style={{
-          gap: 2,
-          minHeight: 44,
-          padding: spacing.sm,
-          borderRadius: radius.md,
-          borderWidth: 1,
-          borderColor: palette.border,
-        }}
-      >
-        <Text variant="label">{row.businessName}</Text>
-        <Text variant="body">{format.dateTime(row.startsAt, row.businessTimezone)}</Text>
-        <Text variant="caption" tone="muted">
+    <PressableLink
+      href={confirmationPath(row.appointmentId, row.accessToken)}
+      accessibilityLabel={`${row.businessName} · ${when} · ${status}. ${t('account.openBooking')}`}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        minHeight: 64,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        borderRadius: radius.md,
+        borderWidth: 1,
+        borderColor: palette.border,
+        backgroundColor: palette.surface,
+        opacity: past ? 0.75 : 1,
+      }}
+    >
+      <Initials name={row.businessName} size={40} tone={past ? 'neutral' : 'accent'} />
+
+      <View style={{ flex: 1, gap: 1 }}>
+        <Text variant="label" numberOfLines={1}>
+          {row.businessName}
+        </Text>
+        <Text variant="body" numberOfLines={1}>
+          {when}
+        </Text>
+        <Text variant="caption" tone="muted" numberOfLines={1}>
           {row.serviceName}
           {row.professionalName ? ` · ${row.professionalName}` : ''}
         </Text>
       </View>
-    </Link>
+
+      <Badge label={status} tone={badge.tone} mark={badge.mark} />
+    </PressableLink>
   );
 }

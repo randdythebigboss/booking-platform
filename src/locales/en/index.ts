@@ -725,6 +725,8 @@ export const en: Translations = {
     show: 'Show the setup guide',
   },
   messages: {
+    writeLabel: 'Your message',
+    remaining: '{{count}} characters left.',
     title: 'Messages',
     withCustomer: 'Messages with {{name}}',
     withBusiness: 'Messages with {{name}}',
@@ -747,6 +749,7 @@ export const en: Translations = {
     openThread: 'Open messages',
   },
   account: {
+    openBooking: 'Open the booking',
     title: 'My account',
     myAppointments: 'My appointments',
     subtitle: 'All your appointments, in one place.',

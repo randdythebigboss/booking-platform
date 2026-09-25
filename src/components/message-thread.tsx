@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { Button, Card, Feedback, Field, Text } from '@/components/ui';
+import { isoDateIn } from '@/features/availability';
 import { useFormat } from '@/i18n/use-format';
 import {
   MESSAGE_MAX_LENGTH,
@@ -97,34 +98,48 @@ export function MessageThread({
 
       {messages.length > 0 && (
         <View style={{ gap: spacing.sm }}>
-          {messages.map((message) => {
+          {messages.map((message, position) => {
             const mine = message.author === viewer;
+            const previous = messages[position - 1];
+            // A date once per day, a clock on every message. Stamping the
+            // full date on each of them made a four-line exchange look like
+            // four separate events.
+            const newDay =
+              !previous ||
+              isoDateIn(previous.createdAt, timezone) !== isoDateIn(message.createdAt, timezone);
 
             return (
-              <View
-                key={message.id}
-                style={{
-                  alignSelf: mine ? 'flex-end' : 'flex-start',
-                  maxWidth: '88%',
-                  gap: 2,
-                  padding: spacing.sm,
-                  borderRadius: radius.md,
-                  borderWidth: 1,
-                  borderColor: mine ? palette.accent : palette.border,
-                  backgroundColor: mine ? palette.surfaceMuted : 'transparent',
-                }}
-              >
-                <Text variant="caption" tone="muted">
-                  {mine
-                    ? t('messages.you')
-                    : message.author === 'professional'
-                      ? t('messages.fromProfessional', { name: message.authorName })
-                      : t('messages.fromCustomer', { name: message.authorName })}
-                </Text>
-                <Text variant="body">{message.body}</Text>
-                <Text variant="caption" tone="muted">
-                  {format.dateTime(message.createdAt, timezone)}
-                </Text>
+              <View key={message.id} style={{ gap: spacing.xs }}>
+                {newDay && (
+                  <Text variant="overline" tone="muted" style={{ textAlign: 'center' }}>
+                    {format.date(message.createdAt, timezone)}
+                  </Text>
+                )}
+
+                <View
+                  style={{
+                    alignSelf: mine ? 'flex-end' : 'flex-start',
+                    maxWidth: '88%',
+                    gap: 2,
+                    padding: spacing.sm,
+                    borderRadius: radius.md,
+                    borderWidth: 1,
+                    borderColor: mine ? palette.accentMuted : palette.border,
+                    backgroundColor: mine ? palette.accentMuted : palette.surface,
+                  }}
+                >
+                  <Text variant="caption" tone="muted">
+                    {mine
+                      ? t('messages.you')
+                      : message.author === 'professional'
+                        ? t('messages.fromProfessional', { name: message.authorName })
+                        : t('messages.fromCustomer', { name: message.authorName })}
+                  </Text>
+                  <Text variant="body">{message.body}</Text>
+                  <Text variant="caption" tone="muted">
+                    {format.time(message.createdAt, timezone)}
+                  </Text>
+                </View>
               </View>
             );
           })}
@@ -134,12 +149,19 @@ export function MessageThread({
       {!readOnly && (
         <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
           <Field
-            label={t('messages.placeholder')}
+            label={t('messages.writeLabel')}
             value={draft}
             onChangeText={setDraft}
             placeholder={t('messages.placeholder')}
             multiline
             error={tooLong ? t('messages.tooLong') : undefined}
+            // Silent until the limit is close, then a count rather than a
+            // message that only appears once it is already too late.
+            hint={
+              !tooLong && draft.length > MESSAGE_MAX_LENGTH - 120
+                ? t('messages.remaining', { count: MESSAGE_MAX_LENGTH - draft.length })
+                : undefined
+            }
           />
           {failure && <Feedback tone="danger" message={failure} />}
           <Button

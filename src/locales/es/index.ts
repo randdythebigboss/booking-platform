@@ -742,6 +742,8 @@ export const es = {
     show: 'Ver la guía de configuración',
   },
   messages: {
+    writeLabel: 'Tu mensaje',
+    remaining: 'Quedan {{count}} caracteres.',
     title: 'Mensajes',
     withCustomer: 'Mensajes con {{name}}',
     withBusiness: 'Mensajes con {{name}}',
@@ -764,6 +766,7 @@ export const es = {
     openThread: 'Abrir mensajes',
   },
   account: {
+    openBooking: 'Abrir la reserva',
     title: 'Mi cuenta',
     myAppointments: 'Mis citas',
     subtitle: 'Todas tus citas, en un solo lugar.',
