@@ -219,9 +219,19 @@ must read `true`.
 
 ### 3. Remove the probe accounts
 
-Security checks left several throwaway accounts —
-`probe-…`, `p14-probe-…` and `gate-…`, all on `@bookingplatform.test`. Each
-was created to answer one question about sign-up and has held nothing since.
+Security checks left several throwaway accounts on `@bookingplatform.test`.
+Each was created to answer one question about sign-up and has held nothing
+since. The ones this session knows about:
+
+|                        |     |
+| ---------------------- | --- |
+| `p14-probe-…`          | 1   |
+| `gate-…` (timestamped) | 5   |
+| `gate-reusable`        | 1   |
+
+That list is what was created here, not an inventory of the project — only the
+service-role key can produce one, which is the first thing the command below
+does.
 
 ```bash
 SUPABASE_SERVICE_ROLE_KEY=... node tools/dev/cleanup-probe-accounts.mjs
@@ -231,7 +241,10 @@ SUPABASE_SERVICE_ROLE_KEY=... node tools/dev/cleanup-probe-accounts.mjs --delete
 The first run only reports. Both runs check, per account, that it owns no
 business, no professional profile and no customer record, and skip it if it
 owns any of them. `demo@bookingplatform.test` is refused by name as well as by
-pattern.
+pattern, and so is any address outside `@bookingplatform.test`.
+
+Read the report before running it again with `--delete`. An account it lists
+as `keep` is one it will never touch, and the reason is on the same line.
 
 ## Development data
 

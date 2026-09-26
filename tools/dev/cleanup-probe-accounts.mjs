@@ -26,7 +26,12 @@
  */
 import { readFileSync } from 'node:fs';
 
-const PROBE = /^(probe|p14-probe|gate)-\d+@bookingplatform\.test$/i;
+// The suffix is whatever the check that made the account used: a timestamp,
+// usually, but `gate-reusable` exists too. Requiring digits would leave that
+// one behind for ever, which is how a cleanup tool quietly stops being one.
+// The domain, the prefix, the NEVER list and the ownership check below are
+// what make this safe -- not the shape of the suffix.
+const PROBE = /^(probe|p14-probe|gate)-[a-z0-9]+(?:-[a-z0-9]+)*@bookingplatform\.test$/i;
 const NEVER = new Set(['demo@bookingplatform.test']);
 const DELETE = process.argv.includes('--delete');
 
