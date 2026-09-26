@@ -15,14 +15,14 @@ make, and none of them is engineering's to make alone.
 
 ## The shortest version
 
-| Gate                  | State                                                                    |
-| --------------------- | ------------------------------------------------------------------------ |
-| Retention             | **None.** Nothing is ever deleted, and no period exists for anything.    |
-| Deletion on request   | **No path.** And a booking's recorded identity cannot be rewritten.      |
-| Account recovery      | **None.** No password reset, because nothing can send email.             |
-| Message delivery      | **Nothing is ever sent.** The in-app thread is the only working channel. |
-| Identity of a sign-up | **Unverified.** Anyone can register any address and use it immediately.  |
-| Environments          | **One.** A development project. There is no production.                  |
+| Gate                  | State                                                                                                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Retention             | **None.** Nothing is ever deleted, and no period exists for anything.                                                                                                          |
+| Deletion on request   | **No path.** And a booking's recorded identity cannot be rewritten.                                                                                                            |
+| Account recovery      | **None.** No password reset, because nothing can send email.                                                                                                                   |
+| Message delivery      | **Nothing is ever sent.** The in-app thread is the only working channel.                                                                                                       |
+| Identity of a sign-up | **Unverified.** Anyone can register any address and use it immediately. Turning registration off in the dashboard closes it, and the screens follow that setting on their own. |
+| Environments          | **One.** A development project. There is no production.                                                                                                                        |
 
 ---
 
@@ -130,14 +130,28 @@ that already carried a warning — into a shared project.
 None of these is dangerous with fictional data. All of them should be cleared
 before a real person is invited.
 
-- One customer row holds a real personal email address and telephone number.
-  It is the Product Owner's own, from a test booking. It is theirs to remove.
-- Two throwaway `probe-…@bookingplatform.test` accounts were created by this
-  checkpoint to establish whether sign-up is open. Removing an auth user needs
-  the dashboard.
+- **Cleared.** Two customer rows held a real email address and telephone
+  number — the Product Owner's own, from test bookings. Both were deleted with
+  their appointments and dependent rows, on the Product Owner's instruction,
+  and their absence was confirmed afterwards by identifier.
+- Several throwaway `@bookingplatform.test` accounts remain — `probe-…`,
+  `p14-probe-…` and `gate-…` — each created to answer one question about
+  sign-up and holding nothing since. `tools/dev/cleanup-probe-accounts.mjs`
+  removes them; it needs the service-role key, which this repository does not
+  hold. See [OPERATIONS.md](OPERATIONS.md).
 - A second business, **Salón Aurora**, exists from a Phase 12 self-service
   test, owned by a different account, published, with a professional also
-  called "Alex Rivera".
+  called "Alex Rivera". Harmless, and a reminder that self-service sign-up was
+  open.
+
+What can be said about personal data, and what cannot: an anonymous caller can
+read 14 rows in total from the shared project — two businesses, two
+professional profiles, five services and five service links — and every name,
+address and telephone number in them is fictional. That is the whole public
+surface and it was enumerated, not sampled. It is **not** a statement about
+the whole database: `customers`, `appointments`, `appointment_messages`,
+`notifications` and the auth users are unreadable without the service-role
+key, so nobody without that key can honestly claim what is in them.
 
 ---
 
