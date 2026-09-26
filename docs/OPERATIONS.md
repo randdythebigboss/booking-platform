@@ -193,9 +193,15 @@ In the dashboard: **Authentication → Sign In / Providers → Email**, turn
 _Allow new users to sign up_ off.
 
 Nothing else changes. Signing in is untouched, so no existing account is
-affected. Guest booking never involved an account and is unaffected. The
-product already recognises GoTrue's refusal and shows a sentence about it
-rather than a raw provider message.
+affected. Guest booking never involved an account and is unaffected.
+
+**The product follows this setting on its own.** Both entry screens read
+`GET /auth/v1/settings` when they open and stop offering to create an account
+once `disable_signup` is on, replacing the toggle with a sentence in the
+reader's language. Nothing needs redeploying, and the bundle carries no opinion
+of its own about who may register -- it asks. If the question cannot be
+answered the form stays up, and GoTrue's refusal is still translated rather
+than shown raw.
 
 To create a fictional account afterwards:
 

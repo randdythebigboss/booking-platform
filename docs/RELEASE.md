@@ -81,17 +81,16 @@ Then, by hand, the things a checklist cannot do:
 |                                                                      |                                                               |
 | -------------------------------------------------------------------- | ------------------------------------------------------------- |
 | Version                                                              | `0.1.0-beta.2`                                                |
-| Branch                                                               | `phase11/release-candidate`                                   |
-| Last code commit verified                                            | `8b2eebb`                                                     |
+| Branch                                                               | `main`                                                        |
 | GitHub Actions                                                       | all three jobs green                                          |
 | Lint, types                                                          | clean                                                         |
-| Unit tests                                                           | **352 passing**, 32 files                                     |
-| SQL suites                                                           | **11 passing**, from an empty database, 39 migrations         |
-| End-to-end                                                           | **87 passing** — 77 desktop, 10 at 375px                      |
-| Accessibility                                                        | **0 violations** (axe, WCAG 2.1 A + AA) across 8 screens      |
-| Expo doctor                                                          | 21/21                                                         |
-| Web export                                                           | 2.5 MB; 1.72 MB JS raw, **455 KB gzipped**, one chunk         |
-| Clean clone                                                          | `npm ci`, verify, export, packaging, 64 end-to-end — all pass |
+| Unit tests                                                           | **396 passing**, 36 files                                     |
+| SQL suites                                                           | **12 passing**, from an empty database, 40 migrations         |
+| End-to-end                                                           | **128 tests**, 12 files — desktop and 375px                   |
+| Accessibility                                                        | **0 violations** (axe, WCAG 2.1 A + AA), in the browser suite |
+| Expo doctor                                                          | 20/21 — see below                                             |
+| Web export                                                           | 1.83 MB JS raw, **503 KB gzipped**, one chunk                 |
+| Clean clone                                                          | `npm ci`, verify, export, verify-build, secret scan — pass    |
 | Secret scan                                                          | clean — only the validation regex and test placeholders       |
 | Tables without RLS                                                   | **0**                                                         |
 | `SECURITY DEFINER` without a pinned `search_path`                    | **0**                                                         |
@@ -100,8 +99,16 @@ Then, by hand, the things a checklist cannot do:
 | Payment simulation, cloud                                            | **off**                                                       |
 | Real payment provider                                                | **none**                                                      |
 | Real messaging provider                                              | **none**                                                      |
-| Cloud smoke                                                          | booking, reschedule, cancel, both languages, no pay button    |
+| Cloud smoke                                                          | booking and cancellation on the deployed beta, both languages |
 | Responsive                                                           | 320 / 375 / 430 / 768px — no horizontal overflow              |
+
+### The one failing doctor check
+
+`expo`, `expo-linking` and `expo-router` are each one patch behind what SDK 57
+now asks for. Nothing in this repository changed; upstream published patches
+after the lockfile was written. It is recorded rather than fixed because a
+dependency bump is a change to what ships, and that belongs to a phase with a
+full verification pass behind it, not to an operational closure.
 
 ## Deployed
 
@@ -150,9 +157,49 @@ git push origin v0.1.0-beta.2
 ```
 
 **No GitHub Release is published**, because publishing one reads as a
-distribution decision and that decision is the Product Owner's. **Nothing is
-deployed** — see [DEPLOYMENT.md](DEPLOYMENT.md) for what would be involved and
-what still has to be chosen.
+distribution decision and that decision is the Product Owner's. Tagging does
+not deploy either: the beta is published by a push to `main`, and that is a
+separate act from cutting a tag. What is serving right now is below.
+
+## The tag, and what is actually serving
+
+These are two different things and the difference is not a mistake.
+
+|                                      |                      |
+| ------------------------------------ | -------------------- |
+| Tag `v0.1.0-beta.1`                  | commit `5781886`     |
+| Tag `v0.1.0-beta.2`                  | commit `50547b5`     |
+| `main`, and what GitHub Pages serves | `git rev-parse main` |
+| Version the running bundle reports   | `0.1.0-beta.2`       |
+
+`main` moves; the tag does not. Everything on `main` past `v0.1.0-beta.2` is
+operational, and none of it changes what the product does for a tester:
+
+- `07ebaf1` — tooling and documentation for the cloud work this repository
+  cannot perform itself.
+- `4724b57` — the account screens ask the Auth server whether registration is
+  possible instead of assuming, and the readiness check reports five separate
+  categories instead of one total.
+- Documentation after that, including this section.
+
+`node tools/release/readiness.mjs` reports the deployed commit and whether its
+workflow succeeded, which is the answer to "what is actually out there" that
+does not go stale.
+
+**No tag was moved and no history was rewritten.** `v0.1.0-beta.2` still points
+at the commit it was cut from, which is the only thing a tag is for.
+
+**No `v0.1.0-beta.3` was cut**, because there is nothing to announce: no
+feature, no fix to product behaviour, no change a tester would notice while
+the shared project stays as it is. The version string stayed `0.1.0-beta.2`
+deliberately, so the bundle keeps telling the truth about which release it is.
+
+The next tag belongs to the next thing a tester can see. The most likely
+trigger is the pending cloud work in [OPERATIONS.md](OPERATIONS.md): once
+`get_week_availability` is installed, the weekly view stops falling back to
+seven separate day queries, and that is a real change in what the product does
+under someone's finger — worth a `v0.1.0-beta.3` and a release record saying
+so.
 
 ## If something is wrong afterwards
 
