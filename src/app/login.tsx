@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { useSession } from '@/components/providers';
+import { useAsyncData } from '@/hooks/use-async-data';
 import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
+import { fetchAuthCapabilities } from '@/features/auth/capabilities';
 import {
   MIN_PASSWORD_LENGTH,
   isDemoRegistrationAllowed,
@@ -31,6 +33,10 @@ export default function LoginScreen() {
   const errorText = useWorkspaceErrorText();
 
   const [mode, setMode] = useState<Mode>('sign-in');
+  // As on the customer screen: the Auth server is the source of truth for
+  // whether a new account is possible at all.
+  const capabilities = useAsyncData(() => fetchAuthCapabilities(), []);
+  const signUpEnabled = capabilities.data?.signUpEnabled !== false;
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -140,15 +146,19 @@ export default function LoginScreen() {
           loading={busy}
         />
 
-        <Button
-          variant="ghost"
-          label={signingIn ? t('auth.noAccount') : t('auth.haveAccount')}
-          onPress={() => {
-            setMode(signingIn ? 'sign-up' : 'sign-in');
-            setErrors({});
-            setMessage(null);
-          }}
-        />
+        {signUpEnabled ? (
+          <Button
+            variant="ghost"
+            label={signingIn ? t('auth.noAccount') : t('auth.haveAccount')}
+            onPress={() => {
+              setMode(signingIn ? 'sign-up' : 'sign-in');
+              setErrors({});
+              setMessage(null);
+            }}
+          />
+        ) : (
+          <Feedback tone="muted" message={t('auth.signUpClosed')} />
+        )}
       </View>
 
       <Link href="/account/login" asChild>

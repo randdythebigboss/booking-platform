@@ -66,6 +66,37 @@ knowing before doing it again:
   removes everything added since -- which happened once here, dropping three
   fields the guest confirmation page needs, with every SQL suite still green.
 
+## Is it ready?
+
+```bash
+node tools/release/readiness.mjs
+```
+
+It answers five separate questions and never adds them up:
+
+| Category                         | What it means                              |
+| -------------------------------- | ------------------------------------------ |
+| Source-code readiness            | the code in this repository                |
+| CI and test readiness            | what GitHub Actions proved about that code |
+| Cloud deployment readiness       | what is actually installed and running     |
+| Cloud security configuration     | how the shared project is actually set up  |
+| Real-person onboarding readiness | whether a real person may be invited       |
+
+A category is its worst gate. The statuses mean exactly this:
+
+- **PASS** — checked in the target environment, just now.
+- **FAIL** — checked, and wrong.
+- **PENDING** — a real action nobody has performed yet.
+- **MANUAL** — cannot be established without credentials this repository does
+  not hold; the named tool is the evidence.
+- **BLOCKED** — waiting on a decision, not on an action.
+
+**A prepared script is never a PASS.** An earlier version of this check
+reported ten of ten green while public registration was still enabled on the
+shared project and the weekly RPC had never been installed on it. Nothing it
+said was false; the total implied a completeness it had not earned, because
+the two most important facts about the environment had no gate at all.
+
 ## Outstanding on the cloud development project
 
 Three things need an account this repository does not hold: the Supabase
@@ -99,10 +130,24 @@ psql "$CLOUD_DB_URL" -v ON_ERROR_STOP=1 \
   -f supabase/migrations/20260930100000_a_week_can_be_looked_at_whole.sql
 ```
 
-c. Or the dashboard's SQL Editor: paste that one file, whole, and run it. It
-is idempotent in the ways that matter (`create or replace function`), but the
-`create type` is not -- if you run it twice the second run stops at
-`day_availability already exists`, which is safe to ignore.
+c. Or the dashboard's SQL Editor: paste that one file, whole, and run it. The
+whole file is now replay-safe -- `create or replace function` always was, and
+the `create type` is wrapped so a second run is a no-op rather than
+`42710 type already exists`. Verified by applying it twice to a database in
+the project's exact current state.
+
+**If you use the SQL Editor, record it in the ledger afterwards.** `db push`
+decides what to apply by reading `supabase_migrations.schema_migrations`, and
+a migration applied by hand leaves no row there, so the next push replays it:
+
+```sql
+insert into supabase_migrations.schema_migrations (version, name)
+values ('20260930100000', 'a_week_can_be_looked_at_whole')
+on conflict (version) do nothing;
+```
+
+The replay would now be harmless, but an accurate ledger is what stops the
+next person having to work out whether it was.
 
 Then, in the same session:
 
@@ -183,6 +228,17 @@ owns any of them. `demo@bookingplatform.test` is refused by name as well as by
 pattern.
 
 ## Development data
+
+### Commands that destroy data
+
+Three scripts can: `tools/e2e/reset.sh`, `tools/dev/reset-demo-data.sh` and
+`tools/local-postgres/run-validation.sh` — the last drops a whole database.
+All three call `tools/dev/disposable-db.cjs` before touching anything, which
+refuses any host that is not on this machine. `ALLOW_REMOTE_RESET=yes`
+overrides it and is never appropriate for ordinary development.
+
+`npm run db:reset` is the Supabase CLI acting on the local container; it
+cannot reach a linked project without an explicit `--linked`.
 
 `supabase/seed.sql` is the safe demo data: one business, Spanish content,
 invented customers with `@example.test` addresses. It contains no real person,

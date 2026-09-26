@@ -51,13 +51,27 @@
 -- undistinguished: see get_day_schedule.
 -- ===========================================================================
 
-create type public.day_availability as enum (
-  'open',    -- at least one slot this service can actually take
-  'full',    -- the day is worked, and nothing is left
-  'closed',  -- not a working day at all, or wholly excepted
-  'past',    -- before today where the business is
-  'beyond'   -- past the booking horizon the business set
-);
+-- Wrapped so the whole file can be run twice without failing.
+--
+-- `create or replace function` is already idempotent; `create type` is not,
+-- and this migration may reach a project through the SQL Editor rather than
+-- through `supabase db push`. When it does, the ledger has no row for it and
+-- a later push will replay it -- at which point a bare `create type` stops
+-- the whole push on `42710 type already exists`. Catching that here means a
+-- replay is a no-op instead of an incident.
+do $$
+begin
+  create type public.day_availability as enum (
+    'open',    -- at least one slot this service can actually take
+    'full',    -- the day is worked, and nothing is left
+    'closed',  -- not a working day at all, or wholly excepted
+    'past',    -- before today where the business is
+    'beyond'   -- past the booking horizon the business set
+  );
+exception
+  when duplicate_object then null;
+end;
+$$;
 
 create or replace function public.get_week_availability(
   p_professional_id uuid,

@@ -36,6 +36,11 @@ admin() {
   "$PSQL" -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d postgres -v ON_ERROR_STOP=1 -tAc "$1"
 }
 
+# This drops a database. PGHOST is overridable, so the same gate the reset
+# scripts use applies here too -- and it applies harder, because a dropped
+# database is not a row somebody can put back.
+node "$REPO_ROOT/tools/dev/disposable-db.cjs" "postgresql://$PGUSER@$PGHOST:$PGPORT/$PGDATABASE" || exit 4
+
 echo "Recreating $PGDATABASE from nothing"
 admin "drop database if exists $PGDATABASE with (force);" >/dev/null
 admin "create database $PGDATABASE;" >/dev/null

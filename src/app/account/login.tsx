@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { useSession } from '@/components/providers';
+import { useAsyncData } from '@/hooks/use-async-data';
 import { Button, Card, Feedback, Field, Screen, Text } from '@/components/ui';
+import { fetchAuthCapabilities } from '@/features/auth/capabilities';
 import {
   MIN_PASSWORD_LENGTH,
   isDemoRegistrationAllowed,
@@ -43,6 +45,11 @@ export default function CustomerLoginScreen() {
   const errorText = useWorkspaceErrorText();
 
   const [mode, setMode] = useState<Mode>('sign-in');
+  // The server decides whether an account can be created; the screen asks it
+  // rather than carrying an opinion. Defaults to "yes" while unknown, because
+  // the server refuses anyway and SIGNUP_DISABLED explains why.
+  const capabilities = useAsyncData(() => fetchAuthCapabilities(), []);
+  const signUpEnabled = capabilities.data?.signUpEnabled !== false;
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -136,15 +143,19 @@ export default function CustomerLoginScreen() {
             loading={busy}
           />
 
-          <Button
-            label={mode === 'sign-in' ? t('account.createOne') : t('account.haveOne')}
-            variant="secondary"
-            onPress={() => {
-              setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
-              setErrors({});
-              setMessage(null);
-            }}
-          />
+          {signUpEnabled ? (
+            <Button
+              label={mode === 'sign-in' ? t('account.createOne') : t('account.haveOne')}
+              variant="secondary"
+              onPress={() => {
+                setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
+                setErrors({});
+                setMessage(null);
+              }}
+            />
+          ) : (
+            <Feedback tone="muted" message={t('auth.signUpClosed')} />
+          )}
         </View>
       </Card>
 

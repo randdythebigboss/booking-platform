@@ -58,6 +58,8 @@ export const es = {
   },
 
   auth: {
+    signUpClosed:
+      'Esta demostración no está creando cuentas nuevas. Puedes entrar si ya tienes una, y reservar no necesita ninguna.',
     signIn: 'Iniciar sesión',
     signUp: 'Crear cuenta',
     signOut: 'Cerrar sesión',

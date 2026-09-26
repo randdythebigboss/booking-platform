@@ -53,14 +53,25 @@ describe('isDisposable', () => {
     expect(isDisposable(remote, { ALLOW_REMOTE_RESET: 'true' })).toBe(false);
   });
 
-  it('is wired into both reset scripts, before they touch anything', () => {
+  it('is wired into every destructive script, before it touches anything', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { readFileSync } = require('node:fs') as typeof import('node:fs');
-    for (const script of ['tools/e2e/reset.sh', 'tools/dev/reset-demo-data.sh']) {
+
+    // Each entry: the script, and the first thing in it that destroys data.
+    const guarded: [string, string][] = [
+      ['tools/e2e/reset.sh', 'delete from'],
+      ['tools/dev/reset-demo-data.sh', 'delete from'],
+      // This one drops a whole database, which is worse than any delete.
+      ['tools/local-postgres/run-validation.sh', 'drop database'],
+    ];
+
+    for (const [script, destructive] of guarded) {
       const text = readFileSync(script, 'utf8');
       expect(text, `${script} must call the gate`).toContain('tools/dev/disposable-db.cjs');
-      // Before the first destructive statement, not after it.
-      expect(text.indexOf('disposable-db.cjs')).toBeLessThan(text.indexOf('delete from'));
+      expect(
+        text.indexOf('disposable-db.cjs'),
+        `${script} must call the gate before "${destructive}"`,
+      ).toBeLessThan(text.indexOf(destructive));
     }
   });
 });

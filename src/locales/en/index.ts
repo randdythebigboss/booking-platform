@@ -54,6 +54,8 @@ export const en: Translations = {
   },
 
   auth: {
+    signUpClosed:
+      'This demonstration is not creating new accounts. You can sign in if you already have one, and booking needs none.',
     signIn: 'Sign in',
     signUp: 'Create account',
     signOut: 'Sign out',
