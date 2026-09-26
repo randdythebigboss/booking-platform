@@ -97,14 +97,36 @@ shared project and the weekly RPC had never been installed on it. Nothing it
 said was false; the total implied a completeness it had not earned, because
 the two most important facts about the environment had no gate at all.
 
-## Outstanding on the cloud development project
+## The cloud development project: all three done
 
-Three things need an account this repository does not hold: the Supabase
-dashboard, or a service-role key, or a personal access token. Each is written
-out here so it can be done in one sitting, and each has a check that proves it
-afterwards.
+All three were carried out on **26 September 2026**, in the dashboard, with the
+Product Owner signed in. They are kept here because the procedures are what a
+second project would need, and because the checks are how anybody confirms the
+state has not drifted.
 
-### 1. Apply the pending migration
+|                         | Done                                      | Proved by                                                 |
+| ----------------------- | ----------------------------------------- | --------------------------------------------------------- |
+| 1. The weekly migration | applied, ledger recorded, schema reloaded | `verify-week-function.sql`, `verify-cloud-week.mjs` 11/11 |
+| 2. Public registration  | off at the Auth server                    | `/auth/v1/settings` says `disable_signup: true`           |
+| 3. The probe accounts   | 8 removed, 4 accounts left                | the survivors each own a business or are the demo         |
+
+None of it needed a service-role key, a database password or an access token,
+and none was written down.
+
+### 1. The weekly migration — applied
+
+**Done.** Applied through the SQL Editor after checking the pasted text was
+byte-identical to the file in this repository (SHA-256 `aa14a678…34aabe0e`,
+7165 bytes). The ledger row was written by hand and then corrected to the
+filename form the CLI itself uses, `20260930100000_a_week_can_be_looked_at_whole.sql`,
+so `db push` sees a migration it has already applied rather than one to
+replay. `notify pgrst, 'reload schema'` followed in the same session.
+
+Afterwards `verify-week-function.sql` ran clean and
+`verify-cloud-week.mjs` reported 11/11, including the one that matters: the
+deployed page makes **one** weekly call instead of seven day calls.
+
+The procedure, for a project that still needs it:
 
 `supabase/migrations/20260930100000_a_week_can_be_looked_at_whole.sql` adds
 `get_week_availability`, which the public booking page's week strip calls. The
@@ -176,21 +198,34 @@ calls the weekly RPC and gets a 200, and fails if it is quietly falling back.
 **Leave the fallback in place.** It costs nothing while the function exists and
 it is what keeps a fresh or half-migrated project working.
 
-### 2. Turn public registration off
+### 2. Public registration — off
 
-The project currently answers:
+**Done.** Authentication → Sign In / Providers → User Signups → _Allow new
+users to sign up_, off, saved. `/auth/v1/settings` now answers
+`disable_signup: true`, a real registration attempt is refused with
+`signup_disabled`, and signing in still answers `invalid_credentials` for a
+wrong password rather than anything about the instance — so no existing account
+was touched. The deployed beta picked it up with no redeploy: both entry
+screens now say so, in both languages.
+
+**`mailer_autoconfirm` is still `true` and that is deliberate.** Turning
+confirmation on without a mail provider would lock every new account out
+instead of verifying it, and a provider costs money.
+
+The procedure, and what the project answered before it:
 
 ```bash
 curl -s "$SUPABASE_URL/auth/v1/settings" -H "apikey: $ANON_KEY"
 # "disable_signup": false, "mailer_autoconfirm": true
 ```
 
-Anyone may register any address, and it is usable immediately because nothing
-confirms it. The application refuses a non-reserved address in its own forms,
-but that is guidance in a browser, not a server-side control.
+That meant anyone could register any address and use it immediately, because
+nothing confirmed it. The application refuses a non-reserved address in its own
+forms, but that is guidance in a browser, not a server-side control.
 
-In the dashboard: **Authentication → Sign In / Providers → Email**, turn
-_Allow new users to sign up_ off.
+In the dashboard: **Authentication → Sign In / Providers**, under _User
+Signups_, turn _Allow new users to sign up_ off and save. It is on that page
+itself, not inside the Email provider.
 
 Nothing else changes. Signing in is untouched, so no existing account is
 affected. Guest booking never involved an account and is unaffected.
@@ -217,11 +252,23 @@ and writes the password to a file outside the repository.
 Confirm afterwards with the same `/auth/v1/settings` call: `disable_signup`
 must read `true`.
 
-### 3. Remove the probe accounts
+### 3. The probe accounts — removed
 
-Security checks left several throwaway accounts on `@bookingplatform.test`.
-Each was created to answer one question about sign-up and has held nothing
-since. The ones this session knows about:
+**Done.** Eight accounts, all on `@bookingplatform.test`: five `gate-…`, two
+`probe-…` and one `p14-probe-…`. Every one was checked first, in SQL, against
+the same three questions `cleanup-probe-accounts.mjs` asks — does it own a
+business, a professional profile, a customer record — and every one answered no
+to all three. They were then removed through Authentication → Users, which is
+the Admin API doing it, so nothing here ever held a service-role key.
+
+Four accounts remain and each is meant to: the demonstration account and the
+owners of the three businesses. Afterwards: no ownerless business, no orphaned
+professional profile, no orphaned customer, and the businesses still hold 3 and
+2 services and 14 and 11 appointments exactly as before.
+
+`gate-reusable` appears in earlier notes and never existed on the project.
+
+The procedure, for next time:
 
 |                        |     |
 | ---------------------- | --- |

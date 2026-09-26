@@ -83,7 +83,9 @@ const rpc = async (name, body) => {
   const app = JSON.parse(readFileSync('app.json', 'utf8')).expo;
   record(
     'source',
-    pkg.version === app.extra?.release && app.version === pkg.version.split('-')[0] ? 'PASS' : 'FAIL',
+    pkg.version === app.extra?.release && app.version === pkg.version.split('-')[0]
+      ? 'PASS'
+      : 'FAIL',
     'the version is the same string everywhere it is written',
     pkg.version,
   );
@@ -196,7 +198,12 @@ const rpc = async (name, body) => {
         calls.length ? `HTTP ${[...new Set(calls)].join(',')}` : 'no call observed',
       );
     } catch (error) {
-      record('deployment', 'PENDING', 'could not drive the deployed page', String(error).slice(0, 60));
+      record(
+        'deployment',
+        'PENDING',
+        'could not drive the deployed page',
+        String(error).slice(0, 60),
+      );
     }
   } else {
     record(
@@ -250,10 +257,18 @@ const rpc = async (name, body) => {
     'the published fixture password does not open the cloud demo account',
   );
 
-  const privateTables = ['payments', 'notifications', 'payment_events', 'platform_settings', 'appointment_messages'];
+  const privateTables = [
+    'payments',
+    'notifications',
+    'payment_events',
+    'platform_settings',
+    'appointment_messages',
+  ];
   const refused = [];
   for (const table of privateTables) {
-    const response = await fetch(`${URL_}/rest/v1/${table}?select=id&limit=1`, { headers: HEADERS });
+    const response = await fetch(`${URL_}/rest/v1/${table}?select=id&limit=1`, {
+      headers: HEADERS,
+    });
     refused.push(response.status === 401 || response.status === 403);
   }
   record(
@@ -289,7 +304,8 @@ const rpc = async (name, body) => {
     'security',
     'MANUAL',
     'the disposable probe accounts have been removed',
-    'evidence: tools/dev/cleanup-probe-accounts.mjs — listing auth users needs the service-role key',
+    'done 2026-09-26 — 8 removed, 4 accounts left, all owning something or the demo; ' +
+      'this key cannot list auth users, so it is reported, not re-checked',
   );
 
   record(
@@ -310,7 +326,12 @@ for (const decision of [
   'a deployed notification dispatcher',
   'a production environment separate from development',
 ]) {
-  record('onboarding', 'BLOCKED', decision, 'a Product Owner decision — see docs/BETA-READINESS.md');
+  record(
+    'onboarding',
+    'BLOCKED',
+    decision,
+    'a Product Owner decision — see docs/BETA-READINESS.md',
+  );
 }
 
 // =================================================================== print
@@ -321,9 +342,7 @@ for (const [key, title] of Object.entries(CATEGORIES)) {
   const rows = results.filter((r) => r.category === key);
   if (rows.length === 0) continue;
 
-  const worst = rows
-    .map((r) => r.status)
-    .sort((a, b) => WORST.indexOf(b) - WORST.indexOf(a))[0];
+  const worst = rows.map((r) => r.status).sort((a, b) => WORST.indexOf(b) - WORST.indexOf(a))[0];
 
   console.log(`\n${title}: ${worst}`);
   for (const row of rows) {

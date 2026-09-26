@@ -194,12 +194,18 @@ feature, no fix to product behaviour, no change a tester would notice while
 the shared project stays as it is. The version string stayed `0.1.0-beta.2`
 deliberately, so the bundle keeps telling the truth about which release it is.
 
-The next tag belongs to the next thing a tester can see. The most likely
-trigger is the pending cloud work in [OPERATIONS.md](OPERATIONS.md): once
-`get_week_availability` is installed, the weekly view stops falling back to
-seven separate day queries, and that is a real change in what the product does
-under someone's finger — worth a `v0.1.0-beta.3` and a release record saying
-so.
+The next tag belongs to the next thing a tester can see.
+
+`get_week_availability` was installed on the shared project on 26 September
+2026, so the weekly view now makes one call where it used to make seven. That
+is a real change in what the product does under somebody's finger — but it is
+a change in the _environment_, not in this repository: the same commit produced
+both behaviours, and the fallback that produced the old one is still there for
+a project that has not been migrated. Tagging it would attach a version to
+something a tag cannot describe.
+
+So the next tag waits for the next change to the code, and this is the record
+that the environment moved underneath it.
 
 ## If something is wrong afterwards
 

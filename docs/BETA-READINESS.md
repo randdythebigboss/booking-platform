@@ -15,14 +15,14 @@ make, and none of them is engineering's to make alone.
 
 ## The shortest version
 
-| Gate                  | State                                                                                                                                                                          |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Retention             | **None.** Nothing is ever deleted, and no period exists for anything.                                                                                                          |
-| Deletion on request   | **No path.** And a booking's recorded identity cannot be rewritten.                                                                                                            |
-| Account recovery      | **None.** No password reset, because nothing can send email.                                                                                                                   |
-| Message delivery      | **Nothing is ever sent.** The in-app thread is the only working channel.                                                                                                       |
-| Identity of a sign-up | **Unverified.** Anyone can register any address and use it immediately. Turning registration off in the dashboard closes it, and the screens follow that setting on their own. |
-| Environments          | **One.** A development project. There is no production.                                                                                                                        |
+| Gate                  | State                                                                                                                                                                                                                                                                                     |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Retention             | **None.** Nothing is ever deleted, and no period exists for anything.                                                                                                                                                                                                                     |
+| Deletion on request   | **No path.** And a booking's recorded identity cannot be rewritten.                                                                                                                                                                                                                       |
+| Account recovery      | **None.** No password reset, because nothing can send email.                                                                                                                                                                                                                              |
+| Message delivery      | **Nothing is ever sent.** The in-app thread is the only working channel.                                                                                                                                                                                                                  |
+| Identity of a sign-up | **Registration is closed.** `disable_signup` is on at the Auth server, so nobody can create an account at all, and the screens say so in both languages. Addresses are still unverified — if registration is ever reopened without a mail provider, anyone could claim any address again. |
+| Environments          | **One.** A development project. There is no production.                                                                                                                                                                                                                                   |
 
 ---
 
@@ -134,15 +134,20 @@ before a real person is invited.
   number — the Product Owner's own, from test bookings. Both were deleted with
   their appointments and dependent rows, on the Product Owner's instruction,
   and their absence was confirmed afterwards by identifier.
-- Several throwaway `@bookingplatform.test` accounts remain — `probe-…`,
-  `p14-probe-…` and `gate-…` — each created to answer one question about
-  sign-up and holding nothing since. `tools/dev/cleanup-probe-accounts.mjs`
-  removes them; it needs the service-role key, which this repository does not
-  hold. See [OPERATIONS.md](OPERATIONS.md).
-- A second business, **Salón Aurora**, exists from a Phase 12 self-service
-  test, owned by a different account, published, with a professional also
-  called "Alex Rivera". Harmless, and a reminder that self-service sign-up was
-  open.
+- **Cleared.** Eight throwaway `@bookingplatform.test` accounts — five
+  `gate-…`, two `probe-…` and one `p14-probe-…` — were removed on 26 September
+  2026 through Authentication → Users. Each was checked first against the three
+  questions `tools/dev/cleanup-probe-accounts.mjs` asks, and owned no business,
+  no professional profile and no customer record. Four accounts remain: the
+  demonstration account and the owners of the three businesses.
+- **Three businesses exist, not two.** `demo-studio` (Estudio Demo, published,
+  3 services, 14 appointments), `salon-aurora` (Salón Aurora, published, 2
+  services, 11 appointments) and `barberia-central` (Barbería Central,
+  **unpublished**, no services, no appointments). The second and third are
+  leftovers from self-service sign-up tests, each owned by a different fictional
+  account. None is a problem; `barberia-central` is simply invisible to the
+  public because it was never published, which is why it is easy to forget it is
+  there.
 
 What can be said about personal data, and what cannot: an anonymous caller can
 read 14 rows in total from the shared project — two businesses, two
