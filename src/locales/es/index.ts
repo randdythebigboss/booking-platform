@@ -952,6 +952,8 @@ export const es = {
       EMAIL_TAKEN: 'Ya existe una cuenta con ese correo.',
       EMAIL_NOT_CONFIRMED: 'Confirma tu correo primero y después inicia sesión.',
       WEAK_PASSWORD: 'Elige una contraseña más larga.',
+    SIGNUP_DISABLED:
+      'Esta demostración no acepta cuentas nuevas por ahora. Puedes reservar sin cuenta, y si necesitas una cuenta de prueba pídesela al responsable.',
       PAYMENT_NOT_FOUND: 'No encontramos ese pago.',
       PAYMENT_NOT_REFUNDABLE: 'Ese pago no se puede reembolsar.',
       PAYMENT_SIMULATION_DISABLED: 'Los pagos simulados no están habilitados aquí.',

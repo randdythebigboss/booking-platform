@@ -928,6 +928,8 @@ export const en: Translations = {
       EMAIL_TAKEN: 'There is already an account with that email.',
       EMAIL_NOT_CONFIRMED: 'Confirm your email address first, then sign in.',
       WEAK_PASSWORD: 'Choose a longer password.',
+    SIGNUP_DISABLED:
+      'This demonstration is not accepting new accounts right now. You can book without one, and if you need a test account, ask whoever runs it.',
       PAYMENT_NOT_FOUND: 'We could not find that payment.',
       PAYMENT_NOT_REFUNDABLE: 'That payment cannot be refunded.',
       PAYMENT_SIMULATION_DISABLED: 'Simulated payments are not enabled here.',

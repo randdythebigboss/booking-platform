@@ -43,7 +43,7 @@ module.exports = [
     languageOptions: { sourceType: 'script' },
   },
   {
-    files: ['tools/**/*.js', 'tools/**/*.cjs', 'tools/**/*.ts'],
+    files: ['tools/**/*.js', 'tools/**/*.cjs', 'tools/**/*.mjs', 'tools/**/*.ts'],
     languageOptions: {
       globals: {
         Buffer: 'readonly',

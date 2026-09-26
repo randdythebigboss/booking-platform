@@ -66,6 +66,122 @@ knowing before doing it again:
   removes everything added since -- which happened once here, dropping three
   fields the guest confirmation page needs, with every SQL suite still green.
 
+## Outstanding on the cloud development project
+
+Three things need an account this repository does not hold: the Supabase
+dashboard, or a service-role key, or a personal access token. Each is written
+out here so it can be done in one sitting, and each has a check that proves it
+afterwards.
+
+### 1. Apply the pending migration
+
+`supabase/migrations/20260930100000_a_week_can_be_looked_at_whole.sql` adds
+`get_week_availability`, which the public booking page's week strip calls. The
+deployed beta works without it -- `fetchWeekAvailability` falls back to the same
+engine one day at a time -- but that is seven round trips a week instead of one.
+
+Verified before it was written down: it applies cleanly to a database in
+exactly the cloud's current state, and
+`tools/release/verify-week-function.sql` passes against the result.
+
+Any of these, in order of preference:
+
+```bash
+# a. The CLI, with a personal access token from the dashboard.
+#    Applies every migration the project is missing, in order, and records
+#    them in the ledger.
+export SUPABASE_ACCESS_TOKEN=...        # this command only; never committed
+npx supabase link --project-ref qqzzscfrbotsoizfabvw
+npx supabase db push
+
+# b. psql, with the project's database password.
+psql "$CLOUD_DB_URL" -v ON_ERROR_STOP=1 \
+  -f supabase/migrations/20260930100000_a_week_can_be_looked_at_whole.sql
+```
+
+c. Or the dashboard's SQL Editor: paste that one file, whole, and run it. It
+is idempotent in the ways that matter (`create or replace function`), but the
+`create type` is not -- if you run it twice the second run stops at
+`day_availability already exists`, which is safe to ignore.
+
+Then, in the same session:
+
+```sql
+notify pgrst, 'reload schema';
+```
+
+**This is not optional.** PostgREST caches the schema at boot. Without the
+reload the function exists and the API still answers `404 PGRST202`, which is
+indistinguishable from not having applied it at all. It was observed exactly
+that way while preparing this.
+
+Finally, prove it:
+
+```bash
+psql "$CLOUD_DB_URL" -v ON_ERROR_STOP=1 -f tools/release/verify-week-function.sql
+node tools/release/verify-cloud-week.mjs
+```
+
+The first checks the signature, the enum, `SECURITY DEFINER` with a pinned
+`search_path`, that `EXECUTE` reaches `anon` and `authenticated` and not
+`PUBLIC`, and that the returned shape is still `day, state, free_count`. The
+second watches the deployed page's network traffic: it passes only if the page
+calls the weekly RPC and gets a 200, and fails if it is quietly falling back.
+
+**Leave the fallback in place.** It costs nothing while the function exists and
+it is what keeps a fresh or half-migrated project working.
+
+### 2. Turn public registration off
+
+The project currently answers:
+
+```bash
+curl -s "$SUPABASE_URL/auth/v1/settings" -H "apikey: $ANON_KEY"
+# "disable_signup": false, "mailer_autoconfirm": true
+```
+
+Anyone may register any address, and it is usable immediately because nothing
+confirms it. The application refuses a non-reserved address in its own forms,
+but that is guidance in a browser, not a server-side control.
+
+In the dashboard: **Authentication → Sign In / Providers → Email**, turn
+_Allow new users to sign up_ off.
+
+Nothing else changes. Signing in is untouched, so no existing account is
+affected. Guest booking never involved an account and is unaffected. The
+product already recognises GoTrue's refusal and shows a sentence about it
+rather than a raw provider message.
+
+To create a fictional account afterwards:
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY=... node tools/dev/provision-demo-account.mjs \
+  alguien@example.test "Alguien Demo"
+```
+
+It refuses any address that could belong to a real person, refuses a project
+that does not say it is `development`, refuses an account that already exists,
+and writes the password to a file outside the repository.
+
+Confirm afterwards with the same `/auth/v1/settings` call: `disable_signup`
+must read `true`.
+
+### 3. Remove the probe accounts
+
+Security checks left several throwaway accounts —
+`probe-…`, `p14-probe-…` and `gate-…`, all on `@bookingplatform.test`. Each
+was created to answer one question about sign-up and has held nothing since.
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY=... node tools/dev/cleanup-probe-accounts.mjs
+SUPABASE_SERVICE_ROLE_KEY=... node tools/dev/cleanup-probe-accounts.mjs --delete
+```
+
+The first run only reports. Both runs check, per account, that it owns no
+business, no professional profile and no customer record, and skip it if it
+owns any of them. `demo@bookingplatform.test` is refused by name as well as by
+pattern.
+
 ## Development data
 
 `supabase/seed.sql` is the safe demo data: one business, Spanish content,

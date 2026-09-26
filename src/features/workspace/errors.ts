@@ -39,6 +39,7 @@ export const WORKSPACE_ERROR_CODES = [
   'EMAIL_TAKEN',
   'EMAIL_NOT_CONFIRMED',
   'WEAK_PASSWORD',
+  'SIGNUP_DISABLED',
   // Phase 9.
   'PAYMENT_NOT_FOUND',
   'PAYMENT_NOT_REFUNDABLE',
@@ -73,6 +74,10 @@ const AUTH_PHRASES: [RegExp, WorkspaceErrorCode][] = [
   [/already registered|already been registered/i, 'EMAIL_TAKEN'],
   [/email not confirmed/i, 'EMAIL_NOT_CONFIRMED'],
   [/password should be at least|weak password/i, 'WEAK_PASSWORD'],
+  // GoTrue's answer when a project has turned public registration off. It is
+  // a deliberate configuration, not a fault, and the screen should say so
+  // rather than showing somebody a raw provider message.
+  [/signups? not allowed|signup_disabled|signups are disabled/i, 'SIGNUP_DISABLED'],
 ];
 
 function codeOf(error: unknown): string | undefined {
