@@ -144,10 +144,29 @@ test.describe('the professional runs the week', () => {
     await expectNoRawError(page);
   });
 
-  test('points at the screen that changes what the week looks like', async ({ page }) => {
+  test('points at the screen that changes every week', async ({ page }) => {
     await expect(page.getByText(/Falta o sobra tiempo en tu semana/)).toBeVisible();
-    await page.getByRole('button', { name: 'Horario', exact: true }).last().click();
-    await page.waitForURL(/\/app\/availability/);
+    // The single "Horario" button became two, because the field test kept
+    // conflating "tomorrow only" with "from now on". This is the permanent one.
+    await page
+      .getByRole('button', { name: 'Cambiar todas las semanas', exact: true })
+      .last()
+      .click();
+    await page.waitForURL(/\/app\/availability$/);
+  });
+
+  test('changes one day starting from the day already on screen', async ({ page }) => {
+    // The answer to "how do I set tomorrow's hours?": the calendar carries the
+    // selected day across, so the date does not have to be typed a second time.
+    await page.getByRole('button', { name: 'Cambiar solo este día', exact: true }).last().click();
+    await page.waitForURL(/\/app\/availability\/exceptions\?date=\d{4}-\d{2}-\d{2}/);
+
+    // And it arrives on that day, with custom hours already chosen rather than
+    // "closed", which is what somebody who came from a date almost always wants.
+    const url = new URL(page.url());
+    const carried = url.searchParams.get('date') ?? '';
+    expect(carried).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    await expect(page.getByRole('radio', { name: 'Horario distinto' })).toBeChecked();
   });
 });
 
