@@ -73,6 +73,21 @@ export default function DateExceptionsScreen() {
 
   const [date, setDate] = useState(openOn);
   const [kind, setKind] = useState<ExceptionKind>(requested ? 'custom-hours' : 'closed');
+
+  /* A SECOND ARRIVAL HAS TO MOVE THE FORM.
+   *
+   * `useState` reads its argument once, on mount. Expo Router may keep this
+   * screen mounted and only change the parameters, and then coming back from
+   * the calendar on a different day would leave the form sitting on the first
+   * one -- which is the kind of bug that saves an override against the wrong
+   * date. Re-seeding is keyed on the parameter CHANGING, so a date the
+   * professional picked by hand is never stomped while they are editing it. */
+  const [seededFrom, setSeededFrom] = useState(requested);
+  if (requested !== seededFrom) {
+    setSeededFrom(requested);
+    setDate(openOn);
+    if (requested) setKind('custom-hours');
+  }
   const [startTime, setStartTime] = useState('12:00');
   const [endTime, setEndTime] = useState('20:00');
   const [reason, setReason] = useState('');
