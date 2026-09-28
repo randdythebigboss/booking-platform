@@ -45,7 +45,7 @@ export const en: Translations = {
     subtitle:
       'Publish your availability, share one link, and let customers book in under a minute. No accounts, nothing to install.',
     professionalCta: 'Sign in as a professional',
-    exploreDemo: 'See the public demo page',
+    exploreDemo: 'See an example booking page',
     forProfessionals: 'For professionals',
     forProfessionalsBody:
       'Barbers, stylists, manicurists, trainers, tutors, photographers, consultants, masseurs or technicians. One person or a team.',
@@ -55,7 +55,7 @@ export const en: Translations = {
 
   auth: {
     signUpClosed:
-      'This demonstration is not creating new accounts. You can sign in if you already have one, and booking needs none.',
+      'New accounts are not available at the moment. You can book without creating one.',
     signIn: 'Sign in',
     signUp: 'Create account',
     signOut: 'Sign out',
@@ -86,7 +86,7 @@ export const en: Translations = {
     title: 'Set up your business',
     subtitle: 'Only the essentials. Everything can change later.',
     businessName: 'Business name',
-    businessNamePlaceholder: 'Demo Studio',
+    businessNamePlaceholder: 'Aurora Studio',
     publicLink: 'Public link',
     publicLinkHint: 'This is how customers find you: /p/{{slug}}',
     displayName: 'Your public name',
@@ -496,8 +496,7 @@ export const en: Translations = {
     slotIntervalOption_one: 'Every {{count}} minute',
     slotIntervalOption_other: 'Every {{count}} minutes',
     gridPreviewTitle: 'How your day packs',
-    gridPreviewSetup:
-      'If somebody books a 20-minute service at 10:30, it finishes at {{end}}.',
+    gridPreviewSetup: 'If somebody books a 20-minute service at 10:30, it finishes at {{end}}.',
     gridPreviewNext: 'The next 40-minute appointment could start at {{start}}.',
     gridPreviewNoGap: 'No time is left idle.',
     gridPreviewGap_one: 'That leaves {{count}} minute idle between them.',
@@ -621,7 +620,8 @@ export const en: Translations = {
     failedAt: 'Failed {{when}}',
     attempts_one: '{{count}} attempt',
     attempts_other: '{{count}} attempts',
-    developmentDelivery: 'Nothing leaves here yet: in development a mock provider delivers them.',
+    developmentDelivery:
+      'Nothing is sent from here yet. Delivery by email, SMS or WhatsApp is not enabled.',
     kind: {
       booking_created: 'New booking',
       payment_received: 'Payment received',
@@ -649,8 +649,8 @@ export const en: Translations = {
   },
 
   payments: {
-    demoNotice: 'Demo payment — no real charge will be made.',
-    demoCompleted: 'Demo payment completed.',
+    demoNotice: 'This payment is a simulation: no real charge will be made.',
+    demoCompleted: 'Simulated payment completed.',
     unavailableService: 'Cannot be booked online',
     unavailableExplainer:
       'This service asks for a payment up front and we cannot take one right now. Contact the business to book it.',
@@ -668,7 +668,7 @@ export const en: Translations = {
     holdUntil: 'Your time is held until {{time}}',
     paidThanks: 'Payment received. Thank you.',
     declined: 'The payment did not go through. You can try again.',
-    simulationNotice: 'Development mode: no payment is real.',
+    simulationNotice: 'Payments are not real yet: nothing is charged.',
     simulateSuccess: 'Simulate a successful payment',
     simulateDecline: 'Simulate a declined payment',
     notRequired: 'No payment required',
@@ -840,7 +840,7 @@ export const en: Translations = {
     'policy.slotInterval': 'Use a whole number of minutes, at least 1.',
     'slug.taken': 'That public link is already taken. Try another one.',
     'email.demoOnly':
-      'This demonstration only accepts test addresses, for example yourname@example.test. We cannot verify a real one yet.',
+      'Only test addresses are accepted for now, for example yourname@example.test. We cannot verify a real one yet.',
     'email.required': 'Enter your email address.',
     'email.invalid': 'That does not look like an email address.',
     'password.required': 'Enter a password.',
@@ -942,8 +942,8 @@ export const en: Translations = {
       EMAIL_TAKEN: 'There is already an account with that email.',
       EMAIL_NOT_CONFIRMED: 'Confirm your email address first, then sign in.',
       WEAK_PASSWORD: 'Choose a longer password.',
-    SIGNUP_DISABLED:
-      'This demonstration is not accepting new accounts right now. You can book without one, and if you need a test account, ask whoever runs it.',
+      SIGNUP_DISABLED:
+        'New accounts are not available at the moment. You can book without creating one.',
       PAYMENT_NOT_FOUND: 'We could not find that payment.',
       PAYMENT_NOT_REFUNDABLE: 'That payment cannot be refunded.',
       PAYMENT_SIMULATION_DISABLED: 'Simulated payments are not enabled here.',

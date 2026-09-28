@@ -48,7 +48,7 @@ export const es = {
     subtitle:
       'Publica tu disponibilidad, comparte un enlace y deja que tus clientes reserven en menos de un minuto. Sin cuentas, sin instalar nada.',
     professionalCta: 'Entrar como profesional',
-    exploreDemo: 'Ver la página pública de demostración',
+    exploreDemo: 'Ver una página de reservas de ejemplo',
     forProfessionals: 'Para profesionales',
     forProfessionalsBody:
       'Barberos, estilistas, manicuristas, entrenadores, tutores, fotógrafos, consultores, masajistas o técnicos. Una persona o un equipo.',
@@ -59,7 +59,7 @@ export const es = {
 
   auth: {
     signUpClosed:
-      'Esta demostración no está creando cuentas nuevas. Puedes entrar si ya tienes una, y reservar no necesita ninguna.',
+      'El registro de nuevas cuentas no está disponible por el momento. Puedes reservar sin crear una cuenta.',
     signIn: 'Iniciar sesión',
     signUp: 'Crear cuenta',
     signOut: 'Cerrar sesión',
@@ -90,7 +90,7 @@ export const es = {
     title: 'Configura tu negocio',
     subtitle: 'Solo lo imprescindible. Todo se puede cambiar después.',
     businessName: 'Nombre del negocio',
-    businessNamePlaceholder: 'Estudio Demo',
+    businessNamePlaceholder: 'Estudio Aurora',
     publicLink: 'Enlace público',
     publicLinkHint: 'Así te encontrarán tus clientes: /p/{{slug}}',
     displayName: 'Tu nombre visible',
@@ -638,7 +638,7 @@ export const es = {
     attempts_one: '{{count}} intento',
     attempts_other: '{{count}} intentos',
     developmentDelivery:
-      'Todavía no sale nada de aquí: en desarrollo los entrega un proveedor simulado.',
+      'Todavía no se envía nada desde aquí. El envío por correo, SMS o WhatsApp no está activado.',
     kind: {
       booking_created: 'Reserva nueva',
       payment_received: 'Pago recibido',
@@ -666,8 +666,8 @@ export const es = {
   },
 
   payments: {
-    demoNotice: 'Pago de demostración — no se realizará ningún cargo real.',
-    demoCompleted: 'Pago de demostración completado.',
+    demoNotice: 'Este pago es una simulación: no se realizará ningún cargo real.',
+    demoCompleted: 'Pago simulado completado.',
     unavailableService: 'No se puede reservar en línea',
     unavailableExplainer:
       'Este servicio pide un pago por adelantado y ahora mismo no podemos cobrarlo. Escríbele al negocio para reservarlo.',
@@ -685,7 +685,7 @@ export const es = {
     holdUntil: 'Tu hora está reservada hasta las {{time}}',
     paidThanks: 'Pago recibido. Gracias.',
     declined: 'El pago no se completó. Puedes intentar de nuevo.',
-    simulationNotice: 'Modo de desarrollo: ningún pago es real.',
+    simulationNotice: 'Los pagos todavía no son reales: no se cobra nada.',
     simulateSuccess: 'Simular pago aprobado',
     simulateDecline: 'Simular pago rechazado',
     notRequired: 'No requiere pago',
@@ -858,7 +858,7 @@ export const es = {
     'policy.slotInterval': 'Usa un número entero de minutos, al menos 1.',
     'slug.taken': 'Ese enlace público ya está ocupado. Prueba con otro.',
     'email.demoOnly':
-      'Esta demostración solo acepta direcciones de prueba, por ejemplo tunombre@example.test. Todavía no podemos verificar un correo real.',
+      'Por ahora solo se aceptan direcciones de prueba, por ejemplo tunombre@example.test. Todavía no podemos verificar un correo real.',
     'email.required': 'Escribe tu correo electrónico.',
     'email.invalid': 'Eso no parece un correo electrónico.',
     'password.required': 'Escribe una contraseña.',
@@ -966,8 +966,8 @@ export const es = {
       EMAIL_TAKEN: 'Ya existe una cuenta con ese correo.',
       EMAIL_NOT_CONFIRMED: 'Confirma tu correo primero y después inicia sesión.',
       WEAK_PASSWORD: 'Elige una contraseña más larga.',
-    SIGNUP_DISABLED:
-      'Esta demostración no acepta cuentas nuevas por ahora. Puedes reservar sin cuenta, y si necesitas una cuenta de prueba pídesela al responsable.',
+      SIGNUP_DISABLED:
+        'El registro de nuevas cuentas no está disponible por el momento. Puedes reservar sin crear una cuenta.',
       PAYMENT_NOT_FOUND: 'No encontramos ese pago.',
       PAYMENT_NOT_REFUNDABLE: 'Ese pago no se puede reembolsar.',
       PAYMENT_SIMULATION_DISABLED: 'Los pagos simulados no están habilitados aquí.',
