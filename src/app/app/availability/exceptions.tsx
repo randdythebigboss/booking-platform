@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
@@ -54,8 +55,24 @@ export default function DateExceptionsScreen() {
     [professionalId, today],
   );
 
-  const [date, setDate] = useState(today);
-  const [kind, setKind] = useState<ExceptionKind>('closed');
+  /* ARRIVING FROM A DAY IN THE CALENDAR.
+   *
+   * The field test asked "how do I set tomorrow's hours?", and the honest
+   * answer used to be "open Availability, then type tomorrow's date again".
+   * The calendar now hands the day over, and the form opens on it with
+   * custom hours already selected, because that is what somebody who came
+   * from a specific date almost always wants. Everything is still editable:
+   * the parameter chooses the starting point, not the outcome.
+   *
+   * A malformed or out-of-range parameter is ignored rather than trusted;
+   * `today` remains the fallback. */
+  const params = useLocalSearchParams<{ date?: string }>();
+  const requested =
+    typeof params.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : null;
+  const openOn = requested && requested >= today ? requested : today;
+
+  const [date, setDate] = useState(openOn);
+  const [kind, setKind] = useState<ExceptionKind>(requested ? 'custom-hours' : 'closed');
   const [startTime, setStartTime] = useState('12:00');
   const [endTime, setEndTime] = useState('20:00');
   const [reason, setReason] = useState('');

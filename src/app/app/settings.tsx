@@ -6,6 +6,7 @@ import { View } from 'react-native';
 import { AzulPlaceholder } from '@/components/azul-placeholder';
 import { useRequiredWorkspace, useWorkspace } from '@/components/providers';
 import { SettingsSection } from '@/components/settings-section';
+import { SlotGridPreview } from '@/components/slot-grid-preview';
 import {
   Button,
   Card,
@@ -17,6 +18,7 @@ import {
   ToggleRow,
 } from '@/components/ui';
 import { WorkspaceShell } from '@/components/workspace-shell';
+import { SLOT_INTERVAL_CHOICES } from '@/features/availability/explain';
 import { validateSlug } from '@/features/business/slug';
 import { COMMON_TIMEZONES, formatTimezoneLabel } from '@/features/business/timezones';
 import { parseNumericInput } from '@/features/services/validation';
@@ -341,15 +343,26 @@ export default function SettingsScreen() {
         saved={saved === 'rules'}
         error={sectionError('rules')}
       >
-        <Field
+        {/* THE GRID IS A CHOICE, AND IT SHOWS ITS WORKING.
+         *
+         * This was a number field. A professional who asks "if someone books
+         * a 20-minute edge-up at 10:30, when can the next 40-minute cut
+         * start?" is not answered by the number 15, and that question is
+         * exactly the feedback this came from. The preview underneath runs
+         * the real availability engine on a fabricated day, so it cannot
+         * drift from what the booking page will actually offer. */}
+        <Dropdown
           label={t('settings.slotIntervalLabel')}
           value={slotInterval}
-          onChangeText={setSlotInterval}
-          keyboardType="number-pad"
-          inputMode="numeric"
+          options={SLOT_INTERVAL_CHOICES.map((minutes) => ({
+            value: String(minutes),
+            label: t('settings.slotIntervalOption', { count: minutes }),
+          }))}
+          onChange={setSlotInterval}
           error={issueText(errors.slotInterval)}
           hint={t('settings.slotIntervalHint')}
         />
+        <SlotGridPreview slotIntervalMinutes={Number(slotInterval)} />
         <Field
           label={t('settings.minimumNoticeLabel')}
           value={minimumNotice}

@@ -317,9 +317,21 @@ export default function CalendarScreen() {
               {t('calendar.shapedByHint')}
             </Text>
           </View>
-          <Link href="/app/availability" asChild>
-            <Button label={t('nav.availability')} variant="secondary" size="compact" />
-          </Link>
+          {/* CHANGING ONE DAY STARTS FROM THAT DAY.
+           *
+           * "How do I set tomorrow's hours?" was answered, before this, by
+           * opening Availability and typing the date a second time. The day
+           * the professional is already looking at is carried across, and
+           * the distinction the feedback kept missing is stated on the two
+           * buttons: this day only, or every week. */}
+          <View style={{ flexDirection: 'row', gap: spacing.xs, flexWrap: 'wrap' }}>
+            <Link href={`/app/availability/exceptions?date=${date}`} asChild>
+              <Button label={t('calendar.changeThisDay')} variant="secondary" size="compact" />
+            </Link>
+            <Link href="/app/availability" asChild>
+              <Button label={t('calendar.changeEveryWeek')} variant="ghost" size="compact" />
+            </Link>
+          </View>
         </View>
       </Card>
     </WorkspaceShell>
