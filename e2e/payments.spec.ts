@@ -126,7 +126,7 @@ test.describe('with the demo provider switched on', () => {
     await reachCheckout(page, TENANT_A.services.deposit);
 
     await page.getByRole('button', { name: /Pagar depósito/ }).click();
-    await expect(page.getByText(/Pago de demostración completado/)).toBeVisible();
+    await expect(page.getByText(/Pago simulado completado/)).toBeVisible();
     await expectNoRawError(page);
 
     // The deposit is the deposit, and the arithmetic came from the database.
@@ -141,7 +141,7 @@ test.describe('with the demo provider switched on', () => {
 
     // Named by the amount, so it is not the Azul placeholder that sits beside it.
     await page.getByRole('button', { name: /^Pagar [A-Z]/ }).click();
-    await expect(page.getByText(/Pago de demostración completado/)).toBeVisible();
+    await expect(page.getByText(/Pago simulado completado/)).toBeVisible();
 
     expect(query('select amount::numeric(12,2)::text from public.payments limit 1')).toBe(
       '3500.00',
@@ -155,7 +155,7 @@ test.describe('with the demo provider switched on', () => {
     const pay = page.getByRole('button', { name: /Pagar depósito/ });
     await pay.click({ clickCount: 3, delay: 40 });
 
-    await expect(page.getByText(/Pago de demostración completado/)).toBeVisible();
+    await expect(page.getByText(/Pago simulado completado/)).toBeVisible();
 
     expect(count('public.payments', "status = 'paid'")).toBe(1);
   });

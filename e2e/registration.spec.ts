@@ -21,7 +21,7 @@ const SETTINGS = '**/auth/v1/settings*';
 const ES = {
   professionalToggle: '¿Aún no tienes cuenta? Créala',
   customerToggle: '¿No tienes cuenta? Créala',
-  closed: /no está creando cuentas nuevas/,
+  closed: /El registro de nuevas cuentas no está disponible/,
   signIn: 'Iniciar sesión',
 };
 

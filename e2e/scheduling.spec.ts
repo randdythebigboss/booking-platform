@@ -197,7 +197,7 @@ test.describe('registration on the demonstration', () => {
     await page.getByRole('textbox', { name: /Contraseña/ }).fill('una-clave-larga-123');
     await page.getByRole('button', { name: 'Crear cuenta' }).click();
 
-    await expect(page.getByText(/solo acepta direcciones de prueba/)).toBeVisible();
+    await expect(page.getByText(/solo se aceptan direcciones de prueba/)).toBeVisible();
     // And nothing was created.
     expect(count('auth.users', "email = 'owner@a-real-salon.com'")).toBe(0);
   });
