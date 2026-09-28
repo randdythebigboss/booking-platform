@@ -40,6 +40,18 @@ implementation rather than a change of design.
 - **Password reset has never been exercised**, because it needs email. A
   forgotten password in the beta means somebody creating another account.
 - Reminders are scheduled, rescheduled and cancelled correctly. None arrives.
+- **Web push is not implemented, and that was a decision rather than an**
+  **omission.** Three of the four things it needs are Product Owner
+  operations, the fourth would park a service-role key in CI, and iOS
+  delivers only to a PWA the user has added to the Home Screen. None of it
+  can be tested end to end from the repository. See
+  [DECISIONS/0024](DECISIONS/0024-no-web-push-until-it-can-be-tested.md) for
+  the three approvals that would change the answer.
+- An appointment can be produced as a **calendar file** with the alarm
+  already requested, which is the only reminder this product can honestly
+  offer today. It is not a reminder the product sends: once imported, the
+  event belongs to that calendar, VALARM is a request each platform honours
+  differently, and deleting the event is invisible to us.
 
 ## Distribution
 
