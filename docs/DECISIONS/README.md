@@ -28,3 +28,4 @@ decision changes, a new record supersedes the old one.
 | [0021](0021-an-appointment-remembers-who-booked-it.md)   | An appointment remembers who booked it                           |
 | [0022](0022-the-appointment-is-the-hold.md)              | The appointment is the hold                                      |
 | [0023](0023-cancelling-is-not-refunding.md)              | Cancelling is not refunding                                      |
+| [0024](0024-no-web-push-until-it-can-be-tested.md)       | No web push until it can be delivered and tested end to end      |
