@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
-import { Badge, Button, Card, Dropdown, Segmented, Text } from '@/components/ui';
+import { Badge, Button, Card, Dropdown, Feedback, Segmented, Text } from '@/components/ui';
 import { WorkspaceShell } from '@/components/workspace-shell';
 import {
   NOTIFICATION_STATUSES,
@@ -160,7 +160,18 @@ export default function NotificationsScreen() {
 
           {feed.loading && <ActivityIndicator />}
 
-          {!feed.loading && shown.length === 0 && (
+          {/*
+            An empty list and a list that could not be loaded look identical,
+            and only one of them means "nothing has happened". A project whose
+            database has not had the notification migration yet answers 404 to
+            the RPC, so saying "nothing new" there would be a lie the
+            professional has no way to see through.
+          */}
+          {!feed.loading && feed.error && (
+            <Feedback tone="warning" message={t('notificationCentre.unavailable')} />
+          )}
+
+          {!feed.loading && !feed.error && shown.length === 0 && (
             <Card>
               <Text variant="body" tone="muted">
                 {onlyUnread ? t('notificationCentre.noneUnread') : t('notificationCentre.none')}

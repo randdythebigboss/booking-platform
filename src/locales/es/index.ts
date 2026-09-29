@@ -641,6 +641,8 @@ export const es = {
   },
 
   notificationCentre: {
+    unavailable:
+      'No podemos mostrar las novedades ahora mismo. Tus citas y tu agenda siguen funcionando con normalidad.',
     title: 'Novedades',
     subtitle: 'Lo que ha pasado con tus citas.',
     tabActivity: 'Novedades',

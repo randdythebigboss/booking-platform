@@ -624,6 +624,8 @@ export const en: Translations = {
   },
 
   notificationCentre: {
+    unavailable:
+      'Activity cannot be shown right now. Your appointments and your calendar are unaffected.',
     title: 'Activity',
     subtitle: 'What has happened to your appointments.',
     tabActivity: 'Activity',
