@@ -52,9 +52,10 @@ test.describe('the professional is told what happened', () => {
 
     // The link went where it said it would.
     await expect(page).toHaveURL(/\/app\/appointments\/[0-9a-f-]{36}/);
-    // The name is on the page more than once -- the heading and the customer
-    // card -- so this asks for the first, not for the only.
-    await expect(page.getByText('Raul Leido').first()).toBeVisible();
+    // The telephone number, not the name: the name is on the page more than
+    // once and the first of them is off-screen, which is true of the page and
+    // useless as an assertion.
+    await expect(page.getByText('809-555-0192')).toBeVisible();
 
     // And coming back, this row is no longer unread -- it is still in the
     // list, and gone from the unread view.

@@ -79,7 +79,12 @@ export function SetupChecklist({ steps, onDismiss }: SetupChecklistProps) {
               borderWidth: 1,
               borderColor: step.done ? palette.border : palette.accent,
               backgroundColor: step.done ? 'transparent' : palette.surfaceMuted,
-              opacity: step.done ? 0.65 : 1,
+              // No opacity here. Fading a done step multiplies every colour
+              // inside it against the background, and 65% took the hint text
+              // from 6.4:1 to about 3:1 -- a real contrast failure that axe
+              // caught intermittently, on exactly the steps that were done.
+              // The tick and the quieter background already say "finished",
+              // and they say it without making it harder to read.
             }}
           >
             <View
