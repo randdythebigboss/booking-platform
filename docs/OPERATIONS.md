@@ -97,10 +97,11 @@ shared project and the weekly RPC had never been installed on it. Nothing it
 said was false; the total implied a completeness it had not earned, because
 the two most important facts about the environment had no gate at all.
 
-## The cloud development project: all three done
+## The cloud development project
 
-All three were carried out on **26 September 2026**, in the dashboard, with the
-Product Owner signed in. They are kept here because the procedures are what a
+Three things were carried out on **26 September 2026**, in the dashboard, with
+the Product Owner signed in. A fourth is outstanding and is written out at the
+end of this section. They are kept here because the procedures are what a
 second project would need, and because the checks are how anybody confirms the
 state has not drifted.
 
@@ -292,6 +293,73 @@ pattern, and so is any address outside `@bookingplatform.test`.
 
 Read the report before running it again with `--delete`. An account it lists
 as `keep` is one it will never touch, and the reason is on the same line.
+
+### 4. Install the notification functions — OUTSTANDING
+
+`supabase/migrations/20261001100000_a_notification_is_about_an_appointment.sql`
+is what the professional notification centre reads. Until it is applied:
+
+- **Novedades** shows "No podemos mostrar las novedades ahora mismo" instead of
+  a list. It says so rather than showing an empty one, because an empty list
+  and an unreachable one mean different things.
+- The unread count is absent. Nothing else is affected: appointments, the
+  calendar, booking, messages and _Envíos_ all work exactly as before.
+
+It was validated against a database rebuilt from nothing — every migration,
+the seed, and all thirteen SQL suites — and the same thing runs in CI on every
+push. It is additive: one table, four functions, and one extra key on
+`get_appointment_by_token`. It creates nothing that existing code reads, so
+applying it cannot break what is already deployed.
+
+Any of these, in order of preference:
+
+```bash
+# a. The CLI, with a personal access token from the dashboard.
+export SUPABASE_ACCESS_TOKEN=...        # this command only; never committed
+npx supabase link --project-ref qqzzscfrbotsoizfabvw
+npx supabase db push
+
+# b. psql, with the project's database password.
+psql "$CLOUD_DB_URL" -v ON_ERROR_STOP=1 \
+  -f supabase/migrations/20261001100000_a_notification_is_about_an_appointment.sql
+```
+
+c. Or the dashboard's SQL Editor: paste that one file, whole, and run it. It is
+replay-safe — `create table if not exists`, `create or replace function`, and
+every policy dropped before it is created — so running it twice is a no-op
+rather than an error.
+
+**If you use the SQL Editor, record it in the ledger afterwards**, or the next
+`db push` will replay it:
+
+```sql
+insert into supabase_migrations.schema_migrations (version, name)
+values ('20261001100000', '20261001100000_a_notification_is_about_an_appointment.sql')
+on conflict (version) do nothing;
+```
+
+Then, in the same session:
+
+```sql
+notify pgrst, 'reload schema';
+```
+
+**This is not optional.** PostgREST caches the schema at boot, so without the
+reload the functions exist and the API still answers `404 PGRST202`, which is
+indistinguishable from not having applied it at all.
+
+Finally, prove it — as the signed-in professional, on the deployed beta:
+
+1. Open **Novedades**. It lists appointment activity rather than the warning.
+2. Book something from the public page in another tab; it appears, unread.
+3. Press it: it opens the appointment, and stops being counted as unread.
+
+Or from a SQL client, which needs no browser:
+
+```sql
+select count(*) from public.list_professional_notifications(
+  '22222222-2222-4222-8222-222222222222');
+```
 
 ## Development data
 

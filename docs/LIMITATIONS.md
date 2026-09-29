@@ -34,6 +34,13 @@ implementation rather than a change of design.
   channel that works. A professional can tell a customer "I have to move
   Thursday" and the customer will read it -- the next time they open their
   booking link or their account. Nothing notifies them that it is there.
+- **The professional does get told, inside the application.** _Novedades_
+  lists bookings, reschedules, status changes and customer messages, with an
+  unread count on the navigation. It is a screen they have to open: it is not
+  a phone notification, it does not reach a locked screen, and it does not
+  reach the customer at all -- the customer half of this is still the
+  conversation above. It also needs the 20261001100000 migration installed on
+  the project, and says so plainly when it is not.
 - Notifications are composed, queued in an outbox and delivered by a
   `MockNotificationProvider`. The queue and its state are real and visible in
   the application; the delivery is not.
