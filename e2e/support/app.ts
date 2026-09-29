@@ -20,6 +20,10 @@ export const TEXT = {
   es: {
     chooseService: '1. Elige un servicio',
     chooseADay: 'Elige un día',
+    closedAllDay: 'Cerrado todo el día',
+    saveWeek: 'Guardar la semana',
+    deliveries: 'Envíos',
+    today: 'Hoy',
     date: 'Fecha',
     nextWeek: 'Semana siguiente',
     fullName: 'Nombre completo',

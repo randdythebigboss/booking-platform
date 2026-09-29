@@ -90,4 +90,48 @@ test.describe('the pages a professional sees', () => {
     await expect(page.getByText(TENANT_A.services.free).first()).toBeVisible();
     await audit(page);
   });
+
+  // The screens a professional actually spends the day in had no audit at
+  // all: the calendar they open every morning, the activity list, and the
+  // three schedule screens where an unnamed control is the difference between
+  // changing one Wednesday and changing every Wednesday.
+  test('the weekly calendar', async ({ page }) => {
+    await page.goto('/app/calendar');
+    await expect(page.getByRole('button', { name: TEXT.es.today })).toBeVisible();
+    await audit(page);
+  });
+
+  test('the notification centre', async ({ page }) => {
+    await page.goto('/app/notifications');
+    await expect(page.getByRole('radio', { name: TEXT.es.deliveries })).toBeVisible();
+    await audit(page);
+  });
+
+  test('the weekly hours editor', async ({ page }) => {
+    await page.goto('/app/availability');
+    await expect(page.getByRole('button', { name: TEXT.es.saveWeek })).toBeVisible();
+    await audit(page);
+  });
+
+  test('the one-day exceptions screen', async ({ page }) => {
+    await page.goto('/app/availability/exceptions');
+    await expect(page.getByRole('radio', { name: TEXT.es.closedAllDay })).toBeVisible();
+    await audit(page);
+  });
+
+  test('the blocked periods screen', async ({ page }) => {
+    await page.goto('/app/availability/blocks');
+    await expect(page.getByRole('textbox').first()).toBeVisible();
+    await audit(page);
+  });
+
+  test('one appointment, where every action lives', async ({ page }) => {
+    await page.goto('/app/appointments');
+    await page
+      .getByRole('link', { name: /\d{1,2}:\d{2}/ })
+      .first()
+      .click();
+    await expect(page).toHaveURL(/\/app\/appointments\/[0-9a-f-]{36}/);
+    await audit(page);
+  });
 });
