@@ -99,9 +99,9 @@ the two most important facts about the environment had no gate at all.
 
 ## The cloud development project
 
-Three things were carried out on **26 September 2026**, in the dashboard, with
-the Product Owner signed in. A fourth is outstanding and is written out at the
-end of this section. They are kept here because the procedures are what a
+Four things have been carried out in the dashboard with the Product Owner
+signed in: three on **26 September 2026** and the notification migration on
+**29 September 2026**. Nothing is outstanding. They are kept here because the procedures are what a
 second project would need, and because the checks are how anybody confirms the
 state has not drifted.
 
@@ -294,7 +294,7 @@ pattern, and so is any address outside `@bookingplatform.test`.
 Read the report before running it again with `--delete`. An account it lists
 as `keep` is one it will never touch, and the reason is on the same line.
 
-### 4. Install the notification functions — OUTSTANDING
+### 4. The notification functions — installed
 
 `supabase/migrations/20261001100000_a_notification_is_about_an_appointment.sql`
 is what the professional notification centre reads. Until it is applied:

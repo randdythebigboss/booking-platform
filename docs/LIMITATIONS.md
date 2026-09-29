@@ -39,8 +39,9 @@ implementation rather than a change of design.
   unread count on the navigation. It is a screen they have to open: it is not
   a phone notification, it does not reach a locked screen, and it does not
   reach the customer at all -- the customer half of this is still the
-  conversation above. It also needs the 20261001100000 migration installed on
-  the project, and says so plainly when it is not.
+  conversation above. The migration it reads is installed on the shared
+  development project; on any other project it says so plainly rather than
+  showing an empty list.
 - Notifications are composed, queued in an outbox and delivered by a
   `MockNotificationProvider`. The queue and its state are real and visible in
   the application; the delivery is not.
