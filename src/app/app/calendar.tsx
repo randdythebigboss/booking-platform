@@ -325,7 +325,16 @@ export default function CalendarScreen() {
            * the professional is already looking at is carried across, and
            * the distinction the feedback kept missing is stated on the two
            * buttons: this day only, or every week. */}
-          <View style={{ flexDirection: 'row', gap: spacing.xs, flexWrap: 'wrap' }}>
+          {/* `flexShrink` is what makes the wrap above it work. A row is laid
+           * out at its content width and, in React Native, does not shrink
+           * unless told to -- so on a 320px phone these two buttons measured
+           * 380px inside a 238px card, and "every week" sat a hundred pixels
+           * past the edge of a screen that does not scroll sideways. It was
+           * not small, it was unreachable. Shrinking lets the wrap put one
+           * button under the other. */}
+          <View
+            style={{ flexDirection: 'row', gap: spacing.xs, flexWrap: 'wrap', flexShrink: 1 }}
+          >
             <Link href={`/app/availability/exceptions?date=${date}`} asChild>
               <Button label={t('calendar.changeThisDay')} variant="secondary" size="compact" />
             </Link>
