@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 
+import type { Page } from '@playwright/test';
+
 import { bookAsGuest, expectNoRawError, signIn } from './support/app';
 import { query } from './support/db';
 import { TENANT_A } from './support/fixtures';
@@ -118,6 +120,91 @@ test.describe('the workspace is closed to strangers', () => {
     await page.goto('/app/appointments/bbbbbbbb-6666-4666-8666-000000000001');
 
     await page.waitForURL(/\/login/);
+    await expectNoRawError(page);
+  });
+});
+
+/**
+ * A half-finished week.
+ *
+ * The weekly hours screen holds a draft: typing in a box changes nothing until
+ * the week is saved. Three things have to stay true about that draft, and none
+ * of them is obvious enough to survive a refactor unwatched.
+ *
+ * The first is that a time box commits when focus leaves it, not on every
+ * keystroke -- otherwise the caret jumps and `09:30` cannot be typed. The
+ * consequence is that clicking Save *is* the blur, so the value has to be in
+ * the week by the time the press is handled. A professional who types an hour
+ * and reaches straight for Save must not have to click it twice.
+ *
+ * The second is that the draft is announced. An unsaved week that looks saved
+ * is how somebody opens on Monday at an hour they thought they had changed.
+ *
+ * The third is that walking off the screen does not throw the draft away.
+ * Checking a service before saving the week is an ordinary thing to do.
+ */
+test.describe('the weekly hours draft', () => {
+  test.beforeEach(async ({ page }) => {
+    await signIn(page, TENANT_A.email, TENANT_A.password);
+    await page.goto('/app/availability');
+    await page.getByRole('button', { name: /^Lunes\./ }).click();
+  });
+
+  const from = (page: Page) => page.getByRole('textbox', { name: 'Desde' }).first();
+
+  test('says so, keeps the draft across a detour, and can throw it away', async ({ page }) => {
+    await expect(page.getByText('Tienes cambios sin guardar.')).toBeHidden();
+
+    await from(page).fill('07:30');
+    await from(page).blur();
+
+    // Announced, and counted: the total is the draft's, not the saved week's.
+    await expect(page.getByText('Tienes cambios sin guardar.')).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Lunes\./ })).toContainText('07:30');
+
+    // The preview is explicit that a customer is not being offered this yet.
+    await expect(page.getByText(/todavía no cuentan/)).toBeVisible();
+
+    // A detour, and back. The draft is still here.
+    await page.getByRole('link', { name: 'Servicios' }).click();
+    await page.waitForURL(/\/app\/services/);
+    await page.goBack();
+    await page.waitForURL(/\/app\/availability/);
+
+    await expect(page.getByText('Tienes cambios sin guardar.')).toBeVisible();
+    await expect(from(page)).toHaveValue('07:30');
+
+    // Discard puts back what was saved, and the announcement goes with it.
+    await page.getByRole('button', { name: 'Descartar' }).click();
+    await expect(page.getByText('Tienes cambios sin guardar.')).toBeHidden();
+    await expect(page.getByRole('button', { name: /^Lunes\./ })).toContainText('09:00');
+    await expectNoRawError(page);
+  });
+
+  test('saves on the first click, although that click is also the blur', async ({ page }) => {
+    await from(page).fill('07:30');
+
+    // Pressed with the mouse rather than with `click()`, and the difference
+    // matters. Playwright refuses to dispatch to a control it considers
+    // disabled, and Save *is* disabled until the field commits -- which is
+    // what the press itself does, so asking first deadlocks. A real pointer
+    // asks nobody: mousedown blurs the box, the week takes the value, Save
+    // turns live, and the click lands on a button that by then accepts it.
+    // Driving the mouse is the faithful reproduction, and this behaviour was
+    // also confirmed by hand in a browser.
+    const save = page.getByRole('button', { name: 'Guardar la semana' });
+    const box = await save.boundingBox();
+    if (!box) throw new Error('Save the week is not on screen');
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+
+    await expect(page.getByText('Horario guardado.')).toBeVisible();
+    await expect(page.getByText('Tienes cambios sin guardar.')).toBeHidden();
+
+    // Put the seed back, so the rest of the suite sees the week it expects.
+    await from(page).fill('09:00');
+    await from(page).blur();
+    await page.getByRole('button', { name: 'Guardar la semana' }).click();
+    await expect(page.getByRole('button', { name: /^Lunes\./ })).toContainText('09:00');
     await expectNoRawError(page);
   });
 });

@@ -181,7 +181,29 @@ export async function createDateException(
     row.end_time = draft.endTime;
   }
 
-  const { data, error } = await getSupabase()
+  // Replace rather than add. The screen promises that custom hours "replace
+  // that day's normal hours entirely", and saving twice used to leave two
+  // contradictory rows for one date -- with `working_windows` returning both,
+  // so a day changed from 11:00 to 13:00 stayed open at 11:00.
+  //
+  // The database refuses the duplicate either way (see the 20261002100000
+  // migration); this is what makes the ordinary path an edit instead of an
+  // error somebody has to read.
+  const client = getSupabase();
+  const conflicting = client
+    .from('availability_exceptions')
+    .delete()
+    .eq('professional_id', professionalId)
+    .eq('exception_date', draft.date);
+
+  const { error: clearError } =
+    draft.kind === 'custom-hours'
+      ? await conflicting.eq('exception_type', 'available')
+      : await conflicting.eq('exception_type', 'unavailable').is('start_time', null);
+
+  if (clearError) throw toWorkspaceError(clearError);
+
+  const { data, error } = await client
     .from('availability_exceptions')
     .insert(row)
     .select('id')

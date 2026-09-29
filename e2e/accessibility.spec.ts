@@ -90,4 +90,78 @@ test.describe('the pages a professional sees', () => {
     await expect(page.getByText(TENANT_A.services.free).first()).toBeVisible();
     await audit(page);
   });
+
+  // The screens a professional actually spends the day in had no audit at
+  // all: the calendar they open every morning, the activity list, and the
+  // three schedule screens where an unnamed control is the difference between
+  // changing one Wednesday and changing every Wednesday.
+  test('the weekly calendar', async ({ page }) => {
+    await page.goto('/app/calendar');
+    await expect(page.getByRole('button', { name: TEXT.es.today })).toBeVisible();
+    await audit(page);
+  });
+
+  test('the notification centre', async ({ page }) => {
+    await page.goto('/app/notifications');
+    await expect(page.getByRole('radio', { name: TEXT.es.deliveries })).toBeVisible();
+    await audit(page);
+  });
+
+  test('the weekly hours editor', async ({ page }) => {
+    await page.goto('/app/availability');
+    await expect(page.getByRole('button', { name: TEXT.es.saveWeek })).toBeVisible();
+    await audit(page);
+  });
+
+  test('the one-day exceptions screen', async ({ page }) => {
+    await page.goto('/app/availability/exceptions');
+    await expect(page.getByRole('radio', { name: TEXT.es.closedAllDay })).toBeVisible();
+    await audit(page);
+  });
+
+  test('the blocked periods screen', async ({ page }) => {
+    await page.goto('/app/availability/blocks');
+    await expect(page.getByRole('textbox').first()).toBeVisible();
+    await audit(page);
+  });
+
+  test('one appointment, where every action lives', async ({ page }) => {
+    await page.goto('/app/appointments');
+    await page
+      .getByRole('link', { name: /\d{1,2}:\d{2}/ })
+      .first()
+      .click();
+    await expect(page).toHaveURL(/\/app\/appointments\/[0-9a-f-]{36}/);
+    await audit(page);
+  });
+});
+
+/**
+ * The same screens with the lights off.
+ *
+ * Dark mode is a second palette, and contrast is the one accessibility rule a
+ * palette can break on its own: text that clears 4.5:1 against a white card
+ * can fail against a near-black one, and nothing in the light-mode audit
+ * above would notice. A representative screen from each part of the product
+ * rather than all fourteen again -- the palette is shared, so a failure in it
+ * shows up wherever it is used.
+ */
+test.describe('the same product, in dark mode', () => {
+  test.use({ colorScheme: 'dark' });
+
+  test('the public booking page', async ({ page }) => {
+    await page.goto(`/p/${TENANT_A.slug}/book`);
+    await expect(page.getByText(TEXT.es.chooseService)).toBeVisible();
+    await audit(page);
+  });
+
+  test('the screens behind the sign-in', async ({ page }) => {
+    await signIn(page, TENANT_A.email, TENANT_A.password);
+
+    for (const route of ['/app/dashboard', '/app/calendar', '/app/availability']) {
+      await page.goto(route);
+      await expect(page.locator('body')).toContainText(/\w/);
+      await audit(page);
+    }
+  });
 });

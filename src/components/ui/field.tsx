@@ -58,7 +58,16 @@ export function Field({ label, error, hint, prefix, ...inputProps }: FieldProps)
           aria-invalid={error ? true : undefined}
           aria-errormessage={error ? error : undefined}
           placeholderTextColor={palette.textMuted}
-          style={[typography.body, { flex: 1, color: palette.text, paddingVertical: spacing.sm }]}
+          // `minWidth: 0` is load-bearing on the web. A browser gives every
+          // text input an intrinsic width of about twenty characters and, as
+          // a flex item, refuses to shrink it below that -- so two of these
+          // side by side, as the block editor puts them, measured 181px each
+          // inside a 115px column and the second one ran off the side of a
+          // 320px phone. `flex: 1` alone does not stop it; this does.
+          style={[
+            typography.body,
+            { flex: 1, minWidth: 0, color: palette.text, paddingVertical: spacing.sm },
+          ]}
           {...inputProps}
         />
       </View>

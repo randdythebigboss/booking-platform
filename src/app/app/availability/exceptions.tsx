@@ -13,6 +13,7 @@ import {
   describeException,
   isoDateIn,
   parseIsoDate,
+  zonedInstant,
   validateException,
   type ExceptionErrors,
   type ExceptionKind,
@@ -221,7 +222,14 @@ export default function DateExceptionsScreen() {
             tone="muted"
             message={(() => {
               const described = describeException(draft);
-              return tk(described.code, described.values);
+              // The domain module deals in ISO dates because that is what a
+              // date is to a database. The sentence a professional reads back
+              // to check they meant it is not a database, so the date is
+              // spelled the way every other date in the product is.
+              return tk(described.code, {
+                ...described.values,
+                date: format.date(zonedInstant(draft.date, 12 * 60, timezone), timezone),
+              });
             })()}
           />
 
