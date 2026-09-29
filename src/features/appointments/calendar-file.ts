@@ -189,14 +189,21 @@ export function icsFileName(serviceName: string, startsAt: Date): string {
  * copy of UID X at SEQUENCE 0, which would leave somebody looking at the time
  * an appointment used to be at, with nothing appearing to have gone wrong.
  *
- * Minutes since the start of 2026, derived from the appointment's `updated_at`
- * -- monotone because the database bumps that on every change, and small
- * enough to stay well inside a 32-bit integer, which raw epoch seconds would
- * leave in 2038.
+ * Seconds since the start of 2026, derived from the appointment's `updated_at`,
+ * which the database bumps on every change.
+ *
+ * It counted minutes until this was checked against the real cloud project: a
+ * booking, a reschedule and a cancellation eighteen seconds apart all produced
+ * the same number, so the calendar was entitled to ignore the last two. Anyone
+ * who books and immediately moves the appointment does exactly that, which
+ * makes it the likely case rather than the unlikely one.
+ *
+ * Seconds from a 2026 epoch stay inside a 32-bit integer until the 2090s;
+ * raw epoch seconds would not have reached 2038.
  */
 const SEQUENCE_EPOCH = Date.UTC(2026, 0, 1);
 
 export function calendarSequence(updatedAt: Date | null | undefined): number {
   if (!updatedAt || Number.isNaN(updatedAt.getTime())) return 0;
-  return Math.max(0, Math.floor((updatedAt.getTime() - SEQUENCE_EPOCH) / 60000));
+  return Math.max(0, Math.floor((updatedAt.getTime() - SEQUENCE_EPOCH) / 1000));
 }

@@ -35,14 +35,27 @@ describe('the calendar sequence', () => {
     expect(later).toBeGreaterThan(second);
   });
 
+  it('separates two changes seconds apart', () => {
+    // Checked against the real project: a booking, a reschedule and a
+    // cancellation landed 18 seconds apart. A minute-resolution sequence gave
+    // all three the same number, which entitles a calendar to ignore the last
+    // two -- and somebody who books and immediately moves the appointment hits
+    // that every time.
+    const booked = calendarSequence(new Date('2026-09-29T15:45:17.623Z'));
+    const moved = calendarSequence(new Date('2026-09-29T15:45:35.290Z'));
+
+    expect(moved).toBeGreaterThan(booked);
+  });
+
   it('never goes negative for a row older than the epoch it counts from', () => {
     expect(calendarSequence(new Date('2020-01-01T00:00:00Z'))).toBe(0);
   });
 
   it('stays a number a calendar will accept, not one that overflows', () => {
-    // Raw epoch seconds would pass 2^31 in 2038. Minutes since 2026 will not
-    // reach it for four thousand years.
-    const far = calendarSequence(new Date('2126-01-01T00:00:00Z'));
+    // Raw epoch seconds pass 2^31 in 2038. Counting from a 2026 epoch instead
+    // pushes that into the 2090s, which is the trade for being able to tell
+    // two changes in the same minute apart.
+    const far = calendarSequence(new Date('2080-01-01T00:00:00Z'));
     expect(far).toBeLessThan(2 ** 31 - 1);
     expect(Number.isInteger(far)).toBe(true);
   });
