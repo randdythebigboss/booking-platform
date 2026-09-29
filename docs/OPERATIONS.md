@@ -297,21 +297,37 @@ as `keep` is one it will never touch, and the reason is on the same line.
 ### 4. The notification functions — installed
 
 `supabase/migrations/20261001100000_a_notification_is_about_an_appointment.sql`
-is what the professional notification centre reads. Until it is applied:
+is what the professional notification centre reads.
 
-- **Novedades** shows "No podemos mostrar las novedades ahora mismo" instead of
-  a list. It says so rather than showing an empty one, because an empty list
-  and an unreachable one mean different things.
-- The unread count is absent. Nothing else is affected: appointments, the
-  calendar, booking, messages and _Envíos_ all work exactly as before.
+**Applied on 29 September 2026**, through the dashboard's SQL Editor, with the
+Product Owner signed in. The text was checked byte-for-byte against the file in
+this repository before it ran — SHA-256 `b7aa6489…22ffa596`, 17 491 bytes — the
+ledger row was written, and the schema was reloaded.
 
-It was validated against a database rebuilt from nothing — every migration,
-the seed, and all thirteen SQL suites — and the same thing runs in CI on every
-push. It is additive: one table, four functions, and one extra key on
-`get_appointment_by_token`. It creates nothing that existing code reads, so
-applying it cannot break what is already deployed.
+Verified against the project afterwards:
 
-Any of these, in order of preference:
+|                                 |                                                            |
+| ------------------------------- | ---------------------------------------------------------- |
+| The four functions              | `SECURITY DEFINER`, `search_path=public, pg_temp`          |
+| `anon`                          | refused all four — HTTP 401, not 404                       |
+| `authenticated` / `PUBLIC`      | may execute all four / may execute none                    |
+| `notification_reads`            | RLS on, 3 policies                                         |
+| What the demo professional sees | 21 notifications: 18 bookings, 2 status changes, 1 message |
+| Another business                | 0 rows, badge 0, and a cross-tenant mark refused           |
+| Read state                      | the badge falls by one; marking twice is a no-op           |
+| A guest reschedule              | reported, unread, carrying both the old and the new time   |
+| Data afterwards                 | 3 businesses, 30 appointments, 28 customers, 49 events     |
+
+Everything that wrote during that verification ran inside a transaction that
+ended in `rollback`, so the read state and the appointments are as they were.
+
+It was also validated against a database rebuilt from nothing — every
+migration, the seed, and all thirteen SQL suites — and the same thing runs in
+CI on every push. It is additive: one table, four functions, and one extra key
+on `get_appointment_by_token`.
+
+The procedure, unchanged, for a second project or a restore — any of these, in
+order of preference:
 
 ```bash
 # a. The CLI, with a personal access token from the dashboard.
