@@ -169,7 +169,7 @@ These are two different things and the difference is not a mistake.
 | ------------------------------------ | -------------------- |
 | Tag `v0.1.0-beta.1`                  | commit `5781886`     |
 | Tag `v0.1.0-beta.2`                  | commit `50547b5`     |
-| Tag `v0.1.0-beta.3`                  | commit `PENDING`     |
+| Tag `v0.1.0-beta.3`                  | commit `0be2e10`     |
 | `main`, and what GitHub Pages serves | `git rev-parse main` |
 | Version the running bundle reports   | `0.1.0-beta.3`       |
 
