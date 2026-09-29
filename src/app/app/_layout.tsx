@@ -1,6 +1,7 @@
+import { Loading } from '@/components/ui/loading';
 import { Redirect, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useSession, useWorkspace } from '@/components/providers';
 import { Button, Card, Screen, Text } from '@/components/ui';
@@ -35,7 +36,7 @@ export default function WorkspaceLayout() {
   if (session.status === 'loading' || workspace.status === 'loading') {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator />
+        <Loading />
       </View>
     );
   }

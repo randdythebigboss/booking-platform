@@ -1,6 +1,7 @@
+import { Loading } from '@/components/ui/loading';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { DaySchedule } from '@/components/day-schedule';
 import { Dropdown, Feedback, Text } from '@/components/ui';
@@ -128,7 +129,7 @@ export function SchedulePreview({
       {/* The whole point of the warning: a draft is not availability. */}
       {dirty && <Feedback tone="warning" message={t('preview.draftNotLive')} />}
 
-      {loading && <ActivityIndicator />}
+      {loading && <Loading />}
       {failed && <Feedback tone="danger" message={t('preview.couldNotLoad')} />}
 
       {!loading && !failed && active.length === 0 && (

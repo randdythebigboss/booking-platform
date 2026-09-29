@@ -1,9 +1,10 @@
+import { Loading } from '@/components/ui/loading';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useLocale } from '@/components/providers';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { BookingProgress } from '@/components/booking-progress';
 import { WeekAvailability } from '@/components/week-availability';
@@ -191,7 +192,7 @@ export default function BookScreen() {
   if (page.kind === 'loading') {
     return (
       <Screen title={t('common.loading')}>
-        <ActivityIndicator />
+        <Loading />
       </Screen>
     );
   }
@@ -469,7 +470,7 @@ export default function BookScreen() {
             {format.date(new Date(`${selection.date}T12:00:00Z`), timezone)}
           </Text>
 
-          {slotsLoading && <ActivityIndicator />}
+          {slotsLoading && <Loading />}
           {slotsError && <Feedback tone="danger" message={slotsError} />}
 
           {!slotsLoading && !slotsError && slots.length === 0 && (

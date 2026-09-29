@@ -1,7 +1,8 @@
+import { Loading } from '@/components/ui/loading';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useLocale, useRequiredWorkspace } from '@/components/providers';
 import { SlotPicker } from '@/components/slot-picker';
@@ -116,7 +117,7 @@ export default function NewAppointmentScreen() {
     >
       <Card>
         <Text variant="heading">{t('manualBooking.stepService')}</Text>
-        {services.loading && <ActivityIndicator />}
+        {services.loading && <Loading />}
         {services.error && <Feedback tone="danger" message={services.error} />}
 
         {!services.loading && active.length === 0 && (

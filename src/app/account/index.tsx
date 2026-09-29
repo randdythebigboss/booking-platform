@@ -1,6 +1,7 @@
+import { Loading } from '@/components/ui/loading';
 import { Link, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useSession } from '@/components/providers';
 import {
@@ -47,7 +48,7 @@ export default function MyAppointmentsScreen() {
   if (session.status === 'loading') {
     return (
       <Screen title={t('common.loading')}>
-        <ActivityIndicator />
+        <Loading />
       </Screen>
     );
   }
@@ -92,7 +93,7 @@ export default function MyAppointmentsScreen() {
         </Text>
       </View>
 
-      {appointments.loading && <ActivityIndicator />}
+      {appointments.loading && <Loading />}
       {appointments.error && <Feedback tone="danger" message={t('common.somethingWentWrong')} />}
 
       {!appointments.loading && rows.length === 0 && (

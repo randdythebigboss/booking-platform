@@ -1,7 +1,8 @@
+import { Loading } from '@/components/ui/loading';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppointmentRow } from '@/components/appointment-row';
 import { useRequiredWorkspace } from '@/components/providers';
@@ -157,7 +158,7 @@ export default function AppointmentsScreen() {
         onChange={(value) => setFilters({ status: value })}
       />
 
-      {appointments.loading && <ActivityIndicator />}
+      {appointments.loading && <Loading />}
       {appointments.error && <Feedback tone="danger" message={appointments.error} />}
 
       {!appointments.loading && rows.length === 0 && (

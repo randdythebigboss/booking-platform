@@ -1,6 +1,7 @@
+import { Loading } from '@/components/ui/loading';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
 import {
@@ -380,7 +381,7 @@ export default function ServicesScreen() {
       narrow
       action={<Button label={t('services.add')} onPress={() => edit(EMPTY_DRAFT)} />}
     >
-      {services.loading && <ActivityIndicator />}
+      {services.loading && <Loading />}
       {services.error && <Feedback tone="danger" message={services.error} />}
       {failure && <Feedback tone="danger" message={failure} />}
 

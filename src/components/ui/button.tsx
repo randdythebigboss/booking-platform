@@ -1,4 +1,5 @@
-import { ActivityIndicator, Pressable, StyleSheet, type ViewStyle } from 'react-native';
+import { Loading } from '@/components/ui/loading';
+import { Pressable, StyleSheet, type ViewStyle } from 'react-native';
 
 import { TOUCH_TARGET, radius, spacing, typography, useTheme } from '@/theme';
 import { Text } from './text';
@@ -88,7 +89,7 @@ export function Button({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={labelColor} />
+        <Loading color={labelColor} />
       ) : (
         <Text variant="label" style={[typography.label, { color: labelColor }]}>
           {label}

@@ -1,7 +1,8 @@
+import { Loading } from '@/components/ui/loading';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Platform, Share, View } from 'react-native';
+import { Platform, Share, View } from 'react-native';
 
 import { AppointmentRow, statusBadge } from '@/components/appointment-row';
 import { OfflineNotice } from '@/components/offline-notice';
@@ -185,7 +186,7 @@ export default function DashboardScreen() {
           </Link>
         </View>
 
-        {todays.loading && <ActivityIndicator />}
+        {todays.loading && <Loading />}
 
         {!todays.loading && todayRows.length === 0 && (
           <EmptyState
@@ -232,7 +233,7 @@ export default function DashboardScreen() {
           </Link>
         </View>
 
-        {schedule.loading && <ActivityIndicator />}
+        {schedule.loading && <Loading />}
 
         {!schedule.loading && (
           <View style={{ flexDirection: 'row', gap: 4 }}>
@@ -352,7 +353,7 @@ function NextAppointment({
   if (loading) {
     return (
       <Card>
-        <ActivityIndicator />
+        <Loading />
       </Card>
     );
   }

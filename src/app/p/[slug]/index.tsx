@@ -1,7 +1,8 @@
+import { Loading } from '@/components/ui/loading';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Button, Card, EmptyState, Initials, Screen, Text } from '@/components/ui';
 import { useFormat } from '@/i18n/use-format';
@@ -64,7 +65,7 @@ export default function PublicBusinessScreen() {
   if (state.kind === 'loading') {
     return (
       <Screen title={t('common.loading')}>
-        <ActivityIndicator />
+        <Loading />
       </Screen>
     );
   }

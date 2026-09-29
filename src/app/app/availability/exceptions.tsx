@@ -1,7 +1,8 @@
+import { Loading } from '@/components/ui/loading';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { DatePicker } from '@/components/date-picker';
 import { useRequiredWorkspace } from '@/components/providers';
@@ -233,7 +234,7 @@ export default function DateExceptionsScreen() {
 
       <Text variant="heading">{t('exceptions.upcoming')}</Text>
 
-      {exceptions.loading && <ActivityIndicator />}
+      {exceptions.loading && <Loading />}
       {exceptions.error && <Feedback tone="danger" message={exceptions.error} />}
       {exceptions.data?.length === 0 && (
         <Card>

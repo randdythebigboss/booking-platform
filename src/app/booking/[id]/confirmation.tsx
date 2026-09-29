@@ -1,7 +1,8 @@
+import { Loading } from '@/components/ui/loading';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { SlotPicker } from '@/components/slot-picker';
 import { Button, Card, Feedback, Screen, Text } from '@/components/ui';
@@ -148,7 +149,7 @@ export default function ConfirmationScreen() {
   if (state.kind === 'loading') {
     return (
       <Screen title={t('confirmation.yourAppointment')}>
-        <ActivityIndicator />
+        <Loading />
       </Screen>
     );
   }

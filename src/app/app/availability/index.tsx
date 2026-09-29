@@ -1,6 +1,7 @@
+import { Loading } from '@/components/ui/loading';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { DayHoursRow, type DayWindow } from '@/components/day-hours-row';
 import { useRequiredWorkspace } from '@/components/providers';
@@ -249,7 +250,7 @@ export default function AvailabilityScreen() {
         ) : undefined
       }
     >
-      {loaded.loading && !entries && <ActivityIndicator />}
+      {loaded.loading && !entries && <Loading />}
       {loaded.error && <Feedback tone="danger" message={loaded.error} />}
 
       {entries?.length === 0 && (

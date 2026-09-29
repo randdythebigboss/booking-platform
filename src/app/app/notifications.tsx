@@ -1,7 +1,8 @@
+import { Loading } from '@/components/ui/loading';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { useRequiredWorkspace } from '@/components/providers';
 import { Badge, Button, Card, Dropdown, Feedback, Segmented, Text } from '@/components/ui';
@@ -158,7 +159,7 @@ export default function NotificationsScreen() {
             )}
           </View>
 
-          {feed.loading && <ActivityIndicator />}
+          {feed.loading && <Loading />}
 
           {/*
             An empty list and a list that could not be loaded look identical,
@@ -269,7 +270,7 @@ export default function NotificationsScreen() {
             onChange={(next) => setStatus(next as StatusFilter)}
           />
 
-          {deliveries.loading && <ActivityIndicator />}
+          {deliveries.loading && <Loading />}
 
           {!deliveries.loading && (deliveries.data ?? []).length === 0 && (
             <Card>

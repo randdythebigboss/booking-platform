@@ -1,6 +1,7 @@
+import { Loading } from '@/components/ui/loading';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Button, Card, Feedback, Field, Text } from '@/components/ui';
 import { isoDateIn } from '@/features/availability';
@@ -81,7 +82,7 @@ export function MessageThread({
     <Card>
       <Text variant="heading">{t('messages.title')}</Text>
 
-      {loading && <ActivityIndicator />}
+      {loading && <Loading />}
 
       {!loading && messages.length === 0 && (
         <View style={{ gap: spacing.xs }}>

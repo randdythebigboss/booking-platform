@@ -1,6 +1,7 @@
+import { Loading } from '@/components/ui/loading';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { DatePicker } from '@/components/date-picker';
 import { useRequiredWorkspace } from '@/components/providers';
@@ -161,7 +162,7 @@ export default function BlockedTimeScreen() {
 
       <Text variant="heading">{t('blocks.upcoming')}</Text>
 
-      {blocks.loading && <ActivityIndicator />}
+      {blocks.loading && <Loading />}
       {blocks.error && <Feedback tone="danger" message={blocks.error} />}
       {blocks.data?.length === 0 && (
         <Card>

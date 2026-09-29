@@ -1,6 +1,7 @@
+import { Loading } from '@/components/ui/loading';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { DatePicker } from '@/components/date-picker';
 import { DaySchedule } from '@/components/day-schedule';
@@ -108,7 +109,7 @@ export function SlotPicker({
         {t('common.timesShownIn', { timezone: timezone.replace(/_/g, ' ') })}
       </Text>
 
-      {loading && <ActivityIndicator />}
+      {loading && <Loading />}
       {failure && <Feedback tone="danger" message={failure} />}
 
       {!loading && !failure && slots.length === 0 && (

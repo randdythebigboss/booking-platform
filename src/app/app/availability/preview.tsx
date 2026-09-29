@@ -1,6 +1,7 @@
+import { Loading } from '@/components/ui/loading';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { DatePicker } from '@/components/date-picker';
 import { useRequiredWorkspace } from '@/components/providers';
@@ -69,7 +70,7 @@ export default function SchedulePreviewScreen() {
       title={t('preview.title')}
       subtitle={t('preview.subtitle')}
     >
-      {services.loading && <ActivityIndicator />}
+      {services.loading && <Loading />}
       {services.error && <Feedback tone="danger" message={services.error} />}
 
       {activeServices.length === 0 && !services.loading && (
@@ -129,7 +130,7 @@ export default function SchedulePreviewScreen() {
           </Text>
         )}
 
-        {slots.loading && <ActivityIndicator />}
+        {slots.loading && <Loading />}
         {slots.error && <Feedback tone="danger" message={slots.error} />}
 
         {!slots.loading && (slots.data ?? []).length === 0 && (

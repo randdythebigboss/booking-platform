@@ -1,7 +1,8 @@
+import { Loading } from '@/components/ui/loading';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AddToCalendar } from '@/components/add-to-calendar';
 import { MessageThread } from '@/components/message-thread';
@@ -220,7 +221,7 @@ export default function AppointmentDetailScreen() {
         narrow
         title={t('common.loading')}
       >
-        <ActivityIndicator />
+        <Loading />
       </WorkspaceShell>
     );
   }
@@ -480,7 +481,7 @@ export default function AppointmentDetailScreen() {
             {t('payments.demoNotice')}
           </Text>
         )}
-        {payments.loading && <ActivityIndicator />}
+        {payments.loading && <Loading />}
 
         {charges.length === 0 && !payments.loading && (
           <Text variant="body" tone="muted">
@@ -546,7 +547,7 @@ export default function AppointmentDetailScreen() {
 
       <Card>
         <Text variant="heading">{t('notifications.forThisAppointment')}</Text>
-        {notifications.loading && <ActivityIndicator />}
+        {notifications.loading && <Loading />}
         {queued.length === 0 && !notifications.loading && (
           <Text variant="body" tone="muted">
             {row.customer.email
@@ -595,7 +596,7 @@ export default function AppointmentDetailScreen() {
 
       <Card>
         <Text variant="heading">{t('history.heading')}</Text>
-        {history.loading && <ActivityIndicator />}
+        {history.loading && <Loading />}
         {events.length === 0 && !history.loading && (
           <Text variant="body" tone="muted">
             {t('history.empty')}

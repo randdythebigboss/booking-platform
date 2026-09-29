@@ -1,7 +1,8 @@
+import { Loading } from '@/components/ui/loading';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppointmentRow } from '@/components/appointment-row';
 import { useRequiredWorkspace } from '@/components/providers';
@@ -212,7 +213,7 @@ export default function CalendarScreen() {
     >
       {showGrid ? (
         <Card style={{ paddingHorizontal: spacing.sm }}>
-          {(around.loading || rules.loading) && <ActivityIndicator />}
+          {(around.loading || rules.loading) && <Loading />}
           {around.error && <Feedback tone="danger" message={around.error} />}
           <WeekGrid
             weekStart={weekStart}
@@ -247,7 +248,7 @@ export default function CalendarScreen() {
             {date === today && <Badge label={t('common.today')} tone="accent" mark="•" />}
           </View>
 
-          {day.loading && <ActivityIndicator />}
+          {day.loading && <Loading />}
           {day.error && <Feedback tone="danger" message={day.error} />}
 
           {!day.loading && rows.length === 0 && (

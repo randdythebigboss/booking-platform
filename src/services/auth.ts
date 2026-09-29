@@ -80,4 +80,3 @@ export function onAuthChange(listener: (user: AuthUser | null) => void): () => v
 
   return () => data.subscription.unsubscribe();
 }
-

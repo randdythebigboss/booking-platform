@@ -1,6 +1,7 @@
+import { Loading } from '@/components/ui/loading';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -253,7 +254,7 @@ export function WeekAvailability({
         <Text variant="caption" tone="muted" style={{ flex: 1, minWidth: 180 }}>
           {t('schedule.weekLegend')}
         </Text>
-        {loading && <ActivityIndicator />}
+        {loading && <Loading />}
         {onNextAvailable && (
           <Button
             label={t('schedule.nextAvailable')}
