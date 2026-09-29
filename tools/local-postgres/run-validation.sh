@@ -64,6 +64,7 @@ run "payments.sql" -f "$REPO_ROOT/supabase/tests/payments.sql"
 run "messaging.sql" -f "$REPO_ROOT/supabase/tests/messaging.sql"
 run "week_availability.sql" -f "$REPO_ROOT/supabase/tests/week_availability.sql"
 run "professional_notifications.sql" -f "$REPO_ROOT/supabase/tests/professional_notifications.sql"
+run "scheduling_arithmetic.sql" -f "$REPO_ROOT/supabase/tests/scheduling_arithmetic.sql"
 run "function_grants.sql" -f "$REPO_ROOT/supabase/tests/function_grants.sql"
 
 printf '\nAll database validation passed.\n'
