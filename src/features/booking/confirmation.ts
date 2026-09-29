@@ -32,6 +32,8 @@ export interface GuestAppointment {
   items: GuestAppointmentItem[];
   canCancel: boolean;
   canReschedule: boolean;
+  /** Present since the 20261001100000 migration; older rows simply have none. */
+  updatedAt: Date | null;
 }
 
 export class MalformedConfirmationError extends Error {
@@ -90,6 +92,9 @@ export function parseGuestAppointment(raw: unknown): GuestAppointment {
     }),
     canCancel: root.canCancel === true,
     canReschedule: root.canReschedule === true,
+    // Added by the 20261001100000 migration. A project that has not had it yet
+    // simply has no sequence, which is what the calendar file already assumed.
+    updatedAt: root.updatedAt ? new Date(String(root.updatedAt)) : null,
   };
 }
 

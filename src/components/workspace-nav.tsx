@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PressableLink } from '@/components/ui/pressable-link';
 import { Text } from '@/components/ui/text';
+import { useUnreadNotifications } from '@/hooks/use-unread-notifications';
 import { BREAKPOINT_DESKTOP, radius, spacing, useTheme } from '@/theme';
 
 /**
@@ -92,10 +93,51 @@ export function useIsDesktop(): boolean {
 }
 
 /** The sidebar, for a screen with room for one. */
+/**
+ * The number of unread notifications, drawn small.
+ *
+ * It is a count and not a dot because "three things happened" and "something
+ * happened" lead to different decisions about whether to look now. Above
+ * ninety-nine it stops counting, because the exact number has stopped being
+ * the point by then.
+ *
+ * The label is spelled out for a screen reader: a bare numeral next to
+ * "Avisos" reads as nonsense.
+ */
+function UnreadMark({ count }: { count: number }) {
+  const { palette } = useTheme();
+  const { t } = useTranslation();
+
+  if (count < 1) return null;
+
+  return (
+    <View
+      accessibilityLabel={t('nav.unreadCount', { count })}
+      style={{
+        minWidth: 20,
+        paddingHorizontal: 5,
+        paddingVertical: 1,
+        borderRadius: radius.pill,
+        backgroundColor: palette.accent,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Text
+        variant="caption"
+        style={{ fontSize: 11, fontWeight: '700', color: palette.accentText }}
+      >
+        {count > 99 ? '99+' : String(count)}
+      </Text>
+    </View>
+  );
+}
+
 export function WorkspaceSidebar({ businessName }: { businessName: string }) {
   const { palette } = useTheme();
   const { t } = useTranslation();
   const pathname = usePathname();
+  const unread = useUnreadNotifications();
 
   return (
     <View
@@ -166,10 +208,11 @@ export function WorkspaceSidebar({ businessName }: { businessName: string }) {
               <Text
                 variant="label"
                 numberOfLines={1}
-                style={{ color: active ? palette.accent : palette.text }}
+                style={{ flex: 1, color: active ? palette.accent : palette.text }}
               >
                 {t(destination.labelKey)}
               </Text>
+              {destination.key === 'notifications' && <UnreadMark count={unread} />}
             </PressableLink>
           </View>
         );
@@ -190,6 +233,9 @@ export function WorkspaceTabBar() {
   const { t } = useTranslation();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  // On a phone the notification centre lives behind *Más*, so that is where
+  // the count has to appear -- otherwise it is a badge nobody can see.
+  const unread = useUnreadNotifications();
 
   const primary = DESTINATIONS.filter((destination) => destination.primary);
   const overflow = DESTINATIONS.filter((destination) => !destination.primary);
@@ -240,13 +286,20 @@ export function WorkspaceTabBar() {
               paddingVertical: spacing.xs,
             }}
           >
-            <Text
-              variant="body"
-              accessibilityElementsHidden
-              style={{ color: tab.active ? palette.accent : palette.textMuted }}
-            >
-              {tab.mark}
-            </Text>
+            <View>
+              <Text
+                variant="body"
+                accessibilityElementsHidden
+                style={{ color: tab.active ? palette.accent : palette.textMuted }}
+              >
+                {tab.mark}
+              </Text>
+              {tab.key === 'more' && unread > 0 && (
+                <View style={{ position: 'absolute', top: -4, left: 12 }}>
+                  <UnreadMark count={unread} />
+                </View>
+              )}
+            </View>
             <Text
               variant="caption"
               numberOfLines={1}

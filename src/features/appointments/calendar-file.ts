@@ -180,3 +180,23 @@ export function icsFileName(serviceName: string, startsAt: Date): string {
     .toLowerCase();
   return `${slug || 'cita'}-${day}.ics`;
 }
+
+/**
+ * The SEQUENCE an .ics needs so a second download supersedes the first.
+ *
+ * A stable UID stops a re-import creating a duplicate. It does not make the
+ * re-import win: a calendar holding UID X at SEQUENCE 0 may ignore another
+ * copy of UID X at SEQUENCE 0, which would leave somebody looking at the time
+ * an appointment used to be at, with nothing appearing to have gone wrong.
+ *
+ * Minutes since the start of 2026, derived from the appointment's `updated_at`
+ * -- monotone because the database bumps that on every change, and small
+ * enough to stay well inside a 32-bit integer, which raw epoch seconds would
+ * leave in 2038.
+ */
+const SEQUENCE_EPOCH = Date.UTC(2026, 0, 1);
+
+export function calendarSequence(updatedAt: Date | null | undefined): number {
+  if (!updatedAt || Number.isNaN(updatedAt.getTime())) return 0;
+  return Math.max(0, Math.floor((updatedAt.getTime() - SEQUENCE_EPOCH) / 60000));
+}

@@ -59,7 +59,14 @@ declare
     'save_service',
     'set_appointment_status',
     'refund_payment',
-    'set_weekly_schedule'
+    'set_weekly_schedule',
+    -- Phase 15: the notification centre. Every one of them answers a question
+    -- about auth.uid() and a business that user belongs to, so anon has
+    -- nothing to ask them and is deliberately left off.
+    'count_unread_notifications',
+    'list_professional_notifications',
+    'mark_all_notifications_read',
+    'mark_notification_read'
   ];
 
   -- Tables that deliberately have row level security and no policy at all.

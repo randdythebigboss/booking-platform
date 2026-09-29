@@ -5,6 +5,7 @@ import { useRequiredWorkspace } from '@/components/providers';
 import { Card, PressableLink, Text } from '@/components/ui';
 import { DESTINATIONS } from '@/components/workspace-nav';
 import { WorkspaceShell } from '@/components/workspace-shell';
+import { useUnreadNotifications } from '@/hooks/use-unread-notifications';
 import { radius, spacing, useTheme } from '@/theme';
 
 /**
@@ -22,6 +23,7 @@ export default function MoreScreen() {
   const { palette } = useTheme();
   const { t } = useTranslation();
   const { business, professional } = useRequiredWorkspace();
+  const unread = useUnreadNotifications();
 
   const hints: Record<string, string> = {
     availability: t('setup.stepScheduleHint'),
@@ -63,7 +65,12 @@ export default function MoreScreen() {
                 {destination.mark}
               </Text>
               <View style={{ flex: 1, gap: 1 }}>
-                <Text variant="label">{t(destination.labelKey)}</Text>
+                <Text variant="label">
+                  {t(destination.labelKey)}
+                  {destination.key === 'notifications' && unread > 0
+                    ? ` · ${t('nav.unreadCount', { count: unread })}`
+                    : ''}
+                </Text>
                 <Text variant="caption" tone="muted" numberOfLines={2}>
                   {hints[destination.key] ?? ''}
                 </Text>

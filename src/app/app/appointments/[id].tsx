@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
+import { AddToCalendar } from '@/components/add-to-calendar';
 import { MessageThread } from '@/components/message-thread';
 import { useRequiredWorkspace, useSession } from '@/components/providers';
 import { SlotPicker } from '@/components/slot-picker';
@@ -286,6 +287,19 @@ export default function AppointmentDetailScreen() {
             {t('appointments.cancelledWithReason', { reason: row.cancellationReason })}
           </Text>
         )}
+      </Card>
+
+      <Card>
+        <AddToCalendar
+          appointmentId={row.id}
+          startsAt={row.startsAt}
+          endsAt={row.endsAt}
+          serviceName={row.items[0]?.name ?? business.name}
+          businessName={business.name}
+          location={business.address}
+          status={row.status}
+          updatedAt={row.updatedAt}
+        />
       </Card>
 
       <Card>

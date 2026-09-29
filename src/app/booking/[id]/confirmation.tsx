@@ -12,6 +12,7 @@ import { useDynamicT } from '@/i18n/use-dynamic-t';
 import { useFormat } from '@/i18n/use-format';
 import { AzulPlaceholder } from '@/components/azul-placeholder';
 import { useSession } from '@/components/providers';
+import { AddToCalendar } from '@/components/add-to-calendar';
 import { MessageThread } from '@/components/message-thread';
 import { useGuestToken } from '@/hooks/use-guest-token';
 import {
@@ -418,6 +419,19 @@ export default function ConfirmationScreen() {
           )}
         </Card>
       )}
+
+      <Card>
+        <AddToCalendar
+          appointmentId={appointment.appointmentId}
+          startsAt={appointment.startsAt}
+          endsAt={appointment.endsAt}
+          serviceName={appointment.items[0]?.name ?? appointment.businessName}
+          businessName={appointment.businessName}
+          location={appointment.businessAddress}
+          status={appointment.status}
+          updatedAt={appointment.updatedAt}
+        />
+      </Card>
 
       {(appointment.businessAddress || appointment.businessPhone) && (
         <Card>

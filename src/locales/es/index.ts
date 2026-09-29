@@ -102,6 +102,7 @@ export const es = {
   },
 
   nav: {
+    unreadCount: '{{count}} sin leer',
     dashboard: 'Inicio',
     calendar: 'Agenda',
     appointments: 'Citas',
@@ -623,6 +624,51 @@ export const es = {
     status_cancelled: 'Cancelada',
     status_completed: 'Completada',
     status_no_show: 'No asististe',
+  },
+
+  calendarFile: {
+    title: 'Agregar a tu calendario',
+    reminderLabel: 'Aviso antes de la cita',
+    reminderMinutes_one: '{{count}} minuto antes',
+    reminderMinutes_other: '{{count}} minutos antes',
+    download: 'Descargar la cita',
+    downloadCancel: 'Descargar la cancelación',
+    saved: 'Se descargó {{file}}. Ábrelo para agregarlo a tu calendario.',
+    failed: 'No se pudo generar el archivo. Intenta de nuevo.',
+    alarmNote:
+      'Descarga un archivo de calendario. El aviso lo da tu aplicación de calendario, no esta aplicación, y solo después de que agregues la cita.',
+    cancelNote: 'Este archivo quita la cita del calendario donde ya la habías agregado.',
+  },
+
+  notificationCentre: {
+    title: 'Novedades',
+    subtitle: 'Lo que ha pasado con tus citas.',
+    tabActivity: 'Novedades',
+    tabDelivery: 'Envíos',
+    none: 'Nada nuevo por ahora.',
+    noneUnread: 'Estás al día.',
+    markAllRead: 'Marcar todo como leído',
+    unread: 'Sin leer',
+    onlyUnread: 'Solo sin leer',
+    all: 'Todo',
+    today: 'Hoy',
+    yesterday: 'Ayer',
+    openAppointment: 'Ver la cita',
+    inAppOnly:
+      'Estas novedades se ven aquí dentro. La aplicación no envía notificaciones al teléfono.',
+    item: {
+      created: '{{customer}} reservó una cita',
+      rescheduled: '{{customer}} cambió la hora',
+      message: '{{customer}} te escribió',
+      status: {
+        pending: 'La cita de {{customer}} quedó pendiente',
+        confirmed: 'Se confirmó la cita de {{customer}}',
+        completed: 'Se completó la cita de {{customer}}',
+        cancelled: 'Se canceló la cita de {{customer}}',
+        no_show: '{{customer}} no se presentó',
+        unknown: 'Cambió la cita de {{customer}}',
+      },
+    },
   },
 
   notifications: {

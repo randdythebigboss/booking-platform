@@ -28,10 +28,12 @@ export interface ProfessionalAppointment {
   cancellationReason: string | null;
   customer: AppointmentCustomer;
   items: AppointmentItem[];
+  /** Bumped by the database on every change; the calendar file uses it as its SEQUENCE. */
+  updatedAt: Date | null;
 }
 
 const COLUMNS =
-  'id, professional_id, starts_at, ends_at, status, notes, cancellation_reason,' +
+  'id, professional_id, starts_at, ends_at, status, notes, cancellation_reason, updated_at,' +
   // The customer as this booking recorded them, not as the reusable record
   // has since become. See the 20260926100000 migration.
   ' customer_name_snapshot, customer_phone_snapshot, customer_email_snapshot,' +
@@ -55,6 +57,7 @@ function toAppointment(row: Record<string, any>): ProfessionalAppointment {
     status: row.status as AppointmentStatus,
     notes: row.notes ?? null,
     cancellationReason: row.cancellation_reason ?? null,
+    updatedAt: row.updated_at ? new Date(String(row.updated_at)) : null,
     customer: {
       fullName: String(row.customer_name_snapshot),
       phone: String(row.customer_phone_snapshot),

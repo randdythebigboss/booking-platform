@@ -27,3 +27,11 @@ export { redactEmail, redactPhone, redactRecipient, safeErrorReason } from './re
 export { InMemoryNotificationStore, type NotificationStore } from './store';
 
 export { dispatchDueNotifications, type DispatchOptions, type DispatchSummary } from './dispatcher';
+
+export {
+  describeNotification,
+  groupByDay,
+  sameDay,
+  type DescribedNotification,
+  type NotificationTone,
+} from './describe';

@@ -5,6 +5,7 @@ import type {
 } from '@/features/notifications';
 import { toWorkspaceError } from '@/features/workspace';
 import { getSupabase } from '@/lib/supabase';
+import type { AppointmentStatus } from '@/types/domain';
 
 /**
  * Reading the outbox from the professional's side.
@@ -90,4 +91,113 @@ export async function fetchAppointmentNotifications(
   if (error) throw toWorkspaceError(error);
 
   return (data ?? []).map(toRecord);
+}
+
+// ===========================================================================
+// The notification centre
+//
+// Everything above this line is the outbox: what the product will try to send
+// to a customer, and whether it managed. Everything below is what a
+// professional is told when they open the application, which is a different
+// question with a different audience and, deliberately, a different shape.
+//
+// The rows come from `list_professional_notifications`, which reads the
+// appointment event log and the conversation together. Nothing is copied into
+// a notifications table: see the 20261001100000 migration for why.
+// ===========================================================================
+
+export type NotificationItemKind = 'event' | 'message';
+
+export type NotificationEventType = 'created' | 'status_changed' | 'rescheduled' | 'message';
+
+export interface NotificationItem {
+  kind: NotificationItemKind;
+  id: string;
+  appointmentId: string;
+  occurredAt: Date;
+  eventType: NotificationEventType;
+  previousStatus: AppointmentStatus | null;
+  newStatus: AppointmentStatus | null;
+  previousStartsAt: Date | null;
+  newStartsAt: Date | null;
+  appointmentStartsAt: Date;
+  customerName: string;
+  serviceName: string | null;
+  /** The opening of a customer's message. Never present on an event. */
+  preview: string | null;
+  isRead: boolean;
+}
+
+function toItem(row: Record<string, any>): NotificationItem {
+  return {
+    kind: row.kind as NotificationItemKind,
+    id: String(row.id),
+    appointmentId: String(row.appointment_id),
+    occurredAt: new Date(String(row.occurred_at)),
+    eventType: row.event_type as NotificationEventType,
+    previousStatus: (row.previous_status ?? null) as AppointmentStatus | null,
+    newStatus: (row.new_status ?? null) as AppointmentStatus | null,
+    previousStartsAt: row.previous_starts_at ? new Date(String(row.previous_starts_at)) : null,
+    newStartsAt: row.new_starts_at ? new Date(String(row.new_starts_at)) : null,
+    appointmentStartsAt: new Date(String(row.appointment_starts_at)),
+    customerName: String(row.customer_name),
+    serviceName: row.service_name ? String(row.service_name) : null,
+    preview: row.preview ? String(row.preview) : null,
+    isRead: Boolean(row.is_read),
+  };
+}
+
+/** What has happened to this business's appointments, newest first. */
+export async function fetchNotificationFeed(
+  businessId: string,
+  limit = 50,
+): Promise<NotificationItem[]> {
+  const { data, error } = await getSupabase().rpc('list_professional_notifications', {
+    p_business_id: businessId,
+    p_limit: limit,
+  });
+
+  if (error) throw toWorkspaceError(error);
+  return ((data ?? []) as Record<string, any>[]).map(toItem);
+}
+
+/** The number on the badge. */
+export async function fetchUnreadNotificationCount(businessId: string): Promise<number> {
+  const { data, error } = await getSupabase().rpc('count_unread_notifications', {
+    p_business_id: businessId,
+  });
+
+  if (error) throw toWorkspaceError(error);
+  return Number(data ?? 0);
+}
+
+/**
+ * Marks one item read.
+ *
+ * For a message this sets the same `read_at` the conversation uses, so the two
+ * screens cannot disagree about it. See the migration header.
+ */
+export async function markNotificationRead(
+  businessId: string,
+  kind: NotificationItemKind,
+  id: string,
+): Promise<boolean> {
+  const { data, error } = await getSupabase().rpc('mark_notification_read', {
+    p_business_id: businessId,
+    p_kind: kind,
+    p_id: id,
+  });
+
+  if (error) throw toWorkspaceError(error);
+  return Boolean(data);
+}
+
+/** Marks everything in the window read, and says how many that was. */
+export async function markAllNotificationsRead(businessId: string): Promise<number> {
+  const { data, error } = await getSupabase().rpc('mark_all_notifications_read', {
+    p_business_id: businessId,
+  });
+
+  if (error) throw toWorkspaceError(error);
+  return Number(data ?? 0);
 }

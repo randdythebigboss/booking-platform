@@ -98,6 +98,7 @@ export const en: Translations = {
   },
 
   nav: {
+    unreadCount: '{{count}} unread',
     dashboard: 'Home',
     calendar: 'Agenda',
     appointments: 'Appointments',
@@ -606,6 +607,51 @@ export const en: Translations = {
     status_cancelled: 'Cancelled',
     status_completed: 'Completed',
     status_no_show: 'Missed',
+  },
+
+  calendarFile: {
+    title: 'Add to your calendar',
+    reminderLabel: 'Remind me before',
+    reminderMinutes_one: '{{count}} minute before',
+    reminderMinutes_other: '{{count}} minutes before',
+    download: 'Download the appointment',
+    downloadCancel: 'Download the cancellation',
+    saved: '{{file}} was downloaded. Open it to add it to your calendar.',
+    failed: 'The file could not be generated. Please try again.',
+    alarmNote:
+      'This downloads a calendar file. The reminder is given by your calendar application, not by Booking Platform, and only once you have added the appointment.',
+    cancelNote: 'This file removes the appointment from the calendar you already added it to.',
+  },
+
+  notificationCentre: {
+    title: 'Activity',
+    subtitle: 'What has happened to your appointments.',
+    tabActivity: 'Activity',
+    tabDelivery: 'Deliveries',
+    none: 'Nothing new yet.',
+    noneUnread: 'You are up to date.',
+    markAllRead: 'Mark everything read',
+    unread: 'Unread',
+    onlyUnread: 'Unread only',
+    all: 'Everything',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    openAppointment: 'Open the appointment',
+    inAppOnly:
+      'This activity is shown here, inside the application. It does not send notifications to your phone.',
+    item: {
+      created: '{{customer}} booked an appointment',
+      rescheduled: '{{customer}} moved their appointment',
+      message: '{{customer}} wrote to you',
+      status: {
+        pending: "{{customer}}'s appointment is pending",
+        confirmed: "{{customer}}'s appointment was confirmed",
+        completed: "{{customer}}'s appointment was completed",
+        cancelled: "{{customer}}'s appointment was cancelled",
+        no_show: '{{customer}} did not turn up',
+        unknown: "{{customer}}'s appointment changed",
+      },
+    },
   },
 
   notifications: {
