@@ -54,7 +54,11 @@ on conflict (id) do nothing;
 
 create temporary table thread_fixture (
   appointment_id uuid,
-  access_token uuid
+  access_token uuid,
+  -- Which day the booking landed on. The suite used to assume it was
+  -- `current_date + 5`; it is now whichever of the next fortnight the
+  -- professional actually works, so the later assertions have to be told.
+  booked_day date
 ) on commit preserve rows;
 
 -- The suite changes role repeatedly to play each part, and a temporary table
@@ -71,17 +75,30 @@ declare
   v_id uuid;
   v_token uuid;
   v_messages integer;
+  v_offset integer;
+  v_day date;
 begin
-  select starts_at into v_slot
-  from public.get_available_slots(
-    '33333333-3333-4333-8333-333333333333',
-    '44444444-4444-4444-8444-000000000001',
-    (current_date + 5)
-  )
-  order by 1 limit 1;
+  -- The first day in the next fortnight that this professional actually
+  -- works, rather than a fixed offset. `current_date + 5` was a Sunday every
+  -- Tuesday, the seed closes on Sundays, and the suite failed for a reason
+  -- that had nothing to do with messaging. A fixture calendar is not a
+  -- calendar the test may assume the shape of.
+  for v_offset in 1 .. 14 loop
+    select starts_at into v_slot
+    from public.get_available_slots(
+      '33333333-3333-4333-8333-333333333333',
+      '44444444-4444-4444-8444-000000000001',
+      (current_date + v_offset)
+    )
+    order by 1 limit 1;
+    if v_slot is not null then
+      v_day := current_date + v_offset;
+      exit;
+    end if;
+  end loop;
 
   if v_slot is null then
-    raise exception 'FAIL: the fixture calendar has no free slot to book';
+    raise exception 'FAIL: the fixture calendar has no free slot in the next fortnight';
   end if;
 
   v_result := public.book_appointment(
@@ -92,7 +109,7 @@ begin
 
   v_id := (v_result ->> 'appointmentId')::uuid;
   v_token := (v_result ->> 'accessToken')::uuid;
-  insert into thread_fixture values (v_id, v_token);
+  insert into thread_fixture values (v_id, v_token, v_day);
 
   -- The guest writes, holding nothing but their link.
   perform public.send_appointment_message_by_token(v_id, v_token, 'Hola, llego 5 minutos tarde.');
@@ -398,20 +415,22 @@ declare
   v_taken integer;
   v_free integer;
   v_whole integer;
+  v_booked_day date;
 begin
+  select booked_day into v_booked_day from thread_fixture;
   -- Same free slots as the booking path, plus the rest of the day around them.
   select count(*) into v_free
   from public.get_available_slots(
     '33333333-3333-4333-8333-333333333333',
     '44444444-4444-4444-8444-000000000001',
-    (current_date + 5)
+    v_booked_day
   );
 
   select count(*) into v_whole
   from public.get_day_schedule(
     '33333333-3333-4333-8333-333333333333',
     '44444444-4444-4444-8444-000000000001',
-    (current_date + 5)
+    v_booked_day
   );
 
   if v_whole <= v_free then
@@ -422,7 +441,7 @@ begin
   from public.get_day_schedule(
     '33333333-3333-4333-8333-333333333333',
     '44444444-4444-4444-8444-000000000001',
-    (current_date + 5)
+    v_booked_day
   )
   where state = 'taken';
 
@@ -436,7 +455,7 @@ begin
   from public.get_day_schedule(
     '33333333-3333-4333-8333-333333333333',
     '44444444-4444-4444-8444-000000000001',
-    (current_date + 5)
+    v_booked_day
   );
 
   if v_states !~ '^(available|past|taken|unavailable)(,(available|past|taken|unavailable))*$' then

@@ -19,6 +19,7 @@ export type Language = 'es' | 'en';
 export const TEXT = {
   es: {
     chooseService: '1. Elige un servicio',
+    chooseADay: 'Elige un día',
     date: 'Fecha',
     nextWeek: 'Semana siguiente',
     fullName: 'Nombre completo',
@@ -40,6 +41,7 @@ export const TEXT = {
   },
   en: {
     chooseService: '1. Choose a service',
+    chooseADay: 'Choose a day',
     date: 'Date',
     nextWeek: 'Next week',
     fullName: 'Full name',
@@ -89,14 +91,29 @@ export async function chooseDay(page: Page, iso: string, language: Language = 'e
   const escaped = spoken.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
   const day = page.getByRole('radio', { name: new RegExp('^' + escaped) });
 
+  // The strip, so "has the week changed yet" can be asked of the right seven
+  // controls rather than of every radio on the page.
+  const strip = page.getByRole('radiogroup', { name: TEXT[language].chooseADay });
+  const firstChip = () => strip.getByRole('radio').first().getAttribute('aria-label');
+
   // Ten weeks of stepping more than covers the 60-day booking horizon.
   for (let attempt = 0; attempt < 10; attempt++) {
     if ((await day.count()) > 0) {
       await day.click();
       return;
     }
+
+    // Wait for the strip to actually move, not for 250ms to pass.
+    //
+    // This used to sleep. On a loaded runner the re-render sometimes took
+    // longer than that, so the next iteration counted the chips of the week it
+    // had already left, stepped again, and walked straight past the day it was
+    // looking for -- ten times, and then threw. It failed perhaps one run in
+    // twenty and never on a developer's machine, which is exactly the shape of
+    // the intermittent failure reported against product.spec.ts.
+    const before = await firstChip();
     await page.getByRole('button', { name: TEXT[language].nextWeek }).click();
-    await page.waitForTimeout(250);
+    await expect.poll(() => firstChip(), { timeout: 10_000 }).not.toBe(before);
   }
 
   throw new Error(`the day strip never reached ${iso} (${spoken})`);
