@@ -101,15 +101,20 @@ the two most important facts about the environment had no gate at all.
 
 Four things have been carried out in the dashboard with the Product Owner
 signed in: three on **26 September 2026** and the notification migration on
-**29 September 2026**. Nothing is outstanding. They are kept here because the procedures are what a
+**29 September 2026**. They are kept here because the procedures are what a
 second project would need, and because the checks are how anybody confirms the
 state has not drifted.
 
-|                         | Done                                      | Proved by                                                 |
-| ----------------------- | ----------------------------------------- | --------------------------------------------------------- |
-| 1. The weekly migration | applied, ledger recorded, schema reloaded | `verify-week-function.sql`, `verify-cloud-week.mjs` 11/11 |
-| 2. Public registration  | off at the Auth server                    | `/auth/v1/settings` says `disable_signup: true`           |
-| 3. The probe accounts   | 8 removed, 4 accounts left                | the survivors each own a business or are the demo         |
+**One thing is outstanding**, and it is the only reason the current release
+branch has not been merged: the exceptions migration in section 5 below.
+
+|                              | Done                                      | Proved by                                                  |
+| ---------------------------- | ----------------------------------------- | ---------------------------------------------------------- |
+| 1. The weekly migration      | applied, ledger recorded, schema reloaded | `verify-week-function.sql`, `verify-cloud-week.mjs` 11/11  |
+| 2. Public registration       | off at the Auth server                    | `/auth/v1/settings` says `disable_signup: true`            |
+| 3. The probe accounts        | 8 removed, 4 accounts left                | the survivors each own a business or are the demo          |
+| 4. Notification functions    | applied, ledger recorded, schema reloaded | four functions `SECURITY DEFINER`, `anon` refused with 401 |
+| 5. One day, one set of hours | **not yet applied**                       | nothing yet — this is the outstanding action               |
 
 None of it needed a service-role key, a database password or an access token,
 and none was written down.
@@ -376,6 +381,100 @@ Or from a SQL client, which needs no browser:
 select count(*) from public.list_professional_notifications(
   '22222222-2222-4222-8222-222222222222');
 ```
+
+### 5. One day, one set of hours — NOT YET APPLIED
+
+`supabase/migrations/20261002100000_one_day_has_one_set_of_hours.sql`
+— SHA-256 `393f2df7…de466572`, 4 112 bytes.
+
+**This is the one outstanding operation.** The release branch
+`release/final-professional-beta-hardening` is finished and green, and is
+deliberately not merged until this has run.
+
+#### What it fixes
+
+The exceptions screen promises that custom hours "replace that day's normal
+hours entirely". Saving twice for one date did not replace anything: it
+inserted a second row, `working_windows` returned both, and a professional who
+changed a Wednesday from 11:00–15:00 to 13:00–15:00 was still open at 11:00 —
+with no way to see that from the screen they had just used.
+
+The application half of the fix is already in the branch:
+`createDateException` now deletes the conflicting row before inserting. That
+alone stops new duplicates, and it does not need this migration to work. What
+the migration adds is the guarantee — a rule about what the data is allowed to
+mean belongs in the database, where a retry, a race or a second client cannot
+get around it — plus a one-time clean-up of any duplicate rows that already
+exist.
+
+#### Whether any already exist, on this project, is not known
+
+`availability_exceptions` is readable only by `authenticated`, so an anonymous
+query returns an empty list whether the table is empty or not. It proves
+nothing either way. The migration handles both cases: it deletes duplicates
+first — newest wins, being what the professional most recently asked for —
+and only then creates the indexes, so it cannot fail on existing data.
+
+#### The exact action
+
+Any of these, in order of preference. It is replay-safe:
+`create unique index if not exists`, and the deletes are no-ops once there is
+nothing left to delete, so running it twice is not an error.
+
+```bash
+# a. The CLI, with a personal access token from the dashboard.
+export SUPABASE_ACCESS_TOKEN=...        # this command only; never committed
+npx supabase link --project-ref qqzzscfrbotsoizfabvw
+npx supabase db push
+
+# b. psql, with the project's database password.
+psql "$CLOUD_DB_URL" -v ON_ERROR_STOP=1 \
+  -f supabase/migrations/20261002100000_one_day_has_one_set_of_hours.sql
+```
+
+c. Or the dashboard's SQL Editor: paste that one file, whole, and run it.
+
+**If you use the SQL Editor, record it in the ledger afterwards**, or the next
+`db push` will replay it:
+
+```sql
+insert into supabase_migrations.schema_migrations (version, name)
+values ('20261002100000', '20261002100000_one_day_has_one_set_of_hours.sql')
+on conflict (version) do nothing;
+```
+
+A schema reload is **not** needed this time — the migration adds no function
+and changes no signature, so PostgREST's cached schema is still accurate.
+
+#### Then prove it
+
+```sql
+-- Two indexes, both partial.
+select indexname from pg_indexes
+where tablename = 'availability_exceptions'
+  and indexname like 'availability_exceptions_one_%';
+-- expect: availability_exceptions_one_custom_day
+--         availability_exceptions_one_closure_day
+
+-- No date is left with two sets of custom hours, or two whole-day closures.
+select professional_id, exception_date, exception_type, count(*)
+from public.availability_exceptions
+where exception_type = 'available'
+   or (exception_type = 'unavailable' and start_time is null)
+group by 1, 2, 3 having count(*) > 1;
+-- expect: 0 rows
+```
+
+Or from the application, signed in as the demo professional: open
+**Horario → Excepciones**, save custom hours for one date, then save different
+custom hours for the same date. The second save replaces the first, and the
+list shows one entry rather than two.
+
+Timed closures are deliberately left unconstrained — "shut 10:00–11:00 and
+again 14:00–15:00" is additive rather than contradictory, and the seed uses
+one. `supabase/tests/scheduling_arithmetic.sql` asserts both halves: the
+second custom-hours row for a date raises `unique_violation`, and two timed
+closures still succeed.
 
 ## Development data
 
