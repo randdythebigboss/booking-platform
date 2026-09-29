@@ -105,16 +105,20 @@ signed in: three on **26 September 2026** and the notification migration on
 second project would need, and because the checks are how anybody confirms the
 state has not drifted.
 
-**One thing is outstanding**, and it is the only reason the current release
-branch has not been merged: the exceptions migration in section 5 below.
+Section 5 was applied on 29 September 2026, which unblocked the release.
+**One thing is still outstanding**, found while verifying that one: four
+migrations are applied but absent from the ledger (section 6). It breaks no
+running behaviour and did not block the release, but it will break the next
+`db push`.
 
-|                              | Done                                      | Proved by                                                  |
-| ---------------------------- | ----------------------------------------- | ---------------------------------------------------------- |
-| 1. The weekly migration      | applied, ledger recorded, schema reloaded | `verify-week-function.sql`, `verify-cloud-week.mjs` 11/11  |
-| 2. Public registration       | off at the Auth server                    | `/auth/v1/settings` says `disable_signup: true`            |
-| 3. The probe accounts        | 8 removed, 4 accounts left                | the survivors each own a business or are the demo          |
-| 4. Notification functions    | applied, ledger recorded, schema reloaded | four functions `SECURITY DEFINER`, `anon` refused with 401 |
-| 5. One day, one set of hours | **not yet applied**                       | nothing yet — this is the outstanding action               |
+|                               | Done                                       | Proved by                                                   |
+| ----------------------------- | ------------------------------------------ | ----------------------------------------------------------- |
+| 1. The weekly migration       | applied, ledger recorded, schema reloaded  | `verify-week-function.sql`, `verify-cloud-week.mjs` 11/11   |
+| 2. Public registration        | off at the Auth server                     | `/auth/v1/settings` says `disable_signup: true`             |
+| 3. The probe accounts         | 8 removed, 4 accounts left                 | the survivors each own a business or are the demo           |
+| 4. Notification functions     | applied, ledger recorded, schema reloaded  | four functions `SECURITY DEFINER`, `anon` refused with 401  |
+| 5. One day, one set of hours  | applied, ledger recorded, no reload needed | 2 partial unique indexes; 1 duplicate removed with approval |
+| 6. Four unrecorded migrations | **outstanding**                            | applied but absent from the ledger; breaks the next db push |
 
 None of it needed a service-role key, a database password or an access token,
 and none was written down.
@@ -382,14 +386,20 @@ select count(*) from public.list_professional_notifications(
   '22222222-2222-4222-8222-222222222222');
 ```
 
-### 5. One day, one set of hours — NOT YET APPLIED
+### 5. One day, one set of hours — applied
 
 `supabase/migrations/20261002100000_one_day_has_one_set_of_hours.sql`
 — SHA-256 `393f2df7…de466572`, 4 112 bytes.
 
-**This is the one outstanding operation.** The release branch
-`release/final-professional-beta-hardening` is finished and green, and is
-deliberately not merged until this has run.
+**Applied on 29 September 2026**, through the dashboard's SQL Editor with the
+Product Owner signed in. The text was loaded into the editor and its SHA-256
+checked against the file in this repository _before_ it ran, not after. The
+ledger row was written. No schema reload was needed: this migration adds no
+function and changes no signature, so PostgREST's cached schema stayed
+accurate.
+
+There was one duplicate on the project, and it was real rather than
+hypothetical — see "What was actually there" below.
 
 #### What it fixes
 
@@ -407,15 +417,34 @@ mean belongs in the database, where a retry, a race or a second client cannot
 get around it — plus a one-time clean-up of any duplicate rows that already
 exist.
 
-#### Whether any already exist, on this project, is not known
+#### What was actually there
 
-`availability_exceptions` is readable only by `authenticated`, so an anonymous
-query returns an empty list whether the table is empty or not. It proves
-nothing either way. The migration handles both cases: it deletes duplicates
-first — newest wins, being what the professional most recently asked for —
-and only then creates the indexes, so it cannot fail on existing data.
+Before this ran, the project held five exception rows, and two of them were
+the defect:
 
-#### The exact action
+| Professional  | Date       | Type        | Hours       | Reason                |
+| ------------- | ---------- | ----------- | ----------- | --------------------- |
+| Luis Castillo | 2026-09-25 | unavailable | 12:00–14:00 | Reunión con proveedor |
+| Luis Castillo | 2026-10-04 | unavailable | all day     | Día personal          |
+| Luis Castillo | 2026-10-12 | available   | 09:10–12:00 | Off-grid opening      |
+| Luis Castillo | 2026-10-12 | available   | 09:10–12:00 | Off-grid opening      |
+| Alex Rivera   | 2026-09-24 | unavailable | all day     | Feriado local         |
+
+The two 12 October rows were identical in every field except `id` and
+`created_at` (`6a99d2ba…` at 04:50 UTC, `7111fbb1…` at 14:33 UTC on 22
+September), and `working_windows` really was returning that window twice.
+Because they said the same thing, keeping the newer one preserved the
+schedule exactly: Luis is still open 09:10–12:00 on 12 October, and the
+engine now returns one window instead of two. The Product Owner approved the
+removal before it ran, with those findings in front of them.
+
+Worth noting for anyone reading this later: an anonymous query of
+`availability_exceptions` returns an empty list whether or not the table has
+rows, because its select policy is `to authenticated`. An earlier check that
+took that emptiness at face value would have concluded there was nothing to
+clean up, and would have been wrong.
+
+#### The procedure, for a second project or a restore
 
 Any of these, in order of preference. It is replay-safe:
 `create unique index if not exists`, and the deletes are no-ops once there is
@@ -446,7 +475,14 @@ on conflict (version) do nothing;
 A schema reload is **not** needed this time — the migration adds no function
 and changes no signature, so PostgREST's cached schema is still accurate.
 
-#### Then prove it
+#### Proved, on 29 September 2026
+
+Every check below was run against the project after the migration, and all of
+them passed: both indexes exist and are unique _and_ partial; four exception
+rows remain; no date has two sets of custom hours or two whole-day closures;
+Luis's 12 October entry survives with its exact hours and reason; his other
+two entries and Alex Rivera's are untouched; and `working_windows` returns one
+window for that date instead of two.
 
 ```sql
 -- Two indexes, both partial.
@@ -475,6 +511,58 @@ again 14:00–15:00" is additive rather than contradictory, and the seed uses
 one. `supabase/tests/scheduling_arithmetic.sql` asserts both halves: the
 second custom-hours row for a date raises `unique_violation`, and two timed
 closures still succeed.
+
+### 6. Four migrations are applied but not recorded — OUTSTANDING
+
+Found on 29 September 2026 while verifying the ledger after section 5, and
+**not fixed**: the fix was attempted and refused, so it is left here as the
+next operation somebody should carry out deliberately.
+
+The ledger holds 38 rows; this repository holds 42 migrations. The four it
+does not name are:
+
+```
+20260929100000_a_day_can_be_looked_at_whole.sql
+20260929100100_a_customer_may_have_an_account.sql
+20260929100200_a_conversation_about_one_appointment.sql
+20260929100300_classify_the_new_functions.sql
+```
+
+They **are** applied. Every object they create was confirmed present on the
+project: the `slot_state` and `message_author` types, the
+`appointment_messages` table, and the `get_day_schedule`, `claim_appointment`
+and `my_appointments` functions. The application depends on all of them and
+works. What is missing is only the bookkeeping — they were run through the
+SQL Editor without the ledger insert this document asks for.
+
+#### Why it matters
+
+`npx supabase db push` replays anything the ledger does not name, and these
+four are not replay-safe: `create type public.slot_state` and
+`create table public.appointment_messages` carry no `if not exists`, so the
+push would stop with "type already exists" partway through. Nothing is wrong
+with the database today; the next person to use the CLI against this project
+is the one who gets hurt.
+
+#### The action
+
+Recording what is already true. It changes no schema and no data:
+
+```sql
+insert into supabase_migrations.schema_migrations (version, name) values
+  ('20260929100000', '20260929100000_a_day_can_be_looked_at_whole.sql'),
+  ('20260929100100', '20260929100100_a_customer_may_have_an_account.sql'),
+  ('20260929100200', '20260929100200_a_conversation_about_one_appointment.sql'),
+  ('20260929100300', '20260929100300_classify_the_new_functions.sql')
+on conflict (version) do nothing;
+```
+
+Then confirm the ledger names all 42:
+
+```sql
+select count(*) from supabase_migrations.schema_migrations;
+-- expect: 42
+```
 
 ## Development data
 
