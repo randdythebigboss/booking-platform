@@ -1,6 +1,6 @@
 # Release candidate
 
-**Version: `0.1.0-beta.2`**
+**Version: `0.1.0-beta.3`**
 
 What has to be true before this is put in front of anybody, and what was true
 when it was last checked. Short on purpose: a checklist nobody finishes is
@@ -10,8 +10,8 @@ worse than no checklist.
 
 | Place                           | Value                                                                    |
 | ------------------------------- | ------------------------------------------------------------------------ |
-| `package.json` `version`        | `0.1.0-beta.2`                                                           |
-| `app.json` `expo.extra.release` | `0.1.0-beta.2`                                                           |
+| `package.json` `version`        | `0.1.0-beta.3`                                                           |
+| `app.json` `expo.extra.release` | `0.1.0-beta.3`                                                           |
 | `app.json` `expo.version`       | `0.1.0` — the platform version; Apple and Google reject a prerelease tag |
 | Diagnostics screen              | reads `expo.extra.release`                                               |
 
@@ -78,29 +78,29 @@ Then, by hand, the things a checklist cannot do:
 
 ## Last verified
 
-|                                                                      |                                                               |
-| -------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Version                                                              | `0.1.0-beta.2`                                                |
-| Branch                                                               | `main`                                                        |
-| GitHub Actions                                                       | all three jobs green                                          |
-| Lint, types                                                          | clean                                                         |
-| Unit tests                                                           | **396 passing**, 36 files                                     |
-| SQL suites                                                           | **12 passing**, from an empty database, 40 migrations         |
-| End-to-end                                                           | **128 tests**, 12 files — desktop and 375px                   |
-| Accessibility                                                        | **0 violations** (axe, WCAG 2.1 A + AA), in the browser suite |
-| Expo doctor                                                          | 20/21 — see below                                             |
-| Web export                                                           | 1.83 MB JS raw, **503 KB gzipped**, one chunk                 |
-| Clean clone                                                          | `npm ci`, verify, export, verify-build, secret scan — pass    |
-| Secret scan                                                          | clean — only the validation regex and test placeholders       |
-| Tables without RLS                                                   | **0**                                                         |
-| `SECURITY DEFINER` without a pinned `search_path`                    | **0**                                                         |
-| Functions `anon` may execute                                         | 13, all classified                                            |
-| `anon` on notifications, payments, payment_events, platform_settings | **no privilege at all**                                       |
-| Payment simulation, cloud                                            | **off**                                                       |
-| Real payment provider                                                | **none**                                                      |
-| Real messaging provider                                              | **none**                                                      |
-| Cloud smoke                                                          | booking and cancellation on the deployed beta, both languages |
-| Responsive                                                           | 320 / 375 / 430 / 768px — no horizontal overflow              |
+|                                                                      |                                                                    |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Version                                                              | `0.1.0-beta.3`                                                     |
+| Branch                                                               | `main`                                                             |
+| GitHub Actions                                                       | all three jobs green                                               |
+| Lint, types                                                          | clean                                                              |
+| Unit tests                                                           | **470 passing**, 42 files                                          |
+| SQL suites                                                           | **14 passing**, from an empty database, 42 migrations              |
+| End-to-end                                                           | **149 passed, 2 skipped**, 14 files — desktop, 375px and 320px     |
+| Accessibility                                                        | **0 violations** (axe, WCAG 2.1 A + AA), 16 audits, light and dark |
+| Expo doctor                                                          | 20/21 — see below                                                  |
+| Web export                                                           | 1.83 MB JS raw, **503 KB gzipped**, one chunk                      |
+| Clean clone                                                          | `npm ci`, verify, export, verify-build, secret scan — pass         |
+| Secret scan                                                          | clean — only the validation regex and test placeholders            |
+| Tables without RLS                                                   | **0**                                                              |
+| `SECURITY DEFINER` without a pinned `search_path`                    | **0**                                                              |
+| Functions `anon` may execute                                         | 13, all classified                                                 |
+| `anon` on notifications, payments, payment_events, platform_settings | **no privilege at all**                                            |
+| Payment simulation, cloud                                            | **off**                                                            |
+| Real payment provider                                                | **none**                                                           |
+| Real messaging provider                                              | **none**                                                           |
+| Cloud smoke                                                          | booking and cancellation on the deployed beta, both languages      |
+| Responsive                                                           | 320 / 375 / 430 / 768px — no horizontal overflow                   |
 
 ### The one failing doctor check
 
@@ -152,8 +152,8 @@ A product pass the Product Owner asked for before inviting anybody:
 A Git tag is the whole ceremony:
 
 ```bash
-git tag -a v0.1.0-beta.2 -m "Beta 2: customer-centred scheduling and the professional week"
-git push origin v0.1.0-beta.2
+git tag -a v0.1.0-beta.3 -m "Beta 3: the scheduling answer, and two controls a phone could not reach"
+git push origin v0.1.0-beta.3
 ```
 
 **No GitHub Release is published**, because publishing one reads as a
@@ -169,43 +169,44 @@ These are two different things and the difference is not a mistake.
 | ------------------------------------ | -------------------- |
 | Tag `v0.1.0-beta.1`                  | commit `5781886`     |
 | Tag `v0.1.0-beta.2`                  | commit `50547b5`     |
+| Tag `v0.1.0-beta.3`                  | commit `PENDING`     |
 | `main`, and what GitHub Pages serves | `git rev-parse main` |
-| Version the running bundle reports   | `0.1.0-beta.2`       |
+| Version the running bundle reports   | `0.1.0-beta.3`       |
 
-`main` moves; the tag does not. Everything on `main` past `v0.1.0-beta.2` is
-operational, and none of it changes what the product does for a tester:
-
-- `07ebaf1` — tooling and documentation for the cloud work this repository
-  cannot perform itself.
-- `4724b57` — the account screens ask the Auth server whether registration is
-  possible instead of assuming, and the readiness check reports five separate
-  categories instead of one total.
-- Documentation after that, including this section.
+`main` moves; the tag does not.
 
 `node tools/release/readiness.mjs` reports the deployed commit and whether its
 workflow succeeded, which is the answer to "what is actually out there" that
 does not go stale.
 
-**No tag was moved and no history was rewritten.** `v0.1.0-beta.2` still points
-at the commit it was cut from, which is the only thing a tag is for.
+**No tag has ever been moved and no history rewritten.** `v0.1.0-beta.1` and
+`v0.1.0-beta.2` still point at the commits they were cut from, which is the
+only thing a tag is for.
 
-**No `v0.1.0-beta.3` was cut**, because there is nothing to announce: no
-feature, no fix to product behaviour, no change a tester would notice while
-the shared project stays as it is. The version string stayed `0.1.0-beta.2`
-deliberately, so the bundle keeps telling the truth about which release it is.
+### Why `v0.1.0-beta.3` was cut
 
-The next tag belongs to the next thing a tester can see.
+The previous version of this section recorded why it was _not_: there was
+nothing a tester would notice. That stopped being true. Beta 3 carries three
+fixes to product behaviour, two of them things a tester could hit in the first
+ten minutes:
 
-`get_week_availability` was installed on the shared project on 26 September
-2026, so the weekly view now makes one call where it used to make seven. That
-is a real change in what the product does under somebody's finger — but it is
-a change in the _environment_, not in this repository: the same commit produced
-both behaviours, and the fallback that produced the old one is still there for
-a project that has not been migrated. Tagging it would attach a version to
-something a tag cannot describe.
+- Two controls were off the side of a 320px screen and therefore unreachable,
+  since the page does not scroll sideways: "change every week" on the
+  calendar, and the end-time box in the block editor.
+- One date could hold two contradictory sets of custom hours. The shared
+  project really had a duplicate, and `working_windows` really was returning
+  that day's window twice.
+- A confirmation message showed a raw ISO date instead of a written one.
 
-So the next tag waits for the next change to the code, and this is the record
-that the environment moved underneath it.
+It also answers the scheduling question that prompted this round — the engine
+was right, and the 15-minute increment was the explanation — and the settings
+screen now shows that arithmetic to the person who can change it.
+
+For the record, the environment moved once without a tag: `get_week_availability`
+was installed on the shared project on 26 September 2026, so the weekly view
+makes one call where it used to make seven. The same commit produced both
+behaviours, and the fallback is still there for a project that has not been
+migrated, so no tag could have described it.
 
 ## If something is wrong afterwards
 
