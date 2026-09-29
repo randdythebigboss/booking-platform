@@ -135,3 +135,33 @@ test.describe('the pages a professional sees', () => {
     await audit(page);
   });
 });
+
+/**
+ * The same screens with the lights off.
+ *
+ * Dark mode is a second palette, and contrast is the one accessibility rule a
+ * palette can break on its own: text that clears 4.5:1 against a white card
+ * can fail against a near-black one, and nothing in the light-mode audit
+ * above would notice. A representative screen from each part of the product
+ * rather than all fourteen again -- the palette is shared, so a failure in it
+ * shows up wherever it is used.
+ */
+test.describe('the same product, in dark mode', () => {
+  test.use({ colorScheme: 'dark' });
+
+  test('the public booking page', async ({ page }) => {
+    await page.goto(`/p/${TENANT_A.slug}/book`);
+    await expect(page.getByText(TEXT.es.chooseService)).toBeVisible();
+    await audit(page);
+  });
+
+  test('the screens behind the sign-in', async ({ page }) => {
+    await signIn(page, TENANT_A.email, TENANT_A.password);
+
+    for (const route of ['/app/dashboard', '/app/calendar', '/app/availability']) {
+      await page.goto(route);
+      await expect(page.locator('body')).toContainText(/\w/);
+      await audit(page);
+    }
+  });
+});
